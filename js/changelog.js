@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.4.1',
+    date: '2026-11-11',
+    changes: [
+      'ANSI 圖（進板畫面等）的色塊改成直接畫滿整格，消除色塊之間的細縫，顏色連成一片'
+    ]
+  },
+  {
     version: '1.4.0',
     date: '2026-11-11',
     changes: [

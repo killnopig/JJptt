@@ -972,3 +972,34 @@ span {
 #jjReader .jjr-warn { color: #ff5c5c; }
 #jjReader .jjr-watch { color: #d58bff; }
 #jjReader .jjr-push-img { display: block; max-width: 60%; max-height: 240px; margin-top: 6px; border-radius: 6px; padding: 0; background: transparent; }
+
+/* JJptt: ANSI-art block characters drawn as exact cell-filling blocks */
+#mainContainer i.jjb {
+  display: inline-block;
+  width: var(--jj-cw2, 1em);
+  height: var(--jj-ch, 1em);
+  vertical-align: top;
+  font-style: normal;
+  -webkit-text-fill-color: transparent;
+  background-color: inherit;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: 100% 100%;
+}
+#mainContainer i.jjb-l1 { background-size: 100% 12.5%; }
+#mainContainer i.jjb-l2 { background-size: 100% 25%; }
+#mainContainer i.jjb-l3 { background-size: 100% 37.5%; }
+#mainContainer i.jjb-l4 { background-size: 100% 50%; }
+#mainContainer i.jjb-l5 { background-size: 100% 62.5%; }
+#mainContainer i.jjb-l6 { background-size: 100% 75%; }
+#mainContainer i.jjb-l7 { background-size: 100% 87.5%; }
+#mainContainer i.jjb-w1 { background-size: 12.5% 100%; }
+#mainContainer i.jjb-w2 { background-size: 25% 100%; }
+#mainContainer i.jjb-w3 { background-size: 37.5% 100%; }
+#mainContainer i.jjb-w4 { background-size: 50% 100%; }
+#mainContainer i.jjb-w5 { background-size: 62.5% 100%; }
+#mainContainer i.jjb-w6 { background-size: 75% 100%; }
+#mainContainer i.jjb-w7 { background-size: 87.5% 100%; }
+/* rows and coloured spans fill the full line so backgrounds have no gaps */
+#mainContainer > span > span { display: inline-block; vertical-align: top; height: var(--jj-ch, auto); }

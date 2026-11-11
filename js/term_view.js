@@ -341,23 +341,24 @@ TermView.prototype = {
     var row = this.curRow;
     var col = this.curCol;
     var s1 = '';
+    var cell = this.getCellHtml(char1);
     if ((this.openSpan && (fg == this.curFg && bg == this.curBg && ch.blink == this.curBlink)) && forceWidth === 0) {
-      return char1;
+      return cell;
     }
 
     s1 += this.closeSpanIfIsOpen();
     if (fg == this.deffg && bg == this.defbg && !ch.blink && forceWidth === 0) { // default colors
       this.setCurColorStyle(fg, bg, false);
-      s1 += char1;
+      s1 += cell;
     } else if (forceWidth === 0) { // different colors, so create span
       this.setCurColorStyle(fg, bg, ch.blink);
       s1 += '<span class="q' +fg+ ' b' +bg+'">';
-      s1 += (ch.blink?'<x s="q'+fg+' b'+bg+'" h="qq'+bg+'"></x>':'') + char1;
+      s1 += (ch.blink?'<x s="q'+fg+' b'+bg+'" h="qq'+bg+'"></x>':'') + cell;
       this.openSpan = true;
     } else { // different colors, create span and set current color to default because forceWidth
       this.setCurColorStyle(this.deffg, this.defbg, false);
       s1 += '<span class="wpadding q' +fg+ ' b' +bg+'" ';
-      s1 += 'style="display:inline-block;width:'+forceWidth+'px;"' +'>' + (ch.blink?'<x s="q'+fg+' b'+bg+'" h="qq'+bg+'"></x>':'') + char1 + '</span>';
+      s1 += 'style="display:inline-block;width:'+forceWidth+'px;"' +'>' + (ch.blink?'<x s="q'+fg+' b'+bg+'" h="qq'+bg+'"></x>':'') + cell + '</span>';
     }
     return s1;
   },
@@ -379,17 +380,17 @@ TermView.prototype = {
     }
 
     if (this.openSpan && (bg == this.curBg && (fg == this.curFg || char1 <= ' ') && ch.blink == this.curBlink)) {
-      s1 += this.getHtmlEntitySafe(char1);
+      s1 += this.getCellHtml(char1);
     } else if (bg == this.defbg && (fg == this.deffg || char1 <= ' ') && !ch.blink) {
       s1 += this.closeSpanIfIsOpen();
       this.setCurColorStyle(fg, bg, false);
-      s1 += this.getHtmlEntitySafe(char1);
+      s1 += this.getCellHtml(char1);
     } else {
       s1 += this.closeSpanIfIsOpen();
       this.setCurColorStyle(fg, bg, ch.blink);
       s1 +='<span '+ (ch.isPartOfURL()?'link="true" ':'') +'class="q' +fg+ ' b' +bg+ '">'+ (ch.blink?'<x s="q'+fg+' b'+bg+'" h="qq'+bg+'"></x>':'');
       this.openSpan = true;
-      s1 += this.getHtmlEntitySafe(char1);
+      s1 += this.getCellHtml(char1);
     }
     if (s2) {
       this.setCurColorStyle(this.deffg, this.defbg, false);
@@ -859,6 +860,8 @@ TermView.prototype = {
       mainWidth += Math.max(0, Math.min(spare, this.chw * 40));
     }
     this.mainDisplay.style.setProperty('--jj-label-left', (this.chw*this.buf.cols) + 'px');
+    this.mainDisplay.style.setProperty('--jj-cw2', (this.chw*2) + 'px');
+    this.mainDisplay.style.setProperty('--jj-ch', this.chh + 'px');
     this.mainContainer.style.paddingLeft = leftGutter ? leftGutter + 'px' : '';
     this.lastRowDiv.style.paddingLeft = leftGutter ? leftGutter + 'px' : '';
     this.replyRowDiv.style.paddingLeft = leftGutter ? leftGutter + 'px' : '';
@@ -1197,6 +1200,15 @@ TermView.prototype = {
     this.curFg = fg;
     this.curBg = bg;
     this.curBlink = blink;
+  },
+
+  // JJptt: block characters used in ANSI art are drawn as exact colour
+  // blocks filling the whole cell (see .jjb in main.css). Font glyphs for
+  // them rarely fill the cell, leaving seams between rows and columns.
+  getCellHtml: function(inputChar) {
+    var cls = TermView.BLOCK_CLASSES[inputChar];
+    if (cls) return '<i class="jjb ' + cls + '">' + inputChar + '</i>';
+    return this.getHtmlEntitySafe(inputChar);
   },
 
   getHtmlEntitySafe: function(inputChar) {
@@ -1867,3 +1879,14 @@ function base58_decode(snipcode)
     }
     return decoded;
 }
+
+// Block element characters (Big5 has these) -> drawing class.
+TermView.BLOCK_CLASSES = {
+  '\u2588': 'jjb-f',                                            // █
+  '\u2581': 'jjb-l1', '\u2582': 'jjb-l2', '\u2583': 'jjb-l3', // ▁▂▃
+  '\u2584': 'jjb-l4', '\u2585': 'jjb-l5', '\u2586': 'jjb-l6', // ▄▅▆
+  '\u2587': 'jjb-l7',                                           // ▇
+  '\u258f': 'jjb-w1', '\u258e': 'jjb-w2', '\u258d': 'jjb-w3', // ▏▎▍
+  '\u258c': 'jjb-w4', '\u258b': 'jjb-w5', '\u258a': 'jjb-w6', // ▌▋▊
+  '\u2589': 'jjb-w7'                                            // ▉
+};
