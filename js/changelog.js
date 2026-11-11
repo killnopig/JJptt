@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.29.1',
+    date: '2026-11-12',
+    changes: [
+      '設定 → 排版 最上面加提示：排版跑掉時先按重新整理（Mac ⌘ + R、Windows F5）看看有沒有改善；README 的常見問題也加上這一條'
+    ]
+  },
+  {
     version: '1.29.0',
     date: '2026-11-12',
     changes: [

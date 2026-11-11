@@ -768,6 +768,9 @@ locale.en_US = {
   "tempBlack_in": {
     "message": ", in "
   },
+  "options_layoutRefreshNote": {
+    "message": "If the layout looks wrong (overlapping text, things out of place, a setting not taking effect), try reloading the page first (⌘ + R on Mac, F5 on Windows). It reconnects (log in again unless auto login is set); your settings stay."
+  },
   "options_tempBlacklistRemove": {
     "message": "remove"
   },

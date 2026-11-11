@@ -765,6 +765,9 @@ locale.zh_TW = {
   "tempBlack_in": {
     "message": "，在 "
   },
+  "options_layoutRefreshNote": {
+    "message": "排版跑掉（字重疊、錯位、改了設定畫面沒跟著變）時，先按重新整理（Mac 按 ⌘ + R，Windows 按 F5）看看有沒有改善。重新整理會重新連線（沒設自動登入的話要再登入一次），設定不會不見。"
+  },
   "options_tempBlacklistRemove": {
     "message": "移除"
   },

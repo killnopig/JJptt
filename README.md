@@ -113,6 +113,9 @@ cd %USERPROFILE% && git clone https://github.com/killnopig/JJptt.git
 **點了 JJptt 圖示，畫面一直連不上**
 本機小程式沒裝好，或裝完沒有完全關閉瀏覽器。重新做一次步驟 3，然後 `⌘ + Q`（Windows 關掉所有視窗）再重開。
 
+**排版跑掉、畫面怪怪的**
+例如字疊在一起、位置錯開、改了設定畫面沒跟著變：先按重新整理（Mac 按 `⌘ + R`，Windows 按 `F5`）看看有沒有改善。重新整理會重新連線（沒設自動登入的話要再登入一次），設定不會不見。還是不行的話，到 GitHub 回報問題，附上截圖。
+
 **忘記 JJptt 資料夾放在哪裡**
 打開 `chrome://extensions` → JJptt 卡片的「詳細資料」→ 往下找「來源」，那個路徑去掉最後的 `/extension` 就是。
 

@@ -297,6 +297,7 @@ PttChromePref.prototype = {
     $('#modalHeader').text(i18n('options_'+currTab));
 
     $('#opt_autologinWarning').text(i18n('autologin_warning'));
+    $('#opt_layoutRefreshNote').text(i18n('options_layoutRefreshNote'));
 
     // blacklist
     $('#opt_blacklistInstruction').text(i18n('options_blacklistInstruction'));
