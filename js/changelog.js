@@ -3,6 +3,15 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.7.4',
+    date: '2026-11-11',
+    changes: [
+      '修正：閱讀模式打開時停在上一篇的捲動位置；現在從文章最上面開始',
+      '載入期間已在終端機往下翻頁的話，閱讀模式會直接跳到終端機正在看的那一行',
+      '修正：推文中間的「※ 編輯」行被移到推文前面；現在維持原本位置'
+    ]
+  },
+  {
     version: '1.7.3',
     date: '2026-11-11',
     changes: [

@@ -232,6 +232,7 @@ PttReader.prototype.fetchArticle = function(url) {
       var tagEl = n.querySelector('.push-tag');
       var idEl = n.querySelector('.push-userid');
       if (!tagEl || !idEl) continue;  // e.g. "檔案過大！部分文章無法顯示"
+      n.setAttribute('data-push-index', pushes.length);
       var contentEl = n.querySelector('.push-content');
       var ipdt = (n.querySelector('.push-ipdatetime') || {}).textContent || '';
       var ipm = /((?:\d{1,3}\.){3}\d{1,3})/.exec(ipdt);
@@ -244,7 +245,9 @@ PttReader.prototype.fetchArticle = function(url) {
       });
     }
     var body = main.cloneNode(true);
-    var drop = body.querySelectorAll('.article-metaline, .article-metaline-right, .push, .richcontent');
+    // pushes stay in place (marked with data-push-index) so that "※ 編輯"
+    // lines between them keep their position and line numbers stay right
+    var drop = body.querySelectorAll('.article-metaline, .article-metaline-right, .richcontent, .push:not([data-push-index])');
     for (var k = 0; k < drop.length; ++k) drop[k].parentNode.removeChild(drop[k]);
     return { url: url, meta: meta, text: body.textContent, body: body, pushes: pushes };
   });
@@ -366,6 +369,7 @@ PttReader.prototype.openFor = function(h, key, manual) {
     self.article = article;
     self.render(article, h);
     self.show();
+    self.restorePosition();
   }).catch(function(e) {
     console.log('reader unavailable for this article:', e);
     if (self.loadingKey === key) {
@@ -598,6 +602,15 @@ PttReader.toLines = function(root) {
       return;
     }
     if (node.nodeType !== 1) return;
+    if (node.hasAttribute('data-push-index')) {
+      // a push is one line of its own
+      var marker = [];
+      marker.push_index = +node.getAttribute('data-push-index');
+      if (!lines[lines.length - 1].length) lines[lines.length - 1] = marker;
+      else lines.push(marker);
+      lines.push([]);
+      return;
+    }
     var next = PttReader.colorState(node, st);
     for (var c = node.firstChild; c; c = c.nextSibling) walk(c, next);
   };
@@ -688,10 +701,20 @@ PttReader.prototype.render = function(article, h) {
   page.appendChild(this.headerNode(article, h));
 
   var lines = PttReader.toLines(article.body);
-  // drop the trailing empty line left by the removed pushes
-  while (lines.length && !lines[lines.length - 1].length) lines.pop();
+  if (lines.length && !lines[lines.length - 1].length && lines[lines.length - 1].push_index === undefined) lines.pop();
+  var pushNodes = this.renderPushes(article);
   for (var i = 0; i < lines.length; ++i) {
+    if (lines[i].push_index !== undefined) {
+      var pn = pushNodes[lines[i].push_index];
+      if (pn) {
+        pn.line.setAttribute('data-line', 5 + i);
+        page.appendChild(pn.frag);
+      }
+      continue;
+    }
     var r = this.lineNode(lines[i]);
+    // PTT line number: 3 header lines + separator, then the body
+    r.node.setAttribute('data-line', 5 + i);
     page.appendChild(r.node);
     var text = r.node.textContent.trim();
     var quoted = /^[:：]/.test(text) || /^※/.test(text);
@@ -699,10 +722,40 @@ PttReader.prototype.render = function(article, h) {
       for (var u = 0; u < r.urls.length; ++u) page.appendChild(this.linkBlock(r.urls[u], true));
     }
   }
-  page.appendChild(this.renderPushes(article));
-  o.querySelector('.jjt-scroll').scrollTop = 0;
   this.updateStatus();
   this.loadPreviews(page);
+};
+
+// After showing: start at the top, or at the line the terminal is showing
+// if the user already paged down while the article was loading. (Scrolling
+// must happen after the overlay is visible; hidden elements ignore it.)
+PttReader.prototype.restorePosition = function() {
+  var self = this;
+  var scroller = this.overlay.querySelector('.jjt-scroll');
+  var target = 0;
+  var buf = this.app.buf;
+  if (buf.pageState == 3) {
+    var status = buf.getRowText(23, 0, buf.cols).parseStatusRow();
+    if (status && status.rowIndexStart > 1) {
+      var lines = this.overlay.querySelectorAll('.jjt-page [data-line]');
+      for (var i = 0; i < lines.length; ++i) {
+        if (+lines[i].getAttribute('data-line') >= status.rowIndexStart) {
+          target = lines[i];
+          break;
+        }
+      }
+    }
+  }
+  scroller.scrollTop = 0;
+  if (target) {
+    // put the line where the terminal's first row is
+    var page = this.overlay.querySelector('.jjt-page');
+    var top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+    scroller.scrollTop = Math.max(0, top - (parseFloat(page.style.paddingTop) || 0));
+  }
+  this.updateStatus();
+  // keep it there while images above finish loading
+  requestAnimationFrame(function() { self.updateStatus(); });
 };
 
 PttReader.prototype.updateStatus = function() {
@@ -750,12 +803,13 @@ PttReader.prototype.renderPushes = function(article) {
     if (p.ip) (idsByIp[p.ip] = idsByIp[p.ip] || {})[id] = true;
   });
 
-  var wrap = document.createDocumentFragment();
+  var result = [];
   var nth = {};
   article.pushes.forEach(function(p, i) {
     var id = p.id.toLowerCase();
     nth[id] = (nth[id] || 0) + 1;
     if ((id in black) && hide) return;
+    var wrap = document.createDocumentFragment();
 
     var hints = [];
     var level = '';
@@ -799,6 +853,7 @@ PttReader.prototype.renderPushes = function(article) {
     if (label) line.setAttribute('data-jj', label);
     if (level) line.setAttribute('data-jj-level', level);
     wrap.appendChild(line);
+    result[i] = { line: line, frag: wrap };
     // images posted in pushes
     content.urls.forEach(function(u) {
       if (!PttReader.imageSrc(u)) return;
@@ -807,5 +862,5 @@ PttReader.prototype.renderPushes = function(article) {
       wrap.appendChild(media);
     });
   });
-  return wrap;
+  return result;
 };
