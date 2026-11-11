@@ -342,6 +342,9 @@ locale.zh_TW = {
   "options_watchlistInstruction": {
     "message": "觀察名單：每行一個使用者 ID，後面可以加空格和備註。推文會被標記。"
   },
+  "cmenu_refresh": {
+    "message": "重新整理畫面（列表亂掉時用）"
+  },
   "cmenu_askAi": {
     "message": "問 AI：這是不是事實？"
   },
@@ -615,6 +618,33 @@ locale.zh_TW = {
   "fact_allOff": {
     "message": "全部關閉"
   },
+  "options_fgTask": {
+    "message": "10 推任務文"
+  },
+  "options_factTask": {
+    "message": "10 推任務文：推文數剛好在 10 推左右、全部集中在發文後幾分鐘、之後很久沒人推，而且前 10 推都是很短的純推，前 10 推的帳號標「10推任務」"
+  },
+  "options_factTaskMin": {
+    "message": "推文數下限"
+  },
+  "options_factTaskMax": {
+    "message": "推文數上限"
+  },
+  "options_factTaskWindow": {
+    "message": "推文都在發文後幾分鐘內"
+  },
+  "options_factTaskQuietHours": {
+    "message": "之後至少幾小時沒人推（文章太新不判斷）"
+  },
+  "options_factTaskShort": {
+    "message": "前 10 推每則最多幾個字"
+  },
+  "options_factTaskSquad": {
+    "message": "任務班底：同一個帳號在好幾篇「10 推任務文」的前 10 推都出現，標「任務班底(N篇)」"
+  },
+  "options_factTaskSquadMin": {
+    "message": "至少出現在幾篇"
+  },
   "options_factFastPush": {
     "message": "秒推：發文後幾分鐘內就推文的人標「秒推」，內文長到不可能讀完的標「秒推‧沒讀完」"
   },
@@ -673,7 +703,7 @@ locale.zh_TW = {
     "message": "至少在幾篇該作者的文章秒推過（且超過一半）"
   },
   "fact_historyNote": {
-    "message": "以下兩條需要跨文章的資料：JJptt 會在這台電腦上記下你在閱讀模式看過（含預先讀取）的文章推文順序，最多 400 篇，不會上傳也不會同步。"
+    "message": "以下需要跨文章的資料：JJptt 會在這台電腦上記下你在閱讀模式看過（含預先讀取）的文章推文順序，最多 400 篇，不會上傳也不會同步。"
   },
   "fact_historyCount": {
     "message": "目前已累積 %s 篇"

@@ -1942,6 +1942,7 @@ pttchrome.App.prototype.setupContextMenus = function() {
 
   $('#cmenu_copy a').html(i18n('cmenu_copy')+'<span class="cmenuHotkey">Ctrl+C</span>');
   $('#cmenu_askAi a').text(i18n('cmenu_askAi'));
+  $('#cmenu_refresh a').text(i18n('cmenu_refresh'));
   $('#cmenu_copyAnsi a').text(i18n('cmenu_copyAnsi'));
   $('#cmenu_paste a').html(i18n('cmenu_paste')+'<span class="cmenuHotkey">Ctrl+Shift+V</span>');
   $('#cmenu_selectAll a').html(i18n('cmenu_selectAll')+'<span class="cmenuHotkey">Ctrl+A</span>');
@@ -1963,6 +1964,9 @@ pttchrome.App.prototype.setupContextMenus = function() {
   var contextMenuItemOnClickHandler = {
     'cmenu_copy': function() { 
       self.doCopy(selectedText); 
+    },
+    'cmenu_refresh': function() {
+      self.view.resetListCache();
     },
     'cmenu_askAi': function() {
       self.askAi(selectedText);

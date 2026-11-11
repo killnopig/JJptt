@@ -1,4 +1,4 @@
-var PREFS_CATEGORIES = ['mouseBrowsing', 'appearance', 'listLayout', 'askAi', 'factLists', 'factDetect', 'autologinBox', 'genReader', 'genList', 'genOther', 'fgReport', 'fgStyle', 'fgIp', 'fgTime', 'fgContent', 'fgHistory', 'mbBasic', 'mbButtons'];
+var PREFS_CATEGORIES = ['mouseBrowsing', 'appearance', 'listLayout', 'askAi', 'factLists', 'factDetect', 'autologinBox', 'genReader', 'genList', 'genOther', 'fgReport', 'fgStyle', 'fgIp', 'fgTime', 'fgContent', 'fgHistory', 'mbBasic', 'mbButtons', 'fgTask'];
 var PREFS_NAV = ['general', 'layout', 'mouseBrowsing', 'autologin', 'blacklist', 'syncBackup', 'about'];
 var DEFAULT_PREFS = {
 
@@ -77,6 +77,14 @@ var DEFAULT_PREFS = {
   factSquad : true,
   factSquadMin : 3,
   factHosting : true,
+  factTask : true,
+  factTaskMin : 10,
+  factTaskMax : 12,
+  factTaskWindow : 5,
+  factTaskQuietHours : 2,
+  factTaskShort : 5,
+  factTaskSquad : true,
+  factTaskSquadMin : 2,
   repeatPusherMin : 2,
   textColor : '#f7f7f7',
   floorColor : '#ffea00',

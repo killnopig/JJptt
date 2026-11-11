@@ -25,7 +25,9 @@ FactCheck.DEFAULTS = {
   factSubnet: true, factSubnetMin: 3,
   factCooccur: true, factCooccurRate: 70, factCooccurMin: 5,
   factSquad: true, factSquadMin: 3,
-  factHosting: true
+  factHosting: true,
+  factTask: true, factTaskMin: 10, factTaskMax: 12, factTaskWindow: 5, factTaskQuietHours: 2, factTaskShort: 5,
+  factTaskSquad: true, factTaskSquadMin: 2
 };
 
 FactCheck.prototype.opt = function(name) {
@@ -298,8 +300,34 @@ FactCheck.prototype.analyze = function(article) {
     }
   }
 
+  // 6. 10 推任務文: pushed to exactly ~10 right after posting, then nobody,
+  //    and the first 10 are bare short 推
+  this.lastTaskIds = null;
+  if (this.opt('factTask') && post) {
+    var tMin = this.opt('factTaskMin'), tMax = this.opt('factTaskMax');
+    var win = this.opt('factTaskWindow') * 60000, quietMs = this.opt('factTaskQuietHours') * 3600000;
+    var shortLen = this.opt('factTaskShort');
+    var lastT = 0, allIn = n > 0;
+    for (i = 0; i < n; ++i) {
+      if (!times[i]) { allIn = false; break; }
+      if (times[i] - Math.floor(post / 60000) * 60000 > win) allIn = false;
+      if (times[i] > lastT) lastT = times[i];
+    }
+    var head = pushes.slice(0, Math.min(10, n));
+    var pure = head.every(function(p) { return p.tag === '推' && FactCheck.normalize(p.content).length <= shortLen; });
+    if (n >= tMin && n <= tMax && allIn && pure && Date.now() - lastT >= quietMs) {
+      this.lastTaskIds = {};
+      for (i = 0; i < head.length; ++i) {
+        add(i, '10推任務', 'warn');
+        this.lastTaskIds[ids[i]] = true;
+      }
+      report.push('疑似 10 推任務文：共 ' + n + ' 推，全部在發文 ' + this.opt('factTaskWindow') + ' 分鐘內，之後 ' +
+                  Math.floor((Date.now() - lastT) / 3600000) + ' 小時以上沒人推；前 ' + head.length + ' 推都是 ' + shortLen + ' 字以內的純推');
+    }
+  }
+
   // Phase 2: patterns over many articles
-  this.history.record(article, ids, this.lastFastIds || {});
+  this.history.record(article, ids, this.lastFastIds || {}, this.lastTaskIds);
   this.historyTags(article, ids, add, report);
 
   // Phase 3: data-centre / VPN addresses. Shown first: the report line goes
@@ -395,6 +423,23 @@ FactCheck.prototype.historyTags = function(article, ids, add, report) {
       }).join('；') + (fl.length > 4 ? '…' : ''));
     }
   }
+  if (this.opt('factTaskSquad')) {
+    // accounts in the first 10 pushes of several 10-push task articles
+    var taskCounts = h.taskCounts();
+    var tmin = this.opt('factTaskSquadMin');
+    var crew = [];
+    for (i = 0; i < ids.length; ++i) {
+      var tc = taskCounts.counts[ids[i]] || 0;
+      if (tc >= tmin) {
+        add(i, '任務班底(' + tc + '篇)', 'warn');
+        if (crew.indexOf(ids[i]) < 0) crew.push(ids[i]);
+      }
+    }
+    if (crew.length) {
+      report.push('任務班底：' + crew.slice(0, 8).map(function(k) { return k + '（' + taskCounts.counts[k] + ' 篇）'; }).join('、') +
+                  (crew.length > 8 ? '…' : '') + '——在累積的 ' + taskCounts.total + ' 篇 10 推任務文中，反覆出現在前 10 推');
+    }
+  }
   if (this.opt('factSquad') && this.lastFastIds) {
     var author = String((article.meta && article.meta['作者']) || '').split(' ')[0].toLowerCase();
     var squad = h.squad(author, this.opt('factSquadMin'));
@@ -475,19 +520,33 @@ FactHistory.prototype.clear = function() {
 };
 
 // ids in push order (repeats kept), fastIds: pushed within the fast window
-FactHistory.prototype.record = function(article, ids, fastIds) {
+FactHistory.prototype.record = function(article, ids, fastIds, taskIds) {
   if (!article || !article.url || !ids.length) return;
   var d = this.load();
   var key = String(article.url).replace(/^https?:\/\/[^\/]+/, '');
   var author = String((article.meta && article.meta['作者']) || '').split(' ')[0].toLowerCase();
   var entry = { u: author, p: ids.slice(0, FactHistory.MAX_PUSHERS), f: Object.keys(fastIds || {}) };
+  if (taskIds) entry.k = Object.keys(taskIds);  // first 10 of a 10-push task article
   var old = d.a[key];
-  if (old && old.p.length === entry.p.length && old.f.length === entry.f.length) return;  // nothing new
+  if (old && old.p.length === entry.p.length && old.f.length === entry.f.length &&
+      !!old.k === !!entry.k) return;  // nothing new
   if (!old) d.order.push(key);
   d.a[key] = entry;
   while (d.order.length > FactHistory.MAX_ARTICLES) delete d.a[d.order.shift()];
   this.index = null;
   this.save();
+};
+
+// How many 10-push task articles each account was in the first 10 of.
+FactHistory.prototype.taskCounts = function() {
+  var d = this.load();
+  var counts = {}, total = 0;
+  for (var k in d.a) {
+    if (!d.a[k].k) continue;
+    total++;
+    d.a[k].k.forEach(function(id) { counts[id] = (counts[id] || 0) + 1; });
+  }
+  return { counts: counts, total: total };
 };
 
 // id -> list of article keys, built once per change

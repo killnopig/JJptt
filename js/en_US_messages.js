@@ -345,6 +345,9 @@ locale.en_US = {
   "options_watchlistInstruction": {
     "message": "Watchlist: one user ID per line, optionally followed by a space and a note. Their pushes get flagged."
   },
+  "cmenu_refresh": {
+    "message": "Refresh screen (if the list looks wrong)"
+  },
   "cmenu_askAi": {
     "message": "Ask AI: is this true?"
   },
@@ -617,6 +620,33 @@ locale.en_US = {
   },
   "fact_allOff": {
     "message": "All off"
+  },
+  "options_fgTask": {
+    "message": "10-push task articles"
+  },
+  "options_factTask": {
+    "message": "10-push task articles: about 10 pushes, all right after posting, then silence, and the first 10 are short bare 推; their accounts are tagged"
+  },
+  "options_factTaskMin": {
+    "message": "Fewest pushes"
+  },
+  "options_factTaskMax": {
+    "message": "Most pushes"
+  },
+  "options_factTaskWindow": {
+    "message": "All pushes within minutes of posting"
+  },
+  "options_factTaskQuietHours": {
+    "message": "Silent for at least hours afterwards (newer articles are skipped)"
+  },
+  "options_factTaskShort": {
+    "message": "Longest first-10 push (characters)"
+  },
+  "options_factTaskSquad": {
+    "message": "Task crew: accounts in the first 10 pushes of several 10-push task articles"
+  },
+  "options_factTaskSquadMin": {
+    "message": "Articles needed"
   },
   "options_factFastPush": {
     "message": "Fast pushes within a few minutes of posting (marked stronger when the article is too long to have been read)"

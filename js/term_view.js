@@ -1150,6 +1150,14 @@ TermView.prototype = {
   // with PTT's ↑/↓ and the window moves with it, so the cursor stays on the
   // same screen row (from the newest at the top, space lands on the article
   // a page older, at the top).
+  // 重新整理: forget the kept rows and ask PTT to draw the screen again.
+  resetListCache: function() {
+    this.revState = null;
+    this.listMap = null;
+    if (this.conn) this.conn.send('\x0c');  // Ctrl+L: PTT redraws
+    this.redraw(true);
+  },
+
   // Newest-first list: move the cursor to the newest article with ↓ steps
   // (PTT's own "jump to last" keys do not always work here) and show the
   // top of the list.
@@ -1203,11 +1211,33 @@ TermView.prototype = {
     var first = 3, last = buf.rows - 2, slots = last - first + 1;
     var boardMatch = /看板《(\w+)》/.exec(buf.getRowText(0, 0, buf.cols));
     var board = boardMatch ? boardMatch[1] : '';
+    // the list kind (文章列表, 文摘, search results...) is on the bottom row:
+    // each kind numbers its rows its own way, so each gets its own cache
+    var kind = buf.getRowText(buf.rows - 1, 0, 24).trim().split(/\s+/)[0] || '';
+    var listKey = board + '|' + kind;
     var st = this.revState;
     var entered = false;
-    if (!st || st.board !== board) {
-      st = this.revState = { board: board, cache: {}, pinned: [], ws: 0, fill: 'start' };
+    if (!st || st.board !== listKey) {
+      st = this.revState = { board: listKey, cache: {}, pinned: [], ws: 0, fill: 'start' };
       entered = true;
+    } else {
+      // a page far away from everything kept (a jump, another listing):
+      // start the cache over instead of stitching unrelated rows together
+      var cached = Object.keys(st.cache).map(Number);
+      if (cached.length) {
+        var cmin = Math.min.apply(null, cached), cmax = Math.max.apply(null, cached);
+        var far = true, seenNum = false;
+        for (var fr = first; fr <= last; ++fr) {
+          var fm = /^.\s*(\d+)\s/.exec(buf.getRowText(fr, 0, buf.cols));
+          if (!fm) continue;
+          seenNum = true;
+          if (+fm[1] >= cmin - slots * 2 && +fm[1] <= cmax + slots * 2) { far = false; break; }
+        }
+        if (seenNum && far) {  // like entering the list again
+          st = this.revState = { board: listKey, cache: {}, pinned: [], ws: 0, fill: 'start' };
+          entered = true;
+        }
+      }
     }
     var pinnedNow = [], onScreen = {}, numbered = 0;
     // The selected article is the row marked ">" (or "●"); PTT does not
