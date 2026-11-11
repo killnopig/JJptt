@@ -1085,6 +1085,10 @@ TermView.prototype = {
     // only article lists ("編號 日 期 作 者 文 章 標 題"), not board lists
     // ("編號 看 板 類別 ...")
     if (!/日\s*期\s*作\s*者/.test(this.buf.getRowText(2, 0, this.buf.cols))) return;
+    if (reverse) {
+      this.updateReversedList(hidePinned);
+      return;
+    }
     var first = 3, last = this.buf.rows - 2;  // article rows between header and status
     var normal = [], pinned = [], rest = [];
     for (var r = first; r <= last; ++r) {
@@ -1113,10 +1117,117 @@ TermView.prototype = {
     this.listMap = { slotOf: slotOf, rowOf: rowOf, hidden: hidden, reversed: reverse };
   },
 
+  // Newest-first article list. PTT shows one page at a time and the last
+  // page is often short, so rows seen on earlier screens are remembered by
+  // article number and the screen shows a continuous newest-first window
+  // around the cursor. Rows not on PTT's current screen are display-only.
+  updateReversedList: function(hidePinned) {
+    var buf = this.buf;
+    var first = 3, last = buf.rows - 2, slots = last - first + 1;
+    var boardMatch = /看板《(\w+)》/.exec(buf.getRowText(0, 0, buf.cols));
+    var board = boardMatch ? boardMatch[1] : '';
+    var st = this.revState;
+    var entered = false;
+    if (!st || st.board !== board) {
+      st = this.revState = { board: board, cache: {}, pinned: [], ws: 0, fill: 'start' };
+      entered = true;
+    }
+    var pinnedNow = [], onScreen = {}, numbered = 0;
+    for (var r = first; r <= last; ++r) {
+      var text = buf.getRowText(r, 0, buf.cols);
+      if (!text.trim()) continue;
+      if (/^.{0,8}\u2605/.test(text)) {
+        pinnedNow.push(r);
+        continue;
+      }
+      var m = /^.\s*(\d+)\s/.exec(text);
+      if (!m) continue;
+      var num = +m[1];
+      numbered++;
+      onScreen[num] = r;
+      var html = this.htmlRowStrArray[r] || '';
+      if (/^>/.test(text)) html = html.replace('&gt;', ' ');  // not the cursor when shown from cache
+      st.cache[num] = html.replace(/ srow="\d+"/g, ' srow="-1"');
+    }
+    var nums = Object.keys(st.cache).map(Number).sort(function(a, b) { return b - a; });
+    if (nums.length > 300) {
+      nums.slice(300).forEach(function(n) { delete st.cache[n]; });
+      nums = nums.slice(0, 300);
+    }
+    // pinned posts only appear on the last page: remember them
+    var self = this;
+    if (pinnedNow.length) {
+      st.pinned = pinnedNow.map(function(r) {
+        return (self.htmlRowStrArray[r] || '').replace('&gt;', ' ').replace(/ srow="\d+"/g, ' srow="-1"');
+      });
+    }
+    var pinned = [];
+    if (!hidePinned) {
+      if (pinnedNow.length) pinned = pinnedNow.map(function(r) { return { r: r }; });
+      else pinned = st.pinned.map(function(h) { return { html: h, r: -1 }; });
+    }
+    var items = pinned.concat(nums.map(function(n) {
+      return { num: n, r: (n in onScreen) ? onScreen[n] : -1 };
+    }));
+    // keep the cursor visible, moving the window as little as possible
+    var ci = -1;
+    for (var i = 0; i < items.length; ++i) {
+      if (items[i].r === buf.cur_y) { ci = i; break; }
+    }
+    if (ci >= 0) {
+      if (ci <= pinned.length) st.ws = 0;             // at the newest: show the top
+      else if (ci < st.ws) st.ws = ci;
+      else if (ci >= st.ws + slots) st.ws = ci - slots + 1;
+    }
+    st.ws = Math.max(0, Math.min(st.ws, Math.max(0, items.length - slots)));
+
+    var slotOf = [], rowOf = [], html = [];
+    for (var k = 0; k < buf.rows; ++k) { slotOf[k] = -1; rowOf[k] = k; html[k] = this.htmlRowStrArray[k]; }
+    for (var j = 0; j < first; ++j) slotOf[j] = j;
+    for (j = last + 1; j < buf.rows; ++j) slotOf[j] = j;
+    for (var s = 0; s < slots; ++s) {
+      var it = items[st.ws + s];
+      var slot = first + s;
+      if (!it) {
+        rowOf[slot] = -1;
+        html[slot] = '<span type="bbsrow" srow="-1"> </span>';
+      } else if (it.r >= 0) {
+        rowOf[slot] = it.r;
+        slotOf[it.r] = slot;
+        html[slot] = this.htmlRowStrArray[it.r];
+      } else {
+        rowOf[slot] = -1;
+        html[slot] = it.html || st.cache[it.num];
+      }
+    }
+    this.listMap = { slotOf: slotOf, rowOf: rowOf, html: html, hidden: {}, reversed: true };
+
+    // Entering a board on a short last page: look at the previous page once
+    // (PageUp), then once it has been drawn come back to the newest article
+    // (End). Sent separately: PTT would otherwise only draw the final screen.
+    if (!this.conn) return;
+    if (st.fill === 'start') {
+      st.fill = 'done';
+      if (entered && numbered && numbered + pinnedNow.length < slots) {
+        st.fill = 'up';
+        this.conn.send('\x1b[5~');
+        var conn = this.conn;
+        st.fillTimer = setTimeout(function() {  // safety net
+          if (st.fill === 'up') { st.fill = 'done'; conn.send('\x1b[4~'); }
+        }, 1500);
+      }
+    } else if (st.fill === 'up' && !pinnedNow.length) {
+      st.fill = 'done';
+      clearTimeout(st.fillTimer);
+      this.conn.send('\x1b[4~');
+    }
+  },
+
   orderedRowHtml: function() {
     var rows = this.htmlRowStrArray;
     var map = this.listMap;
     if (!map) return rows;
+    if (map.html) return map.html;
     var out = [];
     for (var slot = 0; slot < rows.length; ++slot) {
       var r = map.rowOf[slot];
@@ -1130,11 +1241,15 @@ TermView.prototype = {
   },
 
   slotOfRow: function(row) {
-    return this.listMap ? this.listMap.slotOf[row] : row;
+    if (!this.listMap) return row;
+    var s = this.listMap.slotOf[row];
+    return s >= 0 ? s : row;
   },
 
   rowOfSlot: function(slot) {
-    return this.listMap ? this.listMap.rowOf[slot] : slot;
+    if (!this.listMap) return slot;
+    var r = this.listMap.rowOf[slot];
+    return r >= 0 ? r : this.buf.cur_y;  // rows from earlier screens: stay put
   },
 
   listReversed: function() {

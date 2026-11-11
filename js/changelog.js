@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.9.3',
+    date: '2026-11-11',
+    changes: [
+      '「最新的在上面」：進入看板時游標在最新一篇；最後一頁文章不足時，自動帶出上一頁補滿畫面',
+      '游標跨頁移動時畫面連續捲動，不會因為 PTT 換頁而跳動'
+    ]
+  },
+  {
     version: '1.9.2',
     date: '2026-11-11',
     changes: [
