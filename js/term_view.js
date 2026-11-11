@@ -1220,7 +1220,8 @@ TermView.prototype = {
     if (!this.conn) return;
     if (st.fill === 'start') {
       st.fill = 'done';
-      if (entered && numbered && numbered + pinnedNow.length < slots) {
+      // count only rows that are shown (hidden pinned posts leave gaps)
+      if (entered && numbered && numbered + (hidePinned ? 0 : pinnedNow.length) < slots) {
         st.fill = 'up';
         this.conn.send('\x1b[5~');
         var conn = this.conn;

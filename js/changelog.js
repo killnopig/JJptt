@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.10.1',
+    date: '2026-11-11',
+    changes: [
+      '修正：「最新的在上面」＋「隱藏置底公告」時，進板（例如八卦板）畫面下方沒有補滿'
+    ]
+  },
+  {
     version: '1.10.0',
     date: '2026-11-11',
     changes: [
