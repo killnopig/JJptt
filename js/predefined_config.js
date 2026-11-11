@@ -1,4 +1,4 @@
-var PREFS_CATEGORIES = ['mouseBrowsing', 'appearance', 'listLayout', 'askAi', 'factLists', 'factDetect', 'autologinBox'];
+var PREFS_CATEGORIES = ['mouseBrowsing', 'appearance', 'listLayout', 'askAi', 'factLists', 'factDetect', 'autologinBox', 'genReader', 'genList', 'genOther', 'fgReport', 'fgStyle', 'fgIp', 'fgTime', 'fgContent', 'fgHistory', 'mbBasic', 'mbButtons'];
 var PREFS_NAV = ['general', 'layout', 'mouseBrowsing', 'autologin', 'blacklist', 'syncBackup', 'about'];
 var DEFAULT_PREFS = {
 

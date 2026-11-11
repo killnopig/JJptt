@@ -124,28 +124,21 @@
                 <div class="group">
                   <div class="list-group">
                     <div class="list-group-item-text">
-                      <div id="opt_closeQuery" class="checkbox">
-                      </div>
-                      <div id="opt_enablePicPreview" class="checkbox">
-                      </div>
-                      <div id="opt_enableNotifications" class="checkbox">
-                      </div>
-                      <div id="opt_pushFilterDefault" class="form-group">
-                      </div>
-                      <div id="opt_enableReader" class="checkbox">
-                      </div>
-                      <div id="opt_readerLowResImages" class="checkbox">
-                      </div>
-                      <div id="opt_readerPrefetchCount" class="form-group">
-                      </div>
-                      <div id="opt_endTurnsOnLiveUpdate" class="checkbox">
-                      </div>
-                      <div id="opt_copyOnSelect" class="checkbox">
-                      </div>
-                      <div id="opt_antiIdleTime" class="form-group">
-                      </div>
-                      <div id="opt_lineWrap" class="form-group">
-                      </div>
+                      <h4 id="opt_genReader" class="list-group-item-heading jj-sec"></h4>
+                      <div id="opt_enableReader" class="checkbox"></div>
+                      <div id="opt_readerLowResImages" class="checkbox"></div>
+                      <div id="opt_readerImageMaxPercent" class="form-group"></div>
+                      <div id="opt_readerPrefetchCount" class="form-group"></div>
+                      <h4 id="opt_genList" class="list-group-item-heading jj-sec"></h4>
+                      <div id="opt_pushFilterDefault" class="form-group"></div>
+                      <div id="opt_endTurnsOnLiveUpdate" class="checkbox"></div>
+                      <h4 id="opt_genOther" class="list-group-item-heading jj-sec"></h4>
+                      <div id="opt_closeQuery" class="checkbox"></div>
+                      <div id="opt_enablePicPreview" class="checkbox"></div>
+                      <div id="opt_enableNotifications" class="checkbox"></div>
+                      <div id="opt_copyOnSelect" class="checkbox"></div>
+                      <div id="opt_antiIdleTime" class="form-group"></div>
+                      <div id="opt_lineWrap" class="form-group"></div>
                     </div>
                   </div>
                 </div>
@@ -159,8 +152,6 @@
                       <div id="opt_listNewestFirst" class="checkbox">
                       </div>
                       <div id="opt_hidePinned" class="checkbox">
-                      </div>
-                      <div id="opt_readerImageMaxPercent" class="form-group">
                       </div>
                     </div>
                   </div>
@@ -193,12 +184,14 @@
                 <div class="group">
                   <div class="list-group">
                     <div class="list-group-item-text">
+                      <h4 id="opt_mbBasic" class="list-group-item-heading jj-sec"></h4>
                       <div id="opt_useMouseBrowsing" class="checkbox">
                       </div>
                       <div id="opt_mouseBrowsingHighlight" class="checkbox">
                       </div>
-                      <div id="opt_mouseBrowsingHighlightColor">
+                      <div id="opt_mouseBrowsingHighlightColor" class="jj-param">
                       </div>
+                      <h4 id="opt_mbButtons" class="list-group-item-heading jj-sec"></h4>
                       <div id="opt_mouseLeftFunction" class="form-group">
                       </div>
                       <div id="opt_mouseMiddleFunction" class="form-group">
@@ -216,16 +209,16 @@
 
               <div class="tab-pane" id="tabContentAutologin">
                 <div class="group">
-                  <small id="opt_autologinWarning" style="color:red;"></small>
                   <div class="list-group">
-                    <h4 id="opt_autologinBox" class="list-group-item-heading" style="margin-bottom:10px;"></h4>
+                    <h4 id="opt_autologinBox" class="list-group-item-heading"></h4>
+                    <p id="opt_autologinWarning" class="jj-note jj-warn"></p>
                     <div class="list-group-item-text">
                       <div id="login_username" class="form-group"></div>
                       <div id="login_password" class="form-group"></div>
                     </div>
                     <div id="opt_enableDeleteDupLogin" class="checkbox">
                     </div>
-                    <div class="btn-group" data-toggle="buttons" style="margin-left:20px;">
+                    <div class="btn-group jj-indent" data-toggle="buttons">
                       <label class="btn btn-default">
                         <input type="radio" name="options" id="opt_deleteDupLoginYes"> Y
                       </label>
@@ -250,18 +243,26 @@
                   <div class="list-group">
                     <h4 id="opt_factLists" class="list-group-item-heading"></h4>
                     <div class="list-group-item-text">
-                      <div id="opt_blacklistMode" class="form-group"></div>
-                      <div id="opt_blacklistedTitleKeywords" class="form-group"></div>
-                      <span id="opt_blacklistInstruction"></span>
-                      <textarea id="opt_blacklistedUsers" class="form-control"></textarea>
-                      <div id="opt_watchlistEnabled" class="checkbox" style="margin-top:15px"></div>
-                      <div id="opt_watchlistInstruction"></div>
-                      <textarea id="opt_watchlistedUsers" class="form-control" style="height:120px"></textarea>
-                      <div id="opt_watchText" class="form-group" style="margin-top:8px"></div>
-                      <div id="opt_customListEnabled" class="checkbox" style="margin-top:15px"></div>
-                      <div id="opt_customListName" class="form-group"></div>
-                      <div id="opt_notesInstruction"></div>
-                      <textarea id="opt_notedUsers" class="form-control" style="height:120px"></textarea>
+                      <div class="jj-listblock">
+                        <div id="opt_blacklistMode" class="form-group"></div>
+                        <div id="opt_blacklistInstruction" class="jj-listlabel"></div>
+                        <textarea id="opt_blacklistedUsers" class="form-control" style="height:120px"></textarea>
+                        <div id="opt_blacklistedTitleKeywords" class="form-group"></div>
+                        <div id="opt_autoBlacklistSameUrl" class="checkbox"></div>
+                        <div id="opt_tempBlacklist" class="jj-note jj-indent"></div>
+                      </div>
+                      <div class="jj-listblock">
+                        <div id="opt_watchlistEnabled" class="checkbox"></div>
+                        <div id="opt_watchText" class="form-group jj-param"></div>
+                        <div id="opt_watchlistInstruction" class="jj-listlabel"></div>
+                        <textarea id="opt_watchlistedUsers" class="form-control" style="height:120px"></textarea>
+                      </div>
+                      <div class="jj-listblock">
+                        <div id="opt_customListEnabled" class="checkbox"></div>
+                        <div id="opt_customListName" class="form-group jj-param"></div>
+                        <div id="opt_notesInstruction" class="jj-listlabel"></div>
+                        <textarea id="opt_notedUsers" class="form-control" style="height:120px"></textarea>
+                      </div>
                     </div>
                   </div>
                   <div class="list-group">
@@ -272,44 +273,48 @@
                         <a id="fact_allOff" class="btn btn-default btn-sm"></a>
                       </div>
                       <div id="opt_enablePushInsights" class="checkbox"></div>
-                      <div id="opt_autoBlacklistSameUrl" class="checkbox"></div>
-                      <div id="opt_tempBlacklist" style="margin:4px 0 10px 20px; color:#555"></div>
-                      <div id="opt_colorRepeatPushers" class="checkbox"></div>
-                      <div id="opt_repeatPusherMin" class="form-group"></div>
+                      <h5 id="opt_fgReport" class="jj-subhead"></h5>
                       <div id="opt_factReport" class="checkbox"></div>
-                      <div id="opt_factReportMinPushes" class="form-group"></div>
-                      <div id="opt_factReportCollapsed" class="checkbox"></div>
+                      <div id="opt_factReportMinPushes" class="form-group jj-param"></div>
+                      <div id="opt_factReportCollapsed" class="checkbox jj-param"></div>
+                      <h5 id="opt_fgStyle" class="jj-subhead"></h5>
+                      <div id="opt_showSuspectPrefix" class="checkbox"></div>
+                      <div id="opt_suspectPrefix" class="form-group jj-param"></div>
+                      <h5 id="opt_fgIp" class="jj-subhead"></h5>
+                      <div id="opt_factSameIp" class="checkbox"></div>
+                      <div id="opt_suspectSameIpText" class="form-group jj-param"></div>
+                      <div id="opt_factAuthorIp" class="checkbox"></div>
+                      <div id="opt_suspectAuthorIpText" class="form-group jj-param"></div>
                       <div id="opt_factHosting" class="checkbox"></div>
-                      <div id="opt_factFastPush" class="checkbox"></div>
-                      <div id="opt_factFastMinutes" class="form-group"></div>
-                      <div id="opt_factBurst" class="checkbox"></div>
-                      <div id="opt_factBurstMin" class="form-group"></div>
-                      <div id="opt_factQuietMin" class="form-group"></div>
-                      <div id="opt_factBoost" class="checkbox"></div>
-                      <div id="opt_factBoostRun" class="form-group"></div>
-                      <div id="opt_factCanned" class="checkbox"></div>
-                      <div id="opt_factCannedMin" class="form-group"></div>
-                      <div id="opt_factCannedSim" class="form-group"></div>
-                      <div id="opt_factCannedPhrase" class="form-group"></div>
-                      <div id="opt_factCannedWindow" class="form-group"></div>
                       <div id="opt_factSubnet" class="checkbox"></div>
-                      <div id="opt_factSubnetMin" class="form-group"></div>
-                      <p id="fact_historyNote" class="jj-note" style="margin-top:14px"></p>
+                      <div id="opt_factSubnetMin" class="form-group jj-param"></div>
+                      <h5 id="opt_fgTime" class="jj-subhead"></h5>
+                      <div id="opt_factFastPush" class="checkbox"></div>
+                      <div id="opt_factFastMinutes" class="form-group jj-param"></div>
+                      <div id="opt_factBurst" class="checkbox"></div>
+                      <div id="opt_factBurstMin" class="form-group jj-param"></div>
+                      <div id="opt_factQuietMin" class="form-group jj-param"></div>
+                      <div id="opt_factBoost" class="checkbox"></div>
+                      <div id="opt_factBoostRun" class="form-group jj-param"></div>
+                      <h5 id="opt_fgContent" class="jj-subhead"></h5>
+                      <div id="opt_colorRepeatPushers" class="checkbox"></div>
+                      <div id="opt_repeatPusherMin" class="form-group jj-param"></div>
+                      <div id="opt_factCanned" class="checkbox"></div>
+                      <div id="opt_factCannedMin" class="form-group jj-param"></div>
+                      <div id="opt_factCannedSim" class="form-group jj-param"></div>
+                      <div id="opt_factCannedPhrase" class="form-group jj-param"></div>
+                      <div id="opt_factCannedWindow" class="form-group jj-param"></div>
+                      <h5 id="opt_fgHistory" class="jj-subhead"></h5>
+                      <p id="fact_historyNote" class="jj-note"></p>
                       <div id="opt_factCooccur" class="checkbox"></div>
-                      <div id="opt_factCooccurRate" class="form-group"></div>
-                      <div id="opt_factCooccurMin" class="form-group"></div>
+                      <div id="opt_factCooccurRate" class="form-group jj-param"></div>
+                      <div id="opt_factCooccurMin" class="form-group jj-param"></div>
                       <div id="opt_factSquad" class="checkbox"></div>
-                      <div id="opt_factSquadMin" class="form-group"></div>
-                      <div style="margin:4px 0 12px">
+                      <div id="opt_factSquadMin" class="form-group jj-param"></div>
+                      <div class="jj-row">
                         <span id="fact_historyCount" style="margin-right:8px"></span>
                         <a id="fact_historyClear" class="btn btn-default btn-sm"></a>
                       </div>
-                      <div id="opt_showSuspectPrefix" class="checkbox"></div>
-                      <div id="opt_suspectPrefix" class="form-group"></div>
-                      <div id="opt_factSameIp" class="checkbox"></div>
-                      <div id="opt_suspectSameIpText" class="form-group"></div>
-                      <div id="opt_factAuthorIp" class="checkbox"></div>
-                      <div id="opt_suspectAuthorIpText" class="form-group"></div>
                     </div>
                   </div>
                   <div class="list-group">
@@ -341,7 +346,7 @@
                   <div class="list-group">
                     <h4 id="backup_title" class="list-group-item-heading"></h4>
                     <div class="list-group-item-text">
-                      <p id="backup_note" style="color:#555"></p>
+                      <p id="backup_note" class="jj-note"></p>
                       <a id="backup_export" class="btn btn-default"></a>
                       <a id="backup_import" class="btn btn-default"></a>
                       <input id="backup_file" type="file" accept=".json,application/json" style="display:none">
@@ -351,10 +356,10 @@
                     <h4 id="update_title" class="list-group-item-heading"></h4>
                     <div class="list-group-item-text">
                       <p id="update_reopen" class="jj-reopen"></p>
-                      <p id="update_help" style="color:#555; white-space:pre-line"></p>
+                      <p id="update_help" class="jj-note" style="white-space:pre-line"></p>
                       <a id="update_now" class="btn btn-primary"></a>
                       <a id="update_check" class="btn btn-default"></a>
-                      <span id="update_status" style="margin-left:8px"></span>
+                      <span id="update_status"></span>
                     </div>
                   </div>
                 </div>
@@ -362,19 +367,23 @@
 
               <div class="tab-pane" id="tabContentAbout">
                 <div class="list-group">
-                  <h4 class="list-group-item-heading">JJptt <small>by <a href="https://github.com/killnopig" target="_blank" rel="noreferrer">killnopig</a></small></h4>
-                  <a href="https://github.com/killnopig/JJptt" target="_blank" rel="noreferrer">https://github.com/killnopig/JJptt</a>
-                  <div class="list-group-item-text" style="margin-top:10px;">
-                    <a id="about_github" href="https://github.com/killnopig/JJptt" target="_blank" rel="noreferrer" class="btn btn-default"></a>
-                    <a id="about_issues" href="https://github.com/killnopig/JJptt/issues" target="_blank" rel="noreferrer" class="btn btn-default"></a>
+                  <h4 class="list-group-item-heading">JJptt</h4>
+                  <div class="list-group-item-text">
+                    <div id="about_pitch" class="jj-pitch"></div>
+                    <div class="jj-row">
+                      <a id="about_github" href="https://github.com/killnopig/JJptt" target="_blank" rel="noreferrer" class="btn btn-default"></a>
+                      <a id="about_issues" href="https://github.com/killnopig/JJptt/issues" target="_blank" rel="noreferrer" class="btn btn-default"></a>
+                    </div>
                   </div>
-                  <div id="about_pitch" class="jj-pitch"></div>
                 </div>
                 <div class="list-group">
-                  <span id="about_forkedFrom"></span>
-                  <a href="https://github.com/iamchucky/PttChrome" target="_blank" rel="noreferrer">PttChrome</a>
-                  <span id="about_forkedBy"></span>
-                  <a href="https://github.com/iamchucky" target="_blank" rel="noreferrer">Chuck Yang</a><span id="about_forkedLicense"></span>
+                  <h4 id="about_source_title" class="list-group-item-heading"></h4>
+                  <div class="list-group-item-text">
+                    <p class="jj-note">
+                      <span id="about_forkedFrom"></span><a href="https://github.com/iamchucky/PttChrome" target="_blank" rel="noreferrer">PttChrome</a><span id="about_forkedBy"></span><a href="https://github.com/iamchucky" target="_blank" rel="noreferrer">Chuck Yang</a><span id="about_forkedLicense"></span>
+                    </p>
+                    <p class="jj-note">作者：<a href="https://github.com/killnopig" target="_blank" rel="noreferrer">killnopig</a>　·　<a href="https://github.com/killnopig/JJptt" target="_blank" rel="noreferrer">github.com/killnopig/JJptt</a></p>
+                  </div>
                 </div>
                 <div class="list-group">
                   <h4 id="about_version_title" class="list-group-item-heading"></h4>
@@ -385,8 +394,7 @@
                 <div class="list-group">
                   <h4 id="about_new_title" class="list-group-item-heading"></h4>
                   <div class="list-group-item-text">
-                    <ul id="about_new">
-                    </ul>
+                    <ul id="about_new" class="jj-changelog"></ul>
                   </div>
                 </div>
               </div>

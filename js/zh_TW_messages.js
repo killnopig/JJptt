@@ -86,7 +86,7 @@ locale.zh_TW = {
     "message": "排版"
   },
   "options_listLayout": {
-    "message": "文章列表與閱讀模式"
+    "message": "文章列表"
   },
   "options_syncBackup": {
     "message": "同步、備份與更新"
@@ -183,6 +183,39 @@ locale.zh_TW = {
   },
   "options_autologinBox": {
     "message": "自動登入"
+  },
+  "options_genReader": {
+    "message": "閱讀模式"
+  },
+  "options_genList": {
+    "message": "文章列表與推文"
+  },
+  "options_genOther": {
+    "message": "其他"
+  },
+  "options_fgReport": {
+    "message": "報告框"
+  },
+  "options_fgStyle": {
+    "message": "標示樣式"
+  },
+  "options_fgIp": {
+    "message": "IP 相關"
+  },
+  "options_fgTime": {
+    "message": "時間相關"
+  },
+  "options_fgContent": {
+    "message": "推文內容"
+  },
+  "options_fgHistory": {
+    "message": "跨文章（需要累積資料）"
+  },
+  "options_mbBasic": {
+    "message": "開關與底色"
+  },
+  "options_mbButtons": {
+    "message": "滑鼠按鍵"
   },
   "options_autologin": {
     "message": "自動登入與其他"
@@ -760,6 +793,9 @@ locale.zh_TW = {
   },
   "about_promote": {
     "message": "喜歡這個 APP 的話也請看看鄉民朝聖套件 "
+  },
+  "about_source_title": {
+    "message": "來源與授權"
   },
   "about_version_title": {
     "message": "版本"

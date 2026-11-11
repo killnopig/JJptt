@@ -86,7 +86,7 @@ locale.en_US = {
     "message": "Layout"
   },
   "options_listLayout": {
-    "message": "List and article view"
+    "message": "Article list"
   },
   "options_syncBackup": {
     "message": "Sync, backup & updates"
@@ -183,6 +183,39 @@ locale.en_US = {
   },
   "options_autologinBox": {
     "message": "Auto login"
+  },
+  "options_genReader": {
+    "message": "Article view"
+  },
+  "options_genList": {
+    "message": "Article list and pushes"
+  },
+  "options_genOther": {
+    "message": "Other"
+  },
+  "options_fgReport": {
+    "message": "Report box"
+  },
+  "options_fgStyle": {
+    "message": "Label style"
+  },
+  "options_fgIp": {
+    "message": "IP"
+  },
+  "options_fgTime": {
+    "message": "Timing"
+  },
+  "options_fgContent": {
+    "message": "Push text"
+  },
+  "options_fgHistory": {
+    "message": "Across articles (needs collected data)"
+  },
+  "options_mbBasic": {
+    "message": "On/off and highlight"
+  },
+  "options_mbButtons": {
+    "message": "Mouse buttons"
   },
   "options_autologin": {
     "message": "Auto login & more"
@@ -763,6 +796,9 @@ locale.en_US = {
   },
   "about_promote": {
     "message": "If you like this app, also take a look at "
+  },
+  "about_source_title": {
+    "message": "Source and licence"
   },
   "about_version_title": {
     "message": "Version"

@@ -437,7 +437,7 @@ PttChromePref.prototype = {
     var contents = [
         'github', 'issues',
         'forkedFrom', 'forkedBy', 'forkedLicense',
-        'version_title',
+        'version_title', 'source_title',
         'new_title'
       ];
     for (var i in contents) {
@@ -463,7 +463,7 @@ PttChromePref.prototype = {
     // Release history, newest first.
     var list = $('#about_new').empty();
     JJPTT_CHANGELOG.forEach(function(entry) {
-      $('<li style="list-style:none; margin:8px 0 2px -18px; font-weight:bold;"></li>')
+      $('<li class="jj-changelog-ver"></li>')
         .text('v' + entry.version + '（' + entry.date + '）').appendTo(list);
       entry.changes.forEach(function(change) {
         $('<li></li>').text(change).appendTo(list);

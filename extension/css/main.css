@@ -1243,7 +1243,7 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 #tabContentBlacklist textarea { max-width: 520px; }
 #tabContentBlacklist #opt_blacklistedUsers { height: 120px !important; min-height: 0; }
 
-.jj-reopen { color: #c0392b; font-weight: bold; margin: 0 0 8px; }
+.jj-reopen { color: #111; font-weight: bold; margin: 0 0 6px; }
 
 /* 真.事實查核中心 report above the pushes */
 .jjt-root .jjt-fact {
@@ -1275,3 +1275,76 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 .jj-pitch-list { padding-left: 18px; margin: 0 0 8px; }
 .jj-pitch-list li { margin: 4px 0; line-height: 1.55; }
 .jj-pitch-foot { color: #777; margin: 0; }
+
+/* 名單: each list is one block in the same order */
+#tabContentBlacklist .jj-listblock { margin: 0 0 22px; padding-bottom: 4px; }
+#tabContentBlacklist .jj-listblock .checkbox { margin-top: 0; }
+#tabContentBlacklist .jj-listlabel { margin: 0 0 4px; }
+
+/* ===== Settings window: one look for every tab =====
+   大 = tab title, 中 = section heading (band + bar), 小 = group heading */
+#prefModal .modal-body { font-size: 14px; color: #222; }
+#prefModal .modal-body .group { float: none; width: auto; min-width: 0; max-width: 600px; }
+#prefModal #modalHeader { font-size: 24px; font-weight: bold; }
+#prefModal .modal-body .list-group { margin: 0 0 32px; padding: 0; }
+#prefModal .modal-body .list-group-item-heading {
+  font-size: 16px; font-weight: bold; color: #111;
+  margin: 0 0 12px; padding: 0 0 6px; border-bottom: 1px solid #ddd;
+  max-width: 600px;
+}
+#prefModal .modal-body .jj-subhead {
+  font-size: 13px; font-weight: bold; color: #555;
+  margin: 18px 0 8px; padding: 0; border: 0;
+}
+#prefModal .modal-body .list-group-item-text { margin: 0; padding: 0; }
+#prefModal .modal-body .list-group-item-text > div,
+#prefModal .modal-body .list-group-item-text > p,
+#prefModal .modal-body .list-group-item-text > ul { margin-left: 0; }
+#prefModal .modal-body .checkbox { margin: 0 0 8px; }
+#prefModal .modal-body .checkbox label { font-weight: normal; line-height: 1.5; }
+#prefModal .modal-body .form-group { margin: 0 0 12px; }
+#prefModal .modal-body .form-group > label,
+#prefModal .modal-body .form-group { font-weight: normal; }
+#prefModal .modal-body .jj-note { color: #666; font-size: 13px; line-height: 1.55; margin: 0 0 10px; max-width: 600px; }
+#prefModal .modal-body .jj-indent { margin-left: 22px !important; }
+#prefModal .modal-body .jj-row { margin: 0 0 12px; }
+#prefModal .modal-body .jj-row .btn { margin: 0 6px 6px 0; }
+/* fields: text and lists share one width, numbers are short */
+#prefModal .modal-body input[type="text"],
+#prefModal .modal-body input[type="password"],
+#prefModal .modal-body select,
+#prefModal .modal-body textarea { width: 100% !important; max-width: 520px; }
+#prefModal .modal-body input[type="number"] { width: 140px !important; }
+#prefModal .modal-body .input-group { max-width: 520px; }
+#prefModal .modal-body .input-group input { max-width: none; }
+#prefModal .modal-body select { margin-top: 4px; }
+#prefModal .modal-body #opt_mouseBrowsingHighlightColor { margin: 0 0 12px; }
+#prefModal .modal-body #opt_mouseBrowsingHighlightColor > select { width: 70px !important; }
+#prefModal .modal-body #opt_autologinWarning { display: block; margin: 0 0 10px; }
+/* 關於 */
+#prefModal .modal-body .jj-pitch { margin: 0 0 12px; }
+#prefModal .modal-body .jj-pitch-title { font-size: 15px; font-weight: bold; margin: 0 0 8px; color: #111; }
+#prefModal .modal-body .jj-pitch-list { padding-left: 18px; margin: 0 0 8px; }
+#prefModal .modal-body .jj-pitch-list li { margin: 4px 0; line-height: 1.6; }
+#prefModal .modal-body .jj-pitch-foot { color: #666; font-size: 13px; margin: 0; }
+#prefModal .modal-body #about_version { font-size: 14px; }
+#prefModal .modal-body .jj-changelog { padding-left: 18px; margin: 0; max-width: 600px; font-size: 13px; line-height: 1.6; color: #333; }
+#prefModal .modal-body .jj-changelog li { margin: 2px 0; }
+#prefModal .modal-body .jj-changelog .jj-changelog-ver { list-style: none; margin: 12px 0 2px -18px; font-weight: bold; font-size: 13px; color: #111; }
+#prefModal .modal-body .jj-changelog .jj-changelog-ver:first-child { margin-top: 0; }
+
+/* sections inside one list (一般), parameters under their switch */
+#prefModal .modal-body .jj-sec { margin-top: 28px; }
+#prefModal .modal-body .jj-sec:first-child { margin-top: 0; }
+#prefModal .modal-body .jj-param { margin-left: 22px !important; }
+#prefModal .modal-body .jj-param input[type="text"] { max-width: 498px; }
+#prefModal .modal-body .jj-warn { color: #a94442; }
+/* quick search rows keep their own two-field layout */
+#prefModal .modal-body #ext_quickSearchList input[type="text"] { width: 100% !important; max-width: none; }
+#prefModal .modal-body #ext_quickSearchList .qSearchItemName { width: 30%; }
+#prefModal .modal-body #ext_quickSearchList .qSearchItemQuery { width: calc(70% - 40px); margin-left: 5px; }
+#prefModal .modal-body #ext_quickSearchList > li { height: auto; overflow: hidden; }
+#prefModal .modal-body #ext_quickSearchList input.qSearchItemName,
+#prefModal .modal-body #ext_quickSearchList div.qSearchItemName { width: 30% !important; float: left; }
+#prefModal .modal-body #ext_quickSearchList input.qSearchItemQuery,
+#prefModal .modal-body #ext_quickSearchList div.qSearchItemQuery { width: calc(70% - 40px) !important; float: left; margin-left: 5px; }
