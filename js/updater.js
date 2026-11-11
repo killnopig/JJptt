@@ -15,6 +15,9 @@ function JJUpdater(app) {
   this.pollTimer = null;
 }
 
+// GitHub API first (raw.githubusercontent.com can serve a copy a few minutes
+// old right after a push), raw file as a fallback.
+JJUpdater.REMOTE_API = 'https://api.github.com/repos/killnopig/JJptt/contents/extension/manifest.json?ref=gh-pages';
 JJUpdater.REMOTE_MANIFEST = 'https://raw.githubusercontent.com/killnopig/JJptt/gh-pages/extension/manifest.json';
 JJUpdater.CHECK_EVERY = 6 * 3600 * 1000;
 
@@ -42,6 +45,23 @@ JJUpdater.prototype.fetchVersion = function(url) {
     .catch(function() { return ''; });
 };
 
+JJUpdater.prototype.fetchRemoteVersion = function() {
+  var self = this;
+  return fetch(JJUpdater.REMOTE_API, {
+    cache: 'no-store',
+    credentials: 'omit',
+    headers: { 'Accept': 'application/vnd.github.raw+json' }
+  }).then(function(r) {
+    return r.ok ? r.json() : null;
+  }).then(function(j) {
+    return (j && j.version) || '';
+  }).catch(function() {
+    return '';
+  }).then(function(v) {
+    return v || self.fetchVersion(JJUpdater.REMOTE_MANIFEST);
+  });
+};
+
 JJUpdater.prototype.start = function() {
   if (!this.available()) return;
   var self = this;
@@ -56,7 +76,7 @@ JJUpdater.prototype.check = function(manual) {
   this.setStatus(i18n('update_checking'));
   return Promise.all([
     this.fetchVersion(chrome.runtime.getURL('manifest.json')),
-    this.fetchVersion(JJUpdater.REMOTE_MANIFEST)
+    this.fetchRemoteVersion()
   ]).then(function(v) {
     self.diskVersion = v[0];
     self.remoteVersion = v[1];

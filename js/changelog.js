@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.15.3',
+    date: '2026-11-12',
+    changes: [
+      '修正：剛推出新版的幾分鐘內，「立即檢查」可能還說是最新版本（GitHub 檔案網址有快取）；改用 GitHub API 檢查'
+    ]
+  },
+  {
     version: '1.15.2',
     date: '2026-11-11',
     changes: [
