@@ -55,6 +55,8 @@ var DEFAULT_PREFS = {
   suspectAuthorIpText : '與作者同IP',
   watchText : '觀察',
   watchlistedUserIds : '{}',
+  notedUserIds : '{}',
+  customListName : '網軍',
 
   // quickSearch
   quickSearchList: '[{"name":"goo.gl","url":"http://goo.gl/%s"}]'

@@ -641,6 +641,22 @@ pttchrome.App.prototype.doAddWatchUserId = function(userid) {
   this.pushInsights.annotate();
 };
 
+pttchrome.App.prototype.doSetUserNote = function(userid) {
+  var notes = this.pref.notedUserIds;
+  var name = this.pref.customListName();
+  var note = window.prompt(i18n('prompt_userNote').replace('%s', userid).replace('%l', name), notes[userid] || '');
+  if (note === null) return;  // cancelled
+  notes[userid] = note.trim();
+  this.pref.setNotesStorage();
+  this.pushInsights.annotate();
+};
+
+pttchrome.App.prototype.doRemoveUserNote = function(userid) {
+  delete this.pref.notedUserIds[userid];
+  this.pref.setNotesStorage();
+  this.pushInsights.annotate();
+};
+
 pttchrome.App.prototype.doRemoveWatchUserId = function(userid) {
   delete this.pref.watchlistedUserIds[userid];
   this.pref.setWatchlistStorage();
@@ -1335,6 +1351,8 @@ pttchrome.App.prototype.onPrefChange = function(pref, name) {
       this.pushInsights.setEnabled(pref.get(name));
       break;
     case 'watchlistedUserIds':
+    case 'notedUserIds':
+    case 'customListName':
       this.pushInsights.annotate();
       break;
     case 'enableDeleteDupLogin':
@@ -1755,9 +1773,17 @@ pttchrome.App.prototype.setupContextMenus = function() {
         $('#cmenu_addWatchUserId').show();
         $('#cmenu_removeWatchUserId').hide();
       }
+      var hasNote = contextOnUserId in self.pref.notedUserIds;
+      var listName = self.pref.customListName();
+      $('#cmenu_setUserNote a').text(i18n('cmenu_setUserNote').replace('%l', listName) + " '" + contextOnUserId + "'");
+      $('#cmenu_removeUserNote a').text(i18n('cmenu_removeUserNote').replace('%l', listName) + " '" + contextOnUserId + "'");
+      $('#cmenu_setUserNote').toggle(!hasNote);
+      $('#cmenu_removeUserNote').toggle(hasNote);
     } else {
       $('#cmenu_addWatchUserId').hide();
       $('#cmenu_removeWatchUserId').hide();
+      $('#cmenu_setUserNote').hide();
+      $('#cmenu_removeUserNote').hide();
     }
 
     if (contextOnUserId) {
@@ -1936,6 +1962,12 @@ pttchrome.App.prototype.setupContextMenus = function() {
     },
     'cmenu_removeWatchUserId': function() {
       self.doRemoveWatchUserId(contextOnUserId);
+    },
+    'cmenu_setUserNote': function() {
+      self.doSetUserNote(contextOnUserId);
+    },
+    'cmenu_removeUserNote': function() {
+      self.doRemoveUserNote(contextOnUserId);
     },
     'cmenu_settings': function() { 
       self.doSettings(); 

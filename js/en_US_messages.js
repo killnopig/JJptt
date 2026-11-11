@@ -219,6 +219,21 @@ locale.en_US = {
   "cmenu_addWatchUserId": {
     "message": "Add to watchlist"
   },
+  "cmenu_setUserNote": {
+    "message": "Add to %l list"
+  },
+  "cmenu_removeUserNote": {
+    "message": "Remove from %l list"
+  },
+  "prompt_userNote": {
+    "message": "Add %s to the %l list. Note (optional):"
+  },
+  "options_notesInstruction": {
+    "message": "Custom list: one user ID per line, optionally followed by a space and a note. Their pushes show the list name."
+  },
+  "options_customListName": {
+    "message": "Name of the custom list (the right-click menu shows \"Add to … list\")"
+  },
   "cmenu_removeWatchUserId": {
     "message": "Remove from watchlist"
   },

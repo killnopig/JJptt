@@ -7,6 +7,7 @@ function PttChromePref(app, onInitializedCallback) {
   this.enableBlacklist = false;
   this.blacklistedUserIds = {};
   this.watchlistedUserIds = {};
+  this.notedUserIds = {};
   this.tempBlacklist = {};   // id -> expiry time (ms), e.g. from the spam guard
   this.hideBlacklisted = false;
   this.titleKeywords = [];
@@ -76,6 +77,7 @@ PttChromePref.prototype = {
     this.refreshBlacklistOnUi();
     this.refreshTempBlacklistOnUi();
     this.refreshWatchlistOnUi();
+    this.refreshNotesOnUi();
 
     var self = this;
     var htmlStr = '';
@@ -92,7 +94,7 @@ PttChromePref.prototype = {
       var val = this.values[i];
 
       // for blacklisted / watchlisted userids
-      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'tempBlacklist') {
+      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'notedUserIds' || i === 'tempBlacklist') {
         continue;
       }
       if (i === 'quickSearchList') {
@@ -244,6 +246,7 @@ PttChromePref.prototype = {
     // blacklist
     $('#opt_blacklistInstruction').text(i18n('options_blacklistInstruction'));
     $('#opt_watchlistInstruction').text(i18n('options_watchlistInstruction'));
+    $('#opt_notesInstruction').text(i18n('options_notesInstruction'));
 
     this.setupExtensionsPage();
 
@@ -290,6 +293,7 @@ PttChromePref.prototype = {
         self.values = JSON.parse(JSON.stringify(DEFAULT_PREFS));
         self.blacklistedUserIds = {};
         self.watchlistedUserIds = {};
+        self.notedUserIds = {};
         self.quickSearches = JSON.parse(DEFAULT_PREFS.quickSearchList);
         self.logins = ['',''];
         self.updateSettingsToUi();
@@ -476,6 +480,38 @@ PttChromePref.prototype = {
     this.setStorage({ values: { watchlistedUserIds: this.values.watchlistedUserIds } });
   },
 
+  // User notes: one ID per line followed by the note (e.g. 網軍), shown
+  // next to that user's pushes.
+  refreshNotesOnUi: function() {
+    var ids = this.notedUserIds;
+    var lines = Object.keys(ids).map(function(id) { return ids[id] ? id + ' ' + ids[id] : id; });
+    $('#opt_notedUsers').val(lines.join('\n'));
+  },
+
+  readNotesValues: function() {
+    var listStr = $('#opt_notedUsers').val() || '';
+    var ids = {};
+    listStr.split('\n').forEach(function(line) {
+      var m = /^\s*(\w+)\s*(.*?)\s*$/.exec(line);
+      if (m) ids[m[1].toLowerCase()] = m[2];
+    });
+    this.notedUserIds = ids;
+    this.setNotesValue();
+  },
+
+  customListName: function() {
+    return String((this.values && this.values.customListName) || '').trim() || '網軍';
+  },
+
+  setNotesValue: function() {
+    this.values.notedUserIds = JSON.stringify(this.notedUserIds);
+  },
+
+  setNotesStorage: function() {
+    this.setNotesValue();
+    this.setStorage({ values: { notedUserIds: this.values.notedUserIds } });
+  },
+
   refreshBlacklistOnUi: function() {
     var listNode = $('#opt_blacklistedUsers');
     var listStr = Object.keys(this.blacklistedUserIds).join('\n');
@@ -513,9 +549,10 @@ PttChromePref.prototype = {
   readValueFromUi: function() {
     this.readBlacklistValues();
     this.readWatchlistValues();
+    this.readNotesValues();
     var selectedVal;
     for (var i in this.values) {
-      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'tempBlacklist') {
+      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'notedUserIds' || i === 'tempBlacklist') {
         continue;
       }
       if (i === 'quickSearchList') {
@@ -614,6 +651,9 @@ PttChromePref.prototype = {
             this.values[i] = msg.data.values[i];
           } else if (i === 'watchlistedUserIds') {
             this.watchlistedUserIds = JSON.parse(msg.data.values[i]);
+            this.values[i] = msg.data.values[i];
+          } else if (i === 'notedUserIds') {
+            try { this.notedUserIds = JSON.parse(msg.data.values[i]) || {}; } catch (e) { this.notedUserIds = {}; }
             this.values[i] = msg.data.values[i];
           } else if (i === 'blacklistedUserIds') {
             this.blacklistedUserIds = JSON.parse(msg.data.values[i]);

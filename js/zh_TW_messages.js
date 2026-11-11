@@ -216,6 +216,21 @@ locale.zh_TW = {
   "cmenu_addWatchUserId": {
     "message": "加入觀察名單"
   },
+  "cmenu_setUserNote": {
+    "message": "加入%l名單"
+  },
+  "cmenu_removeUserNote": {
+    "message": "從%l名單移除"
+  },
+  "prompt_userNote": {
+    "message": "把 %s 加入%l名單。備註（可留空）："
+  },
+  "options_notesInstruction": {
+    "message": "自訂名單：每行一個使用者 ID，後面可以加空格和備註。推文旁會顯示名單名稱。"
+  },
+  "options_customListName": {
+    "message": "自訂名單的名稱（右鍵選單會顯示「加入 ○○ 名單」）"
+  },
   "cmenu_removeWatchUserId": {
     "message": "從觀察名單移除"
   },

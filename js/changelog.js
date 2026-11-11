@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.12.0',
+    date: '2026-11-11',
+    changes: [
+      '新增「自訂名單」：名單名稱可以自己取（預設「網軍」），在推文的帳號上按右鍵 →「加入網軍名單」（可順便寫備註），之後他的推文旁就會用青色小字標示；設定的「黑名單」分頁可以改名稱、整份編輯，也會跟著 Google Drive 同步'
+    ]
+  },
+  {
     version: '1.11.9',
     date: '2026-11-11',
     changes: [

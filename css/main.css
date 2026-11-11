@@ -818,6 +818,7 @@ span {
 }
 #mainContainer > span[data-jj-level="foreign"]::after { color: #ffa940; }
 #mainContainer > span[data-jj-level="watch"]::after { color: #d58bff; }
+#mainContainer > span[data-jj-level="note"]::after { color: #4fd1e8; }
 #mainContainer > span[data-jj-level="warn"]::after { color: #ff5c5c; }
 
 /* JJptt: explicit save button and save confirmation */
@@ -1070,6 +1071,7 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 }
 .jjt-root .jjt-line[data-jj-level="foreign"]::after { color: #ffa940; }
 .jjt-root .jjt-line[data-jj-level="watch"]::after { color: #d58bff; }
+.jjt-root .jjt-line[data-jj-level="note"]::after { color: #4fd1e8; }
 .jjt-root .jjt-line[data-jj-level="warn"]::after { color: #ff5c5c; }
 .jjt-root .jjr-media { margin: 4px 0 10px; }
 #jjReader.jjt-root .jjr-img { margin: 4px 0 0; max-height: calc(var(--jj-box-h, 70vh) * var(--jj-img-frac, 0.4)); }
@@ -1166,6 +1168,8 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 #mainContainer .jj-ip[data-note=""]::after { display: none; }
 .jjt-root .jjt-itag { font-size: 0.6em; color: #8a8a8a; }
 #mainContainer > span[data-jj-ilevel="warn"] .jj-ip::after { color: #ff5c5c; }
+#mainContainer > span[data-jj-ilevel="note"] .jj-ip::after,
+.jjt-root .jjt-itag-note { color: #4fd1e8; }
 #mainContainer > span[data-jj-ilevel="watch"] .jj-ip::after { color: #d58bff; }
 #mainContainer > span[data-jj-ilevel="warn"] .jj-ip::before,
 .jjt-root .jjt-itag-warn { color: #ff5c5c; }

@@ -546,6 +546,12 @@ PttReader.prototype.onContextMenu = function(e) {
     } else {
       add(i18n('cmenu_addBlacklistUserId') + " '" + id + "'", function() { app.doAddBlacklistUserId(id); self.rerender(); });
     }
+    var listName = pref.customListName();
+    if (id in (pref.notedUserIds || {})) {
+      add(i18n('cmenu_removeUserNote').replace('%l', listName) + " '" + id + "'", function() { app.doRemoveUserNote(id); self.rerender(); });
+    } else {
+      add(i18n('cmenu_setUserNote').replace('%l', listName) + " '" + id + "'", function() { app.doSetUserNote(id); self.rerender(); });
+    }
     if (id in pref.watchlistedUserIds) {
       add(i18n('cmenu_removeWatchUserId') + " '" + id + "'", function() { app.doRemoveWatchUserId(id); self.rerender(); });
     } else {
@@ -1257,6 +1263,11 @@ PttReader.prototype.renderPushes = function(article) {
       hints.push(T.watch + (watch[id] ? ':' + watch[id] : ''));
       tags.push(T.watch);
       if (level !== 'warn') level = 'watch';
+    }
+    var notes = (pref && pref.notedUserIds) || {};
+    if (id in notes) {  // the user's own named list (網軍 by default)
+      parts.push(pref.customListName() + (notes[id] ? ':' + notes[id] : ''));
+      if (!level || level === 'foreign') level = 'note';
     }
     if (countById[id] >= 8) parts.push('第' + nth[id] + '/' + countById[id] + '推');
     var full = parts.concat(hints.length ? [(T.prefix ? T.prefix + ' ' : '') + hints.join(' ')] : []).join(' ');

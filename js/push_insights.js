@@ -260,6 +260,12 @@ PushInsights.prototype.annotate = function() {
       if (level !== 'warn') level = 'watch';
     }
 
+    var notes = (pref && pref.notedUserIds) || {};
+    if (p.id in notes) {  // the user's own named list (網軍 by default)
+      parts.push(pref.customListName() + (notes[p.id] ? ':' + notes[p.id] : ''));
+      if (!level || level === 'foreign') level = 'note';
+    }
+
     var total = pushCountById[p.id];
     if (total >= this.manyPushThreshold) {
       parts.push('第' + p.nth + '/' + total + '推');  // 第k/n推

@@ -222,6 +222,7 @@ DriveSync.prototype.snapshot = function() {
   var pref = this.app.pref;
   pref.setBlacklistValue();
   pref.setWatchlistValue();
+  pref.setNotesValue();
   var values = {};
   for (var k in DEFAULT_PREFS) {
     if (k in pref.values) values[k] = pref.values[k];
@@ -238,6 +239,7 @@ DriveSync.prototype.apply = function(remote) {
   try {
     pref.blacklistedUserIds = JSON.parse(pref.values.blacklistedUserIds || '{}');
     pref.watchlistedUserIds = JSON.parse(pref.values.watchlistedUserIds || '{}');
+    pref.notedUserIds = JSON.parse(pref.values.notedUserIds || '{}');
     pref.quickSearches = JSON.parse(pref.values.quickSearchList || '[]');
   } catch (e) {
     console.log('bad synced settings', e);
