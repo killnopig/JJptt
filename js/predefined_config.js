@@ -51,6 +51,7 @@ var DEFAULT_PREFS = {
   colorRepeatPushers : true,
   factReport : true,
   factReportMinPushes : 10,
+  factReportExpanded : false,
   factFastPush : true,
   factFastMinutes : 2,
   factBurst : true,

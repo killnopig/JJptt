@@ -561,6 +561,9 @@ locale.en_US = {
   "options_factHosting": {
     "message": "Data-centre / VPN IPs: pushes from cloud, hosting or VPN providers (AWS, Google Cloud, DigitalOcean, M247 and others), tagged with the provider"
   },
+  "options_factReportExpanded": {
+    "message": "Show the report expanded (otherwise one line; click to expand)"
+  },
   "options_factFastPush": {
     "message": "Fast pushes within a few minutes of posting (marked stronger when the article is too long to have been read)"
   },

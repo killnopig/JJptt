@@ -1154,9 +1154,23 @@ PttReader.prototype.factReportNode = function(article) {
   if ((article.pushes || []).length < minPushes) return null;
   var lines = this.factReport || [];
   var box = el('div', 'jjt-fact');
+  var expanded = !!(pref && pref.values && pref.values.factReportExpanded);
+  if (!expanded) box.classList.add('jjt-fact-closed');
   var head = el('div', 'jjt-fact-head');
   head.appendChild(el('span', 'jjt-fact-title', '真.事實查核中心'));
   head.appendChild(el('span', 'jjt-fact-sum', lines.length ? '抓到 ' + lines.length + ' 項疑點（僅供參考）' : '沒有發現明顯的協同推文跡象'));
+  if (lines.length) {
+    var toggle = el('span', 'jjt-fact-toggle', expanded ? '▾ 收起' : '▸ 展開');
+    head.appendChild(toggle);
+    head.classList.add('jjt-fact-clickable');
+    head.addEventListener('click', function(e) {
+      if (e.target.closest && e.target.closest('button')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var closed = box.classList.toggle('jjt-fact-closed');
+      toggle.textContent = closed ? '▸ 展開' : '▾ 收起';
+    });
+  }
   var ask = el('button', 'jjt-fact-ai', '請 AI 分析推文風向');
   ask.type = 'button';
   ask.addEventListener('click', function(e) {

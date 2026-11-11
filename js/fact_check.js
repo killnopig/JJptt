@@ -73,6 +73,20 @@ FactCheck.sharePhrase = function(a, b, len) {
   return false;
 };
 
+// remove every run of 4+ characters that also appears in `source`
+FactCheck.stripQuoted = function(s, source) {
+  if (!source) return s;
+  var out = '', i = 0;
+  while (i < s.length) {
+    var len = 0;
+    while (i + len < s.length && source.indexOf(s.substr(i, len + 1)) >= 0) len++;
+    if (len >= 4) { i += len; continue; }
+    out += s.charAt(i);
+    i++;
+  }
+  return out;
+};
+
 FactCheck.bigrams = function(s) {
   var set = {};
   for (var i = 0; i + 1 < s.length; ++i) set[s.substr(i, 2)] = true;
@@ -187,11 +201,21 @@ FactCheck.prototype.analyze = function(article) {
   // 4. 罐頭推文: near-identical sentences from different accounts
   if (this.opt('factCanned')) {
     var minAcc = this.opt('factCannedMin');
+    // people quote the title and the article: wording from there is not
+    // a sign of coordination, so it is left out of the comparison
+    var source = FactCheck.normalize((article.meta && article.meta['標題'] || '') + ' ' +
+                                     String(article.text || '').split(/\n※ 發信站/)[0]);
+    var sourceGrams = FactCheck.bigrams(source);
     var grams = [], index = {}, texts = [];
     for (i = 0; i < n; ++i) {
-      var s = FactCheck.normalize(pushes[i].content);
+      var s = FactCheck.stripQuoted(FactCheck.normalize(pushes[i].content), source);
       texts.push(s);
-      grams.push(s.length >= 6 ? FactCheck.bigrams(s) : null);
+      var gs = s.length >= 6 ? FactCheck.bigrams(s) : null;
+      if (gs) {
+        for (var sg in sourceGrams) delete gs[sg];
+        if (Object.keys(gs).length < 4) gs = null;
+      }
+      grams.push(gs);
       if (!grams[i]) continue;
       for (var gk in grams[i]) (index[gk] = index[gk] || []).push(i);
     }

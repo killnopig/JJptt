@@ -558,6 +558,9 @@ locale.zh_TW = {
   "options_factHosting": {
     "message": "機房／VPN IP：推文 IP 來自雲端機房或 VPN 業者（AWS、Google Cloud、DigitalOcean、M247 等 34 家），標「機房:業者名」"
   },
+  "options_factReportExpanded": {
+    "message": "報告框預設展開（不勾選則只顯示一行，點一下展開）"
+  },
   "options_factFastPush": {
     "message": "秒推：發文後幾分鐘內就推文的人標「秒推」，內文長到不可能讀完的標「秒推‧沒讀完」"
   },

@@ -1258,3 +1258,6 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
   font-size: 1em; cursor: pointer;
 }
 .jjt-root .jjt-fact-line { color: #f0d9a8; }
+.jjt-root .jjt-fact-clickable { cursor: pointer; }
+.jjt-root .jjt-fact-toggle { color: #ffb347; white-space: nowrap; }
+.jjt-root .jjt-fact.jjt-fact-closed .jjt-fact-line { display: none; }

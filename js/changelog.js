@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.21.1',
+    date: '2026-11-12',
+    changes: [
+      '真.事實查核中心報告框預設只顯示一行（抓到幾項疑點），點一下展開細節、再點收起；設定裡可以改成預設展開',
+      '罐頭推文不再把「引用標題或內文」當成罐頭：比對前先拿掉推文中跟標題、內文相同的字句'
+    ]
+  },
+  {
     version: '1.21.0',
     date: '2026-11-12',
     changes: [
