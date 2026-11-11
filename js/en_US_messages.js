@@ -219,6 +219,36 @@ locale.en_US = {
   "prompt_watchNote": {
     "message": "Add %s to the watchlist. Note (optional):"
   },
+  "drive_title": {
+    "message": "Google Drive sync (blacklist, watchlist and other settings, never passwords):"
+  },
+  "drive_connect": {
+    "message": "Connect Google account"
+  },
+  "drive_syncNow": {
+    "message": "Sync now"
+  },
+  "drive_disconnect": {
+    "message": "Disconnect"
+  },
+  "drive_status_notConfigured": {
+    "message": "Google client ID not set up yet (see README)"
+  },
+  "drive_status_off": {
+    "message": "Off"
+  },
+  "drive_status_needAuth": {
+    "message": "Authorization expired, press Sync now"
+  },
+  "drive_status_syncing": {
+    "message": "Syncing…"
+  },
+  "drive_status_done": {
+    "message": "Synced"
+  },
+  "drive_status_error": {
+    "message": "Sync failed"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },

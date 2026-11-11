@@ -216,6 +216,36 @@ locale.zh_TW = {
   "prompt_watchNote": {
     "message": "把 %s 加入觀察名單。備註（可留空）："
   },
+  "drive_title": {
+    "message": "Google Drive 同步（黑名單、觀察名單與其他設定，不含密碼）："
+  },
+  "drive_connect": {
+    "message": "連結 Google 帳號"
+  },
+  "drive_syncNow": {
+    "message": "立即同步"
+  },
+  "drive_disconnect": {
+    "message": "中斷連結"
+  },
+  "drive_status_notConfigured": {
+    "message": "尚未設定 Google 用戶端 ID（見 README）"
+  },
+  "drive_status_off": {
+    "message": "未啟用"
+  },
+  "drive_status_needAuth": {
+    "message": "需要重新授權，請按「立即同步」"
+  },
+  "drive_status_syncing": {
+    "message": "同步中…"
+  },
+  "drive_status_done": {
+    "message": "已同步"
+  },
+  "drive_status_error": {
+    "message": "同步失敗"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },

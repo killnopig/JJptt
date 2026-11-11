@@ -88,6 +88,7 @@ pttchrome.App = function(onInitializedCallback, options) {
 
   this.inputHelper = new InputHelper(this);
   this.pushInsights = new PushInsights(this);
+  this.driveSync = new DriveSync(this);
 
   this.navigateTo = { board: getQueryVariable('board'), aid: getQueryVariable('aid') };
   this.navigationDone = false;
@@ -652,7 +653,7 @@ pttchrome.App.prototype.onWindowResize = function() {
     height -= 76;
     $('#prefModal .modal-body').css('height', height + 'px');
     $('#prefModal .modal-body').css('width', width + 'px');
-    $('#opt_blacklistedUsers').css('height', height-150 + 'px');
+    $('#opt_blacklistedUsers').css('height', Math.max(100, height-420) + 'px');
   }
 };
 

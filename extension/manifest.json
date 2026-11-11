@@ -20,6 +20,7 @@
   },
   "permissions": [
     "nativeMessaging",
+    "identity",
     "clipboardRead",
     "clipboardWrite"
   ]

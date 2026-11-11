@@ -14,6 +14,7 @@
     <script type="text/javascript" src="js/paramikojs_ssh.min.js"></script>
     <script type="text/javascript" src="js/hammer.min.js"></script>
 
+
     <script type="text/javascript" src="js/pttchrome.min.js"></script>
     </head>
 
@@ -184,21 +185,12 @@
                 <div id="opt_blacklistedTitleKeywords" class="form-group">
                 </div>
 
-                <div id="blacklist_driveSync" style="margin-bottom:10px">
-                  <span id="blacklist_driveSyncTitle" style="margin-right:5px">Use Google Drive:</span>
-                  <a id="blacklist_driveAuthorize" style="margin-top:-3px" class="btn btn-default">Authorize PttChrome</a>
-                  <a id="blacklist_driveLoad" style="margin-top:-3px" class="btn btn-default">Load</a>
-                  <div class="btn-group" style="margin-top:-3px">
-                    <button id="blacklist_driveSave" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                    </button>
-                    <ul class="dropdown-menu" role="menu">
-                      <li><a id="blacklist_driveSaveNew" style="padding:3px 20px; cursor:pointer;">New Document</a></li>
-                      <li><a id="blacklist_driveSaveExisting" style="padding:3px 20px; cursor:pointer;">Existing Document</a></li>
-                    </ul>
-                  </div>
-                  <span id="blacklist_driveDone" style="margin-left:5px; display:none;">Done!</span>
-                  <span id="blacklist_driveLoading" style="margin-left:5px; display:none;">Loading ...</span>
-                  <a style="margin-left:5px" href="privacy.html" target="_blank"><span id="blacklist_privacyPolicy">Privacy Policy</span></a>
+                <div id="drive_sync" style="margin-bottom:10px">
+                  <span id="drive_title" style="margin-right:5px"></span>
+                  <a id="drive_connect" style="margin-top:-3px; display:none" class="btn btn-default"></a>
+                  <a id="drive_syncNow" style="margin-top:-3px; display:none" class="btn btn-default"></a>
+                  <a id="drive_disconnect" style="margin-top:-3px; display:none" class="btn btn-default"></a>
+                  <span id="drive_status" style="margin-left:5px"></span>
                 </div>
 
                 <span id="opt_blacklistInstruction"></span>

@@ -12,6 +12,7 @@
 - **觀察名單**（紫色）：在推文上按右鍵「加入觀察名單」，可以加備註
 - **自動縮圖**：好讀模式下圖片網址（imgur、Twitter、各種圖片連結）直接顯示圖片，imgur 動圖會播放；一般模式滑鼠移到網址上顯示預覽
 - **黑名單**：依帳號淡化或完全隱藏推文和文章，也能用標題關鍵字隱藏文章（設定 → 黑名單）
+- **Google Drive 同步**：黑名單、觀察名單和其他設定自動同步到你的 Google Drive（存在 JJptt 專用的隱藏資料夾，看不到你其他檔案；不同步密碼）。需要先完成下面的「設定 Google 同步」
 
 推文分析和好讀模式預設開啟，可以在設定裡關掉。
 
@@ -36,6 +37,26 @@ JJptt 有兩種用法：
 移除本機小程式：Mac / Linux 執行 `sh native-host/install.sh --uninstall`，Windows 雙擊 `native-host/uninstall.bat`。
 
 本機小程式只會連到 `ptt.cc` / `ptt2.cc`，也只接受 JJptt 擴充功能（ID `fdlnogjbmfefgnaidfoackkjnnkibnmm`）呼叫。
+
+## 設定 Google 同步（只要做一次）
+
+Google 規定每個 App 要有自己的「用戶端 ID」。到 [Google Cloud Console](https://console.cloud.google.com/) 照下面做：
+
+1. 建立新專案，名稱填 `JJptt`
+2. 「API 和服務」→「程式庫」→ 搜尋 **Google Drive API** → 啟用
+3. 「Google Auth Platform」（或「OAuth 同意畫面」）→ 開始設定：
+   - 應用程式名稱 `JJptt`、填你的 Email
+   - 目標對象選「外部」
+   - 「目標對象」頁面的「測試使用者」加入要用同步功能的 Gmail（自己和朋友，最多 100 人）
+4. 「用戶端」→「建立用戶端」→ 類型選「網頁應用程式」：
+   - 已授權的 JavaScript 來源：`https://killnopig.github.io`
+   - 已授權的重新導向 URI：`https://fdlnogjbmfefgnaidfoackkjnnkibnmm.chromiumapp.org/`（擴充功能用）
+5. 複製產生的「用戶端 ID」（`xxxx.apps.googleusercontent.com`），填進 `js/drive_sync.js` 的 `DriveSync.CLIENT_ID`，然後 `npm run build`
+
+之後在 設定 → 黑名單 → 按「連結 Google 帳號」。
+
+- 擴充功能版：完全自動同步
+- 網站版：瀏覽器的授權一小時後會過期，過期後同步狀態會顯示要你按「立即同步」重新授權
 
 ## 部署轉接站（網站版）
 

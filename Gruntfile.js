@@ -35,7 +35,7 @@ module.exports = function(grunt) {
         src: [
           'js/pttchrome.js', 
           'js/touch_controller.js',
-          'js/google_drive.js',
+          'js/drive_sync.js',
           'js/app_conn.js', 
           'js/geoip.js',
           'js/push_insights.js',
@@ -65,7 +65,7 @@ module.exports = function(grunt) {
       files: [
           'js/pttchrome.js', 
           'js/touch_controller.js',
-          'js/google_drive.js',
+          'js/drive_sync.js',
           'js/app_conn.js', 
           'js/geoip.js',
           'js/push_insights.js',
