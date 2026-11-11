@@ -584,6 +584,9 @@ TermView.prototype = {
       if (this.bbscore && this.bbscore.pushInsights) {
         this.bbscore.pushInsights.annotate();
       }
+      if (this.bbscore && this.bbscore.reader) {
+        this.bbscore.reader.onTerminalUpdate();
+      }
     }
     //var time = new Date().getTime() - start;
     //console.log(time);

@@ -261,6 +261,18 @@ locale.zh_TW = {
   "toast_updated": {
     "message": "JJptt 已更新到 v%s，更新內容請看 右鍵 → 設定 → 關於"
   },
+  "options_enableReader": {
+    "message": "閱讀模式（擴充功能版）：打開文章時用大字排版顯示，圖片、連結卡片、推文樓層與國籍"
+  },
+  "reader_back": {
+    "message": "← 回列表"
+  },
+  "reader_terminal": {
+    "message": "終端機畫面 (Esc)"
+  },
+  "reader_openWeb": {
+    "message": "網頁版"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },

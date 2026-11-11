@@ -38,6 +38,7 @@ var DEFAULT_PREFS = {
   blacklistedTitleKeywords : '',
 
   enablePushInsights : true,
+  enableReader : true,
   watchlistedUserIds : '{}',
 
   // quickSearch

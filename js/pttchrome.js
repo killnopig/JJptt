@@ -89,6 +89,7 @@ pttchrome.App = function(onInitializedCallback, options) {
   this.inputHelper = new InputHelper(this);
   this.pushInsights = new PushInsights(this);
   this.driveSync = new DriveSync(this);
+  this.reader = new PttReader(this);
 
   this.navigateTo = { board: getQueryVariable('board'), aid: getQueryVariable('aid') };
   this.navigationDone = false;
@@ -1217,6 +1218,9 @@ pttchrome.App.prototype.onPrefChange = function(pref, name) {
         .map(function(k) { return k.trim().toLowerCase(); })
         .filter(function(k) { return k; });
       this.view.redraw(true);
+      break;
+    case 'enableReader':
+      this.reader.setEnabled(pref.get(name));
       break;
     case 'enablePushInsights':
       this.pushInsights.setEnabled(pref.get(name));

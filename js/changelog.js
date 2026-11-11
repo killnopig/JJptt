@@ -3,6 +3,15 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.4.0',
+    date: '2026-11-11',
+    changes: [
+      '新增閱讀模式（擴充功能版）：打開文章時自動用大字排版顯示，圖片直接顯示、YouTube 顯示縮圖、其他網址顯示成卡片',
+      '閱讀模式的推文也有樓層、國籍、可疑標記，並套用黑名單與觀察名單；推文裡的圖片網址顯示小圖',
+      '閱讀模式按鍵：Esc 回終端機、← 回列表、X 推文、y 回文、空白鍵翻頁；設定可關閉'
+    ]
+  },
+  {
     version: '1.3.0',
     date: '2026-11-11',
     changes: [

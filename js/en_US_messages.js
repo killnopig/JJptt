@@ -264,6 +264,18 @@ locale.en_US = {
   "toast_updated": {
     "message": "JJptt updated to v%s. See right-click → Settings → About for what changed"
   },
+  "options_enableReader": {
+    "message": "Reader view (extension): show articles as a readable page with images, link cards and push insights"
+  },
+  "reader_back": {
+    "message": "← Back to list"
+  },
+  "reader_terminal": {
+    "message": "Terminal (Esc)"
+  },
+  "reader_openWeb": {
+    "message": "Open on web"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },
