@@ -415,6 +415,7 @@ PttReader.prototype.fetchArticle = function(url) {
     // lines between them keep their position and line numbers stay right
     var drop = body.querySelectorAll('.article-metaline, .article-metaline-right, .richcontent, .push:not([data-push-index])');
     for (var k = 0; k < drop.length; ++k) drop[k].parentNode.removeChild(drop[k]);
+    PttReader.assignBlocks(body, pushes);
     var article = { url: url, meta: meta, text: body.textContent, body: body, pushes: pushes };
     if (self.app.spamGuard) {
       try { self.app.spamGuard.record(article); } catch (e) { console.log('spam guard', e); }
@@ -1077,6 +1078,17 @@ PttReader.prototype.fillCard = function(card) {
 // PTT colours) with images and link cards inserted below lines with URLs.
 
 // PTT web colour classes (f0-f7, b0-b7, hl) -> terminal classes (q0-q15, b0-b7).
+// push.block: pushes split by other lines ("※ 編輯" ...) are in different
+// blocks -- the same split 連續推文排在一起 uses, so 連推 counts runs alike.
+PttReader.assignBlocks = function(body, pushes) {
+  var block = 0, inBlock = false;
+  PttReader.toLines(body).forEach(function(l) {
+    if (l.push_index === undefined) { inBlock = false; return; }
+    if (!inBlock) { block++; inBlock = true; }
+    if (pushes[l.push_index]) pushes[l.push_index].block = block;
+  });
+};
+
 PttReader.colorState = function(node, parent) {
   var st = { fg: parent.fg, bg: parent.bg, hl: parent.hl, href: parent.href };
   var cls = (node.getAttribute && node.getAttribute('class')) || '';

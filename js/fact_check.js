@@ -93,6 +93,19 @@ FactCheck.chains = function(indices, pushes) {
   return out;
 };
 
+// Push indices split where other lines ("※ 編輯" ...) come between pushes
+// (push.block, set when the article is loaded; all one block without it).
+FactCheck.blocks = function(pushes) {
+  var out = [], last;
+  for (var i = 0; i < pushes.length; ++i) {
+    var b = pushes[i].block;
+    if (!out.length || b !== last) out.push([]);
+    out[out.length - 1].push(i);
+    last = b;
+  }
+  return out;
+};
+
 FactCheck.bodyChars = function(text) {
   var body = String(text || '').split(/\n※ 發信站|\n--\n/)[0];
   return body.replace(/\s+/g, '').length;
@@ -377,12 +390,10 @@ FactCheck.prototype.analyze = function(article) {
         String((article.meta && article.meta['作者']) || '').split(' ')[0].toLowerCase() : '';
     var runs7 = [];
     if (useChain7) {
-      var all7 = [];
-      for (i = 0; i < n; ++i) all7.push(i);
-      runs7 = FactCheck.chains(all7, pushes);
+      FactCheck.blocks(pushes).forEach(function(b) { runs7 = runs7.concat(FactCheck.chains(b, pushes)); });
     } else {
       for (i = 0; i < n; ++i) {  // strictly unbroken runs
-        if (i && ids[i] === ids[i - 1]) runs7[runs7.length - 1].push(i);
+        if (i && ids[i] === ids[i - 1] && pushes[i].block === pushes[i - 1].block) runs7[runs7.length - 1].push(i);
         else runs7.push([i]);
       }
     }
@@ -405,7 +416,10 @@ FactCheck.prototype.analyze = function(article) {
         var pref = self7.app.pref;
         fl.forEach(function(id) {
           if (pref && !pref.isBlacklisted(id) && !(keep7 && pref.isFloodExempt && pref.isFloodExempt(id))) {
-            pref.addTempBlacklist(id, 24 * 3600 * 1000);
+            pref.addTempBlacklist(id, 24 * 3600 * 1000, {
+              kind: 'flood', n: flooders[id], url: article.url || '',
+              title: (article.meta && article.meta['標題']) || '', board: (article.meta && article.meta['看板']) || ''
+            });
             if (self7.app.showToast) self7.app.showToast(i18n('flood_autoBlacklisted').replace('%s', id).replace('%n', flooders[id]), 5000);
           }
         });

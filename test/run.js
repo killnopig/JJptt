@@ -1,0 +1,281 @@
+// JJptt tests: plain Node, no extra packages.  npm test
+//
+// Loads the browser source files into this context with a few stubs, then
+// checks the 真.事實查核中心 rules and the 連推 / 臨時黑名單 behaviour.
+'use strict';
+var fs = require('fs');
+var path = require('path');
+var vm = require('vm');
+var assert = require('assert');
+
+var root = path.join(__dirname, '..');
+global.window = global;
+global.document = { addEventListener: function() {}, createElement: function() { return {}; } };
+global.i18n = function(k) { return k; };
+global.$ = function() { return { length: 0 }; };
+global.lib = { safeGetItem: function(k) { return global.lib.store[k] || null; },
+               safeSetItem: function(k, v) { global.lib.store[k] = v; }, store: {} };
+['js/predefined_config.js', 'js/fact_check.js', 'js/reader.js', 'js/pref.js', 'js/spam_guard.js'].forEach(function(f) {
+  vm.runInThisContext(fs.readFileSync(path.join(root, f), 'utf8'), { filename: f });
+});
+
+var failed = 0, passed = 0;
+function test(name, fn) {
+  try { fn(); passed++; console.log('  ok  ' + name); }
+  catch (e) { failed++; console.log('  FAIL ' + name + '\n       ' + e.message); }
+}
+
+// ---- helpers ---------------------------------------------------------------
+
+function push(id, minute, block) {
+  var p = { id: id, tag: '推', content: id + ' ' + Math.random(), ip: '',
+            time: '11/12 10:' + (minute < 10 ? '0' + minute : minute) };
+  if (block !== undefined) p.block = block;
+  return p;
+}
+function many(id, count, minute, block) {
+  var out = [];
+  for (var i = 0; i < count; ++i) out.push(push(id, minute, block));
+  return out;
+}
+function article(pushes, author) {
+  return { url: 'https://www.ptt.cc/bbs/Test/M.1.A.html', text: '',
+           meta: { '作者': (author || 'op') + ' (nick)', '時間': 'Thu Nov 12 10:00:00 2026',
+                   '標題': '[問卦] 測試', '看板': 'Test' },
+           pushes: pushes };
+}
+
+// A real PttChromePref with storage / screen calls stubbed out.
+function makePref(values) {
+  var app = { view: { redraw: function() {} }, reader: null, showToast: function() {} };
+  var pref = new PttChromePref(app, function() {});
+  pref.values = Object.assign({}, DEFAULT_PREFS, values || {});
+  pref.setStorage = function() {};
+  pref.refreshTempBlacklistOnUi = function() {};
+  app.pref = pref;
+  return pref;
+}
+
+// Runs the fact check; the blacklist step is deferred with setTimeout, so
+// run that at once here.
+function analyze(art, values, pref) {
+  pref = pref || makePref(values);
+  if (values) Object.assign(pref.values, values);
+  var fc = new FactCheck(pref.app);
+  fc.history = { record: function() {}, count: function() { return 0; } };
+  fc.historyTags = function() {};
+  var timers = [];
+  var real = global.setTimeout;
+  global.setTimeout = function(fn) { timers.push(fn); };
+  try { var r = fc.analyze(art); } finally { global.setTimeout = real; }
+  timers.forEach(function(fn) { fn(); });
+  return { report: r.report, tags: r.tags, pref: pref,
+           floodLine: r.report.filter(function(t) { return /^連續推文/.test(t); })[0] || '' };
+}
+
+// Fake DOM good enough for PttReader.toLines.
+function text(s) { return { nodeType: 3, nodeValue: s }; }
+function elem(attrs, kids) {
+  var n = { nodeType: 1, tagName: 'DIV', firstChild: null, nextSibling: null,
+            hasAttribute: function(k) { return k in attrs; },
+            getAttribute: function(k) { return k in attrs ? attrs[k] : null; } };
+  for (var i = kids.length - 1; i >= 0; --i) { kids[i].nextSibling = n.firstChild; n.firstChild = kids[i]; }
+  return n;
+}
+function pushNode(i) { return elem({ 'data-push-index': String(i) }, [text('push\n')]); }
+
+// ---- FactCheck.chains ------------------------------------------------------
+
+console.log('FactCheck.chains');
+
+test('joins a run across up to 2 other floors', function() {
+  var ps = [push('a', 1), push('b', 1), push('c', 1), push('a', 1)];
+  assert.deepStrictEqual(FactCheck.chains([0, 1, 2, 3], ps), [[0, 3], [1], [2]]);
+});
+test('3 other floors in between breaks the run', function() {
+  var ps = [push('a', 1), push('b', 1), push('c', 1), push('d', 1), push('a', 1)];
+  assert.deepStrictEqual(FactCheck.chains([0, 1, 2, 3, 4], ps)[0], [0]);
+});
+test('more than 2 minutes later breaks the run', function() {
+  var ps = [push('a', 1), push('b', 1), push('a', 4)];
+  assert.deepStrictEqual(FactCheck.chains([0, 1, 2], ps)[0], [0]);
+});
+test('IDs compare without case', function() {
+  var ps = [push('Abc', 1), push('x', 1), push('abc', 1)];
+  assert.deepStrictEqual(FactCheck.chains([0, 1, 2], ps)[0], [0, 2]);
+});
+test('FactCheck.blocks splits on push.block', function() {
+  var ps = [push('a', 1, 1), push('a', 1, 1), push('a', 1, 2)];
+  assert.deepStrictEqual(FactCheck.blocks(ps), [[0, 1], [2]]);
+  assert.deepStrictEqual(FactCheck.blocks([push('a', 1), push('b', 1)]), [[0, 1]]);
+});
+
+// ---- reader uses the same runs ----------------------------------------------
+
+console.log('PttReader.groupRuns / assignBlocks');
+
+test('groupRuns shows the runs FactCheck.chains finds', function() {
+  var ps = [push('a', 1), push('b', 1), push('a', 1), push('c', 1), push('b', 1)];
+  var lines = ps.map(function(p, i) { var l = []; l.push_index = i; return l; });
+  PttReader.groupRuns(lines, ps);
+  assert.deepStrictEqual(lines.map(function(l) { return l.push_index; }), [0, 2, 1, 4, 3]);
+});
+test('groupRuns never moves a push past a ※ 編輯 line', function() {
+  var ps = [push('a', 1), push('b', 1), push('a', 1)];
+  var mk = function(i) { var l = []; l.push_index = i; return l; };
+  var lines = [mk(0), mk(1), [{ text: '※ 編輯' }], mk(2)];
+  PttReader.groupRuns(lines, ps);
+  assert.deepStrictEqual(lines.map(function(l) { return l.push_index; }), [0, 1, undefined, 2]);
+});
+test('assignBlocks numbers the blocks between other lines', function() {
+  var ps = [push('a', 1), push('a', 1), push('a', 1)];
+  var body = elem({}, [text('內文\n'), pushNode(0), pushNode(1), text('※ 編輯: a\n'), pushNode(2)]);
+  PttReader.assignBlocks(body, ps);
+  assert.deepStrictEqual(ps.map(function(p) { return p.block; }), [1, 1, 2]);
+});
+
+// ---- 連推 rule --------------------------------------------------------------
+
+console.log('連推 (factFloodRun)');
+
+test('10 in a row: tagged and blacklisted 24 hours with the reason', function() {
+  var r = analyze(article(many('aaa', 10, 1)));
+  assert.ok(r.pref.isBlacklisted('aaa'));
+  var left = r.pref.tempBlacklist.aaa - Date.now();
+  assert.ok(left > 23.9 * 3600000 && left <= 24 * 3600000);
+  var info = r.pref.tempBlacklistInfo.aaa;
+  assert.strictEqual(info.kind, 'flood');
+  assert.strictEqual(info.n, 10);
+  assert.strictEqual(info.title, '[問卦] 測試');
+  assert.strictEqual(info.board, 'Test');
+  assert.ok(/ptt\.cc/.test(info.url));
+  assert.ok(r.tags[0].some(function(t) { return t.t === '連推10'; }));
+});
+test('9 in a row is under the threshold', function() {
+  var r = analyze(article(many('aaa', 9, 1)));
+  assert.ok(!r.pref.isBlacklisted('aaa'));
+  assert.strictEqual(r.floodLine, '');
+});
+test('the threshold can be changed', function() {
+  assert.ok(analyze(article(many('aaa', 5, 1)), { factFloodRunMin: 5 }).pref.isBlacklisted('aaa'));
+});
+test('rule off: nothing happens', function() {
+  assert.ok(!analyze(article(many('aaa', 20, 1)), { factFloodRun: false }).pref.isBlacklisted('aaa'));
+});
+test('one cut-in does not dodge it (9 + other + 5)', function() {
+  var ps = many('aaa', 9, 1).concat([push('bbb', 1)], many('aaa', 5, 2));
+  var r = analyze(article(ps));
+  assert.ok(r.pref.isBlacklisted('aaa'));
+  assert.strictEqual(r.pref.tempBlacklistInfo.aaa.n, 14);
+});
+test('cut-ins counting off: 9 + other + 5 is not a run', function() {
+  var ps = many('aaa', 9, 1).concat([push('bbb', 1)], many('aaa', 5, 2));
+  assert.ok(!analyze(article(ps), { factFloodRunChain: false }).pref.isBlacklisted('aaa'));
+});
+test('a ※ 編輯 line splits runs (6 + edit + 6)', function() {
+  var ps = many('aaa', 6, 1, 1).concat(many('aaa', 6, 1, 2));
+  assert.ok(!analyze(article(ps)).pref.isBlacklisted('aaa'));
+  assert.ok(!analyze(article(ps), { factFloodRunChain: false }).pref.isBlacklisted('aaa'));
+});
+test('the author replying in their own article is not counted', function() {
+  var r = analyze(article(many('op', 12, 1), 'op'));
+  assert.ok(!r.pref.isBlacklisted('op'));
+});
+test('author rule off: the author is counted too', function() {
+  assert.ok(analyze(article(many('op', 12, 1), 'op'), { factFloodRunSkipAuthor: false }).pref.isBlacklisted('op'));
+});
+test('taken off by hand: not put back for 24 hours', function() {
+  var pref = makePref();
+  var art = article(many('aaa', 10, 1));
+  analyze(art, null, pref);
+  assert.ok(pref.isBlacklisted('aaa'));
+  pref.removeTempBlacklist('aaa');
+  assert.ok(!pref.isBlacklisted('aaa'));
+  assert.ok(!('aaa' in pref.tempBlacklistInfo));
+  var r = analyze(art, null, pref);
+  assert.ok(!pref.isBlacklisted('aaa'));
+  assert.ok(/手動移除過/.test(r.floodLine));
+  assert.ok(!/已加入/.test(r.floodLine));
+});
+test('keep-removed rule off: put back on next time', function() {
+  var pref = makePref({ factFloodRunKeepRemoved: false });
+  var art = article(many('aaa', 10, 1));
+  analyze(art, null, pref);
+  pref.removeTempBlacklist('aaa');
+  analyze(art, null, pref);
+  assert.ok(pref.isBlacklisted('aaa'));
+});
+test('the exemption runs out after 24 hours', function() {
+  var pref = makePref();
+  pref.removeTempBlacklist('aaa');
+  pref.floodExempt.aaa = Date.now() - 1;
+  analyze(article(many('aaa', 10, 1)), null, pref);
+  assert.ok(pref.isBlacklisted('aaa'));
+});
+
+// ---- loading an article ------------------------------------------------------
+
+console.log('loading articles');
+
+test('every loaded article (read or prefetched) goes through the fact check', function() {
+  var src = PttReader.prototype.fetchArticle.toString();
+  assert.ok(/factCheck\.analyze\(article\)/.test(src), 'fetchArticle runs the fact check');
+  assert.ok(/assignBlocks\(body, pushes\)/.test(src), 'fetchArticle sets push.block');
+  assert.ok(/findArticle\(/.test(PttReader.prototype.startPrefetch.toString()), 'prefetch loads through findArticle');
+  assert.ok(/fetchArticle\(/.test(PttReader.prototype.findArticle.toString()), 'findArticle uses fetchArticle');
+});
+
+// ---- spam guard ---------------------------------------------------------------
+
+console.log('同網址洗版 (SpamGuard)');
+
+test('same URL in 4 articles: blacklisted with the reason', function() {
+  lib.store = {};
+  var pref = makePref();
+  var guard = new SpamGuard(pref.app);
+  for (var i = 1; i <= 4; ++i) {
+    guard.record({ url: 'https://www.ptt.cc/bbs/Test/M.' + i + '.A.html', text: '',
+                   meta: { '作者': 'op', '標題': '文' + i, '看板': 'Test' },
+                   pushes: [{ id: 'spammer', content: 'https://example.com/buy' }] });
+  }
+  assert.ok(pref.isBlacklisted('spammer'));
+  var info = pref.tempBlacklistInfo.spammer;
+  assert.strictEqual(info.kind, 'spam');
+  assert.strictEqual(info.n, 4);
+  assert.strictEqual(info.link, 'example.com/buy');
+  assert.strictEqual(info.title, '文4');
+});
+
+// ---- settings defaults ----------------------------------------------------------
+
+console.log('settings');
+
+test('every fact-check rule has a default in DEFAULT_PREFS', function() {
+  Object.keys(FactCheck.DEFAULTS).forEach(function(k) {
+    assert.ok(k in DEFAULT_PREFS, k + ' missing from predefined_config.js');
+    assert.strictEqual(DEFAULT_PREFS[k], FactCheck.DEFAULTS[k], k + ' defaults differ');
+  });
+});
+test('every fact-check rule has a place in the settings page', function() {
+  var html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  Object.keys(FactCheck.DEFAULTS).forEach(function(k) {
+    assert.ok(html.indexOf('id="opt_' + k + '"') >= 0, k + ' missing from index.html');
+  });
+});
+test('every fact-check rule has Chinese and English text', function() {
+  var zh = fs.readFileSync(path.join(root, 'js/zh_TW_messages.js'), 'utf8');
+  var en = fs.readFileSync(path.join(root, 'js/en_US_messages.js'), 'utf8');
+  Object.keys(FactCheck.DEFAULTS).forEach(function(k) {
+    assert.ok(zh.indexOf('"options_' + k + '"') >= 0, k + ' missing from zh_TW_messages.js');
+    assert.ok(en.indexOf('"options_' + k + '"') >= 0, k + ' missing from en_US_messages.js');
+  });
+});
+
+test('the settings page does not wipe the temporary blacklist list', function() {
+  var src = PttChromePref.prototype.updateSettingsToUi.toString();
+  var skip = src.indexOf("i === 'tempBlacklist'"), wipe = src.indexOf("$('#opt_'+i).empty()");
+  assert.ok(skip >= 0 && wipe > skip, '#opt_tempBlacklist is emptied before the skip check');
+});
+
+console.log('\n' + passed + ' passed, ' + failed + ' failed');
+process.exit(failed ? 1 : 0);

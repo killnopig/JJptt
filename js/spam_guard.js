@@ -85,7 +85,10 @@ SpamGuard.prototype.record = function(article) {
     var id = parts[0], url = parts[1];
     var count = Object.keys(seen[id][url]).length;
     if (count > SpamGuard.LIMIT && pref && !pref.isBlacklisted(id)) {
-      pref.addTempBlacklist(id, SpamGuard.WINDOW);
+      pref.addTempBlacklist(id, SpamGuard.WINDOW, {
+        kind: 'spam', n: count, link: url, url: article.url,
+        title: article.meta['標題'] || '', board: article.meta['看板'] || ''
+      });
       this.app.showToast(i18n('spam_autoBlacklisted').replace('%s', id).replace('%n', count), 5000);
     }
   }

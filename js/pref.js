@@ -9,6 +9,7 @@ function PttChromePref(app, onInitializedCallback) {
   this.watchlistedUserIds = {};
   this.notedUserIds = {};
   this.tempBlacklist = {};   // id -> expiry time (ms), e.g. from the spam guard
+  this.tempBlacklistInfo = {};  // id -> why: { kind: 'flood'|'spam', n, url, title, board, link }
   this.floodExempt = {};     // id -> expiry time (ms): taken off by hand, 連推 won't re-add
   this.hideBlacklisted = false;
   this.titleKeywords = [];
@@ -31,10 +32,14 @@ PttChromePref.prototype = {
     return !!(until && until > Date.now());
   },
 
-  addTempBlacklist: function(id, ms) {
+  // info (optional) says why, for the list in settings:
+  // { kind: 'flood' | 'spam', n: count, link: spammed URL, url / title / board: the article }
+  addTempBlacklist: function(id, ms, info) {
     id = String(id).toLowerCase();
     this.pruneTempBlacklist();
     this.tempBlacklist[id] = Date.now() + ms;
+    if (info) this.tempBlacklistInfo[id] = info;
+    else delete this.tempBlacklistInfo[id];
     this.saveTempBlacklist();
     this.app.view.redraw(true);
     if (this.app.reader) this.app.reader.rerender();
@@ -50,6 +55,7 @@ PttChromePref.prototype = {
     this.setStorage({ values: { floodExempt: this.values.floodExempt } });
     if (!(id in this.tempBlacklist)) return;
     delete this.tempBlacklist[id];
+    delete this.tempBlacklistInfo[id];
     this.saveTempBlacklist();
   },
 
@@ -70,11 +76,15 @@ PttChromePref.prototype = {
     for (var id in this.tempBlacklist) {
       if (this.tempBlacklist[id] <= now || isNaN(this.tempBlacklist[id])) delete this.tempBlacklist[id];
     }
+    for (var k in this.tempBlacklistInfo) {
+      if (!(k in this.tempBlacklist)) delete this.tempBlacklistInfo[k];
+    }
   },
 
   saveTempBlacklist: function() {
     this.values.tempBlacklist = JSON.stringify(this.tempBlacklist);
-    this.setStorage({ values: { tempBlacklist: this.values.tempBlacklist } });
+    this.values.tempBlacklistInfo = JSON.stringify(this.tempBlacklistInfo);
+    this.setStorage({ values: { tempBlacklist: this.values.tempBlacklist, tempBlacklistInfo: this.values.tempBlacklistInfo } });
     this.refreshTempBlacklistOnUi();
   },
 
@@ -88,7 +98,24 @@ PttChromePref.prototype = {
     box.text(i18n('options_tempBlacklist') + (ids.length ? '' : i18n('options_tempBlacklistNone')));
     ids.forEach(function(id) {
       var hours = Math.max(1, Math.round((self.tempBlacklist[id] - now) / 3600000));
-      var row = $('<div class="jj-temp-black"></div>').text(id + ' — ' + i18n('options_tempBlacklistLeft').replace('%s', hours) + ' ').appendTo(box);
+      var row = $('<div class="jj-temp-black"></div>').appendTo(box);
+      $('<b></b>').text(id).appendTo(row);
+      var info = self.tempBlacklistInfo[id];
+      if (info && (info.kind === 'flood' || info.kind === 'spam')) {
+        var why = i18n('tempBlack_' + info.kind).replace('%n', info.n || '?');
+        if (info.kind === 'spam' && info.link) why += i18n('tempBlack_spamLink').replace('%u', info.link);
+        row.append(document.createTextNode(' — ' + why));
+        if (info.title || info.url) {
+          row.append(document.createTextNode(i18n('tempBlack_in')));
+          var label = (info.board ? '[' + info.board + '] ' : '') + (info.title || info.url);
+          if (/^https:\/\/(www\.)?ptt\.cc\//.test(info.url || '')) {
+            $('<a target="_blank" rel="noreferrer"></a>').attr('href', info.url).text(label).appendTo(row);
+          } else {
+            row.append(document.createTextNode(label));
+          }
+        }
+      }
+      row.append(document.createTextNode(' — ' + i18n('options_tempBlacklistLeft').replace('%s', hours) + ' '));
       $('<a href="#"></a>').text(i18n('options_tempBlacklistRemove')).click(function(e) {
         e.preventDefault();
         self.removeTempBlacklist(id);
@@ -116,13 +143,14 @@ PttChromePref.prototype = {
     };
 
     for (var i in this.values) {
-      $('#opt_'+i).empty();
       var val = this.values[i];
 
-      // for blacklisted / watchlisted userids
-      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'notedUserIds' || i === 'tempBlacklist' || i === 'floodExempt') {
+      // for blacklisted / watchlisted userids (filled above; #opt_tempBlacklist
+      // is the list of temporary ones, so it must not be emptied here)
+      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'notedUserIds' || i === 'tempBlacklist' || i === 'tempBlacklistInfo' || i === 'floodExempt') {
         continue;
       }
+      $('#opt_'+i).empty();
       if (i === 'quickSearchList') {
         this.setupQuickSearchUiList();
         this.setupQuickSearchUiHandlers();
@@ -503,6 +531,11 @@ PttChromePref.prototype = {
       $('#about_'+content).text(i18n('about_'+content));
     }
 
+    var kofi = $('#about_kofi').empty();
+    kofi.append(document.createTextNode(i18n('about_kofiPre')));
+    $('<a href="https://ko-fi.com/killnopig" target="_blank" rel="noopener noreferrer"></a>').text(i18n('about_kofiLink')).appendTo(kofi);
+    kofi.append(document.createTextNode(i18n('about_kofiPost')));
+
     if (typeof JJPTT_PITCH !== 'undefined') {
       var pitch = $('#about_pitch').empty();
       $('<p class="jj-pitch-title"></p>').text(JJPTT_PITCH.title).appendTo(pitch);
@@ -638,7 +671,7 @@ PttChromePref.prototype = {
       this.values.hideBlacklisted = m === 1;
     }
     for (var i in this.values) {
-      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'notedUserIds' || i === 'tempBlacklist' || i === 'floodExempt') {
+      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'notedUserIds' || i === 'tempBlacklist' || i === 'tempBlacklistInfo' || i === 'floodExempt') {
         continue;
       }
       if (i === 'quickSearchList') {
@@ -736,6 +769,9 @@ PttChromePref.prototype = {
         } else {
           if (i === 'tempBlacklist') {
             try { this.tempBlacklist = JSON.parse(msg.data.values[i]) || {}; } catch (e) { this.tempBlacklist = {}; }
+            this.values[i] = msg.data.values[i];
+          } else if (i === 'tempBlacklistInfo') {
+            try { this.tempBlacklistInfo = JSON.parse(msg.data.values[i]) || {}; } catch (e) { this.tempBlacklistInfo = {}; }
             this.values[i] = msg.data.values[i];
           } else if (i === 'floodExempt') {
             try { this.floodExempt = JSON.parse(msg.data.values[i]) || {}; } catch (e) { this.floodExempt = {}; }

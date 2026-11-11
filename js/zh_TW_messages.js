@@ -736,7 +736,7 @@ locale.zh_TW = {
     "message": "在文章列表停留多久就先抓那篇（毫秒，0 = 立刻）"
   },
   "options_factFloodRun": {
-    "message": "連推黑名單：同一個帳號在一篇文章裡連續推文太多則，標「連推N」並自動加入黑名單 24 小時（名單分頁可以看到、提早移除）"
+    "message": "連推黑名單：同一個帳號在一篇文章裡連續推文太多則，標「連推N」並自動加入黑名單 24 小時（同一頁上面「名單」區可以看到、提早移除）"
   },
   "options_factFloodRunMin": {
     "message": "連續幾則以上"
@@ -752,6 +752,18 @@ locale.zh_TW = {
   },
   "options_factFloodRunKeepRemoved": {
     "message": "手動移出黑名單的人，24 小時內不再自動加入"
+  },
+  "tempBlack_flood": {
+    "message": "連推 %n 則"
+  },
+  "tempBlack_spam": {
+    "message": "同一個網址貼在 %n 篇文章"
+  },
+  "tempBlack_spamLink": {
+    "message": "（%u）"
+  },
+  "tempBlack_in": {
+    "message": "，在 "
   },
   "options_tempBlacklistRemove": {
     "message": "移除"
@@ -871,6 +883,15 @@ locale.zh_TW = {
   },
   "about_promote": {
     "message": "喜歡這個 APP 的話也請看看鄉民朝聖套件 "
+  },
+  "about_kofiPre": {
+    "message": "覺得好用？"
+  },
+  "about_kofiLink": {
+    "message": "請我喝杯咖啡"
+  },
+  "about_kofiPost": {
+    "message": "（自願，不影響任何功能）"
   },
   "about_traffic_title": {
     "message": "流量提醒"

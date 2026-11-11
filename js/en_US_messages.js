@@ -756,6 +756,18 @@ locale.en_US = {
   "options_factFloodRunKeepRemoved": {
     "message": "Don't re-add anyone you took off the blacklist by hand for 24 hours"
   },
+  "tempBlack_flood": {
+    "message": "%n pushes in a row"
+  },
+  "tempBlack_spam": {
+    "message": "same URL in %n articles"
+  },
+  "tempBlack_spamLink": {
+    "message": " (%u)"
+  },
+  "tempBlack_in": {
+    "message": ", in "
+  },
   "options_tempBlacklistRemove": {
     "message": "remove"
   },
@@ -874,6 +886,15 @@ locale.en_US = {
   },
   "about_promote": {
     "message": "If you like this app, also take a look at "
+  },
+  "about_kofiPre": {
+    "message": "Find it useful? "
+  },
+  "about_kofiLink": {
+    "message": "Buy me a coffee"
+  },
+  "about_kofiPost": {
+    "message": " (optional; every feature works either way)"
   },
   "about_traffic_title": {
     "message": "Data usage"

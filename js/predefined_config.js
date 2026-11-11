@@ -43,6 +43,7 @@ var DEFAULT_PREFS = {
   pushFilterDefault : 10,
   autoBlacklistSameUrl : true,
   tempBlacklist : '{}',
+  tempBlacklistInfo : '{}',
   floodExempt : '{}',
   listNewestFirst : true,
   hidePinned : true,
