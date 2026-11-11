@@ -355,11 +355,21 @@ PttReader.prototype.fetchArticle = function(url) {
       n.setAttribute('data-push-index', pushes.length);
       var contentEl = n.querySelector('.push-content');
       var ipdt = (n.querySelector('.push-ipdatetime') || {}).textContent || '';
+      var content = (contentEl ? contentEl.textContent : '').replace(/^:\s?/, '');
+      // Some pushes (e.g. with characters outside Big5) come with the IP and
+      // time inside the content instead of their own element: move them back.
+      if (!ipdt.trim()) {
+        var tail = /\s+((?:\d{1,3}\.){3}\d{1,3}\s+)?(\d{1,2}\/\d{1,2}(?:\s+\d{1,2}:\d{2})?)\s*$/.exec(content);
+        if (tail) {
+          ipdt = (tail[1] || '') + tail[2];
+          content = content.slice(0, tail.index);
+        }
+      }
       var ipm = /((?:\d{1,3}\.){3}\d{1,3})/.exec(ipdt);
       pushes.push({
         tag: tagEl.textContent.trim(),
         id: idEl.textContent.trim(),
-        content: (contentEl ? contentEl.textContent : '').replace(/^:\s?/, ''),
+        content: content,
         ip: ipm ? ipm[1] : '',
         time: ipdt.replace(ipm ? ipm[1] : '', '').trim()
       });
