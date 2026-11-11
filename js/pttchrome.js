@@ -1,4 +1,4 @@
-﻿// Main Program
+// Main Program
 
 var pttchrome = {};
 
@@ -87,6 +87,7 @@ pttchrome.App = function(onInitializedCallback, options) {
   this.modalShown = false;
 
   this.inputHelper = new InputHelper(this);
+  this.pushInsights = new PushInsights(this);
 
   this.navigateTo = { board: getQueryVariable('board'), aid: getQueryVariable('aid') };
   this.navigationDone = false;
@@ -603,7 +604,7 @@ pttchrome.App.prototype.doAddBlacklistUserId = function(userid) {
   this.pref.setBlacklistValue();
   this.pref.setBlacklistStorage();
   if (this.view.useEasyReadingMode && this.buf.startedEasyReading) {
-    $('.blu_'+userid).css('opacity', '0.2');
+    $('.blu_'+userid).attr('style', this.view.blacklistedRowStyle());
   } else {
     this.view.redraw(true);
   }
@@ -614,10 +615,24 @@ pttchrome.App.prototype.doRemoveBlacklistUserId = function(userid) {
   this.pref.setBlacklistValue();
   this.pref.setBlacklistStorage();
   if (this.view.useEasyReadingMode && this.buf.startedEasyReading) {
-    $('.blu_'+userid).css('opacity', '');
+    $('.blu_'+userid).removeAttr('style');
   } else {
     this.view.redraw(true);
   }
+};
+
+pttchrome.App.prototype.doAddWatchUserId = function(userid) {
+  var note = window.prompt(i18n('prompt_watchNote').replace('%s', userid), '');
+  if (note === null) return;  // cancelled
+  this.pref.watchlistedUserIds[userid] = note.trim();
+  this.pref.setWatchlistStorage();
+  this.pushInsights.annotate();
+};
+
+pttchrome.App.prototype.doRemoveWatchUserId = function(userid) {
+  delete this.pref.watchlistedUserIds[userid];
+  this.pref.setWatchlistStorage();
+  this.pushInsights.annotate();
 };
 
 pttchrome.App.prototype.doSettings = function() {
@@ -1162,6 +1177,23 @@ pttchrome.App.prototype.onPrefChange = function(pref, name) {
       this.pref.enableBlacklist = pref.get(name);
       this.view.redraw(true);
       break;
+    case 'hideBlacklisted':
+      this.pref.hideBlacklisted = pref.get(name);
+      this.view.redraw(true);
+      break;
+    case 'blacklistedTitleKeywords':
+      this.pref.titleKeywords = String(pref.get(name) || '')
+        .split(/[,\uff0c\u3001]/)
+        .map(function(k) { return k.trim().toLowerCase(); })
+        .filter(function(k) { return k; });
+      this.view.redraw(true);
+      break;
+    case 'enablePushInsights':
+      this.pushInsights.setEnabled(pref.get(name));
+      break;
+    case 'watchlistedUserIds':
+      this.pushInsights.annotate();
+      break;
     case 'enableDeleteDupLogin':
       this.buf.enableDeleteDupLogin = pref.get(name);
       break;
@@ -1508,7 +1540,8 @@ pttchrome.App.prototype.setupContextMenus = function() {
     }
 
     // for getting push thread user id
-    if (self.pref.enableBlacklist) {
+    contextOnUserId = null;
+    if (self.pref.enableBlacklist || self.pushInsights.enabled) {
       var srow = target.attr('srow');
       if (srow === undefined || srow === null)
         srow = target.parent().attr('srow');
@@ -1563,7 +1596,22 @@ pttchrome.App.prototype.setupContextMenus = function() {
       }
     }
 
-    if (contextOnUserId) {
+    if (contextOnUserId && self.pushInsights.enabled) {
+      if (contextOnUserId in self.pref.watchlistedUserIds) {
+        $('#cmenuRemoveWatchUserIdContent').text("'"+contextOnUserId+"'");
+        $('#cmenu_addWatchUserId').hide();
+        $('#cmenu_removeWatchUserId').show();
+      } else {
+        $('#cmenuAddWatchUserIdContent').text("'"+contextOnUserId+"'");
+        $('#cmenu_addWatchUserId').show();
+        $('#cmenu_removeWatchUserId').hide();
+      }
+    } else {
+      $('#cmenu_addWatchUserId').hide();
+      $('#cmenu_removeWatchUserId').hide();
+    }
+
+    if (contextOnUserId && self.pref.enableBlacklist) {
       if (contextOnUserId in self.pref.blacklistedUserIds) {
         $('#cmenuRemoveBlacklistUserIdContent').text("'"+contextOnUserId+"'");
         $('#cmenu_addBlacklistUserId').hide();
@@ -1686,6 +1734,8 @@ pttchrome.App.prototype.setupContextMenus = function() {
   $('#cmenu_showLiveArticleHelper a').text(i18n('cmenu_showLiveArticleHelper'));
   $('#cmenu_addBlacklistUserId a').html(i18n('cmenu_addBlacklistUserId')+' <span id="cmenuAddBlacklistUserIdContent"></span>');
   $('#cmenu_removeBlacklistUserId a').html(i18n('cmenu_removeBlacklistUserId')+' <span id="cmenuRemoveBlacklistUserIdContent"></span>');
+  $('#cmenu_addWatchUserId a').html(i18n('cmenu_addWatchUserId')+' <span id="cmenuAddWatchUserIdContent"></span>');
+  $('#cmenu_removeWatchUserId a').html(i18n('cmenu_removeWatchUserId')+' <span id="cmenuRemoveWatchUserIdContent"></span>');
   $('#cmenu_settings a').text(i18n('cmenu_settings'));
 
   var contextMenuItemOnClickHandler = {
@@ -1727,6 +1777,12 @@ pttchrome.App.prototype.setupContextMenus = function() {
     },
     'cmenu_removeBlacklistUserId': function() { 
       self.doRemoveBlacklistUserId(contextOnUserId); 
+    },
+    'cmenu_addWatchUserId': function() {
+      self.doAddWatchUserId(contextOnUserId);
+    },
+    'cmenu_removeWatchUserId': function() {
+      self.doRemoveWatchUserId(contextOnUserId);
     },
     'cmenu_settings': function() { 
       self.doSettings(); 

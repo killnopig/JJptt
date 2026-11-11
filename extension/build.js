@@ -6,7 +6,7 @@ const path = require('path');
 const root = path.join(__dirname, '..');
 const out = __dirname;
 
-const dirs = ['css', 'fonts', 'cursor', 'icon'];
+const dirs = ['css', 'fonts', 'cursor', 'icon', 'data'];
 const files = [
   'icon_16.png', 'icon_128.png', 'icon_512.png', 'LICENSE',
   'js/jquery-2.1.1.min.js', 'js/bootstrap.min.js', 'js/paramikojs_ssh.min.js',

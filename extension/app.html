@@ -38,6 +38,8 @@
       <li id="cmenu_showLiveArticleHelper" class="cmenuItem contextNormal"><a></a></li>
       <li id="cmenu_addBlacklistUserId" class="cmenuItem"><a></a></li>
       <li id="cmenu_removeBlacklistUserId" class="cmenuItem"><a></a></li>
+      <li id="cmenu_addWatchUserId" class="cmenuItem"><a></a></li>
+      <li id="cmenu_removeWatchUserId" class="cmenuItem"><a></a></li>
       <li id="cmenu_divider3" class="divider contextNormal"></li>
       <li id="cmenu_settings" class="cmenuItem"><a></a></li>
     </ul>
@@ -101,6 +103,8 @@
                       <div id="opt_enableNotifications" class="checkbox">
                       </div>
                       <div id="opt_enableEasyReading" class="checkbox">
+                      </div>
+                      <div id="opt_enablePushInsights" class="checkbox">
                       </div>
                       <div id="opt_endTurnsOnLiveUpdate" class="checkbox">
                       </div>
@@ -175,6 +179,10 @@
               <div class="tab-pane" id="tabContentBlacklist">
                 <div id="opt_enableBlacklist" class="checkbox">
                 </div>
+                <div id="opt_hideBlacklisted" class="checkbox">
+                </div>
+                <div id="opt_blacklistedTitleKeywords" class="form-group">
+                </div>
 
                 <div id="blacklist_driveSync" style="margin-bottom:10px">
                   <span id="blacklist_driveSyncTitle" style="margin-right:5px">Use Google Drive:</span>
@@ -197,6 +205,8 @@
                 <!-- blacklist item start -->
                 <textarea id="opt_blacklistedUsers" class="form-control"></textarea>
                 <!-- blacklist item end -->
+                <div id="opt_watchlistInstruction" style="margin-top:15px"></div>
+                <textarea id="opt_watchlistedUsers" class="form-control" style="height:120px"></textarea>
               </div>
 
               <div class="tab-pane" id="tabContentExtensions">

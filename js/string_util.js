@@ -187,6 +187,31 @@ String.prototype.parseThreadForUserId = function() {
   return null;
 };
 
+// Title part of an article list row ("   1001 + 11/11 author  □ title").
+String.prototype.parseThreadTitle = function() {
+  var str = String(this);
+  var regex = /(?:(?:\d+)|(?:  \u2605 )) [\u002bmMsSD*!=~ ](?:(?:[X\d ]{2})|(?:\u7206))[\d ]\d\/\d{2} \w+ +[\u25a1\u8f49R]:?(.*)$/;
+  var result = regex.exec(str);
+  return result ? result[1].trim() : '';
+};
+
+// Direct links to images, including ones with a query string and hosts that
+// serve images without a file extension.
+String.prototype.isImageUrl = function() {
+  var str = String(this);
+  if (/\.(bmp|gif|jpe?g|png|webp|avif)(?:[?#].*)?$/i.test(str)) return true;
+  if (/^https?:\/\/pbs\.twimg\.com\/media\//i.test(str)) return true;
+  return false;
+};
+
+String.prototype.matchesAnyKeyword = function(keywords) {
+  var str = String(this).toLowerCase();
+  for (var i = 0; i < keywords.length; ++i) {
+    if (keywords[i] && str.indexOf(keywords[i]) >= 0) return true;
+  }
+  return false;
+};
+
 String.prototype.parsePushthreadForUserId = function() {
   var str = this;
   var regex = new RegExp(/[\u2192\u63a8\u5653] (\w+) *:.+ \d{2}\/\d{2} \d{2}:\d{2}/g);

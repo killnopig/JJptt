@@ -248,10 +248,19 @@ TermView.prototype = {
   },
 
   prePicRel: function(str) {
-    if(str.search(/\.(bmp|gif|jpe?g|png)$/i) == -1)
-      return ' type="w"';
-    else
+    if (str.isImageUrl())
       return ' type="p"';
+    else
+      return ' type="w"';
+  },
+
+  // Flickr photo info via fetch (JSONP is not allowed in the extension).
+  fetchFlickrPhoto: function(photoId, callback) {
+    var api = 'https://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=c8c95356e465b8d7398ff2847152740e&photo_id=' +
+      encodeURIComponent(photoId) + '&format=json&nojsoncallback=1';
+    fetch(api).then(function(res) { return res.json(); }).then(callback).catch(function(e) {
+      console.log('flickr lookup failed', e);
+    });
   },
 
   createTwoColorWord: function(ch, ch2, char1, fg, fg2, bg, bg2, forceWidth) {
@@ -500,17 +509,26 @@ TermView.prototype = {
         var shouldFade = false;
         var userid = '';
 
-        // check blacklist for user and fade row
-        if (this.bbscore.pref.enableBlacklist) {
+        // check blacklist for user (and title keywords in lists) and fade row
+        var pref = this.bbscore.pref;
+        if (pref.enableBlacklist) {
           var rowText = this.buf.getRowText(row, 0, this.buf.cols);
           if (this.buf.pageState == 3) {
             userid = rowText.parsePushthreadForUserId();
           } else if (this.buf.pageState == 2) {
             userid = rowText.parseThreadForUserId();
+            if (userid && pref.titleKeywords.length &&
+                rowText.parseThreadTitle().matchesAnyKeyword(pref.titleKeywords)) {
+              shouldFade = true;
+            }
           }
-          if (userid in this.bbscore.pref.blacklistedUserIds) {
+          if (userid in pref.blacklistedUserIds) {
             shouldFade = true;
           }
+        }
+        var blacklistStyle = '';
+        if (shouldFade) {
+          blacklistStyle = ' style="' + this.blacklistedRowStyle() + '"';
         }
 
         if (this.doHighlightOnCurRow) 
@@ -527,7 +545,7 @@ TermView.prototype = {
           changedLineHtmlStrs.push(changedLineHtmlStr);
           changedRows.push(row);
         }
-        this.htmlRowStrArray[row] = '<span type="bbsrow" class="'+(userid?'blu_'+userid:'')+'"'+ (shouldFade ? ' style="opacity:0.2"' : '') +' srow="'+row+'">' + changedLineHtmlStr + '</span>';
+        this.htmlRowStrArray[row] = '<span type="bbsrow" class="'+(userid?'blu_'+userid:'')+'"'+ blacklistStyle +' srow="'+row+'">' + changedLineHtmlStr + '</span>';
         anylineUpdate = true;
         lineChangeds[row] = false;
         lineChangedCount += 1;
@@ -561,6 +579,10 @@ TermView.prototype = {
         this.picPreview.style.display = 'none';
         this.picLoading.style.display = 'none';
         this.setupPicPreviewOnHover();
+      }
+
+      if (this.bbscore && this.bbscore.pushInsights) {
+        this.bbscore.pushInsights.annotate();
       }
     }
     //var time = new Date().getTime() - start;
@@ -824,7 +846,16 @@ TermView.prototype = {
     this.chw = cw;
     this.chh = ch;
     var fontSize = this.chh + 'px';
-    var mainWidth = this.chw*this.buf.cols+10 + 'px';
+    var mainWidth = this.chw*this.buf.cols+10;
+    // JJptt: leave room on the right for push insight labels when there is
+    // spare width (labels are positioned at --jj-label-left).
+    var insights = this.bbscore && this.bbscore.pushInsights;
+    if (insights && insights.enabled && !this.fontFitWindowWidth) {
+      var spare = innerBounds.width - mainWidth;
+      mainWidth += Math.max(0, Math.min(spare, this.chw * 40));
+    }
+    this.mainDisplay.style.setProperty('--jj-label-left', (this.chw*this.buf.cols) + 'px');
+    mainWidth = mainWidth + 'px';
     this.mainDisplay.style.fontSize = fontSize;
     this.mainDisplay.style.lineHeight = fontSize;
     this.bbsCursor.style.fontSize = fontSize;
@@ -1025,6 +1056,18 @@ TermView.prototype = {
     this.isComposition = false;
   },
 
+  // Style for a blacklisted row: faded, or hidden when hideBlacklisted is on.
+  // In easy reading mode rows can be removed; on the 24-row screen they are
+  // blanked so the layout stays put.
+  blacklistedRowStyle: function() {
+    if (!this.bbscore.pref.hideBlacklisted) return 'opacity:0.2';
+    return (this.useEasyReadingMode && this.buf.pageState == 3) ? 'display:none' : 'visibility:hidden';
+  },
+
+  onWindowResizeForInsights: function() {
+    if (this.bbscore && this.innerBounds) this.bbscore.onWindowResize();
+  },
+
   fontResize: function() {
     var cols = this.buf ? this.buf.cols : 80;
     var rows = this.buf ? this.buf.rows : 24;
@@ -1151,7 +1194,7 @@ TermView.prototype = {
 
   setupPicPreviewOnHover: function() {
     var self = this;
-    var aNodes = $(".main a[href^='http://ppt.cc/'], .main a[type='p'], .main a[href^='http://imgur.com/'], .main a[href^='https://imgur.com/'], .main a[href^='https://flic.kr/p/'], .main a[href^='https://www.flickr.com/photos/']")
+    var aNodes = $(".main a[href^='http://ppt.cc/'], .main a[type='p'], .main a[href^='http://imgur.com/'], .main a[href^='https://imgur.com/'], .main a[href^='https://m.imgur.com/'], .main a[href^='https://flic.kr/p/'], .main a[href^='https://www.flickr.com/photos/']")
                   .not("a[href^='http://imgur.com/a/'], a[href^='https://imgur.com/a/'], a[href^='http://imgur.com/gallery/'], a[href^='https://imgur.com/gallery/']");
     var onover = function(elem) {
       var setPicPreviewSrc = function(src) {
@@ -1178,8 +1221,7 @@ TermView.prototype = {
           } else {
             self.picPreviewAjaxLoading = true;
             self.picLoading.style.display = 'block';
-            var flickrApi = "https://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=c8c95356e465b8d7398ff2847152740e&photo_id="+flickrPhotoId+"&format=json&jsoncallback=?";
-            $.getJSON(flickrApi, function(data){
+            self.fetchFlickrPhoto(flickrPhotoId, function(data){
               if (data.photo) {
                 var p = data.photo;
                 var src = "https://farm"+p.farm+".staticflickr.com/"+p.server+"/"+p.id+"_"+p.secret+".jpg";
@@ -1197,7 +1239,7 @@ TermView.prototype = {
         return function(e) {
           var href = elem.getAttribute('href');
           var type = elem.getAttribute('type');
-          var src = (type == 'p') ? href : (href.indexOf('imgur.com') > 0) ? href.replace(/(http(s)?):\/\/imgur.com/, "$1://i.imgur.com") + '.jpg' : href + '@.jpg';
+          var src = (type == 'p') ? href : (href.indexOf('imgur.com') > 0) ? href.replace(/(http(s)?):\/\/(?:m\.)?imgur.com/, "$1://i.imgur.com") + '.jpg' : href + '@.jpg';
           setPicPreviewSrc(src);
         };
       }
@@ -1367,7 +1409,7 @@ TermView.prototype = {
   },
 
   embedPicAndVideo: function() {
-    var aNodes = $(".main a[type='p'], .main a[href^='http://imgur.com/'], .main a[href^='https://imgur.com/'], .main a[href^='https://flic.kr/'], .main a[href^='https://www.flickr.com/photos/']");
+    var aNodes = $(".main a[type='p'], .main a[href^='http://imgur.com/'], .main a[href^='https://imgur.com/'], .main a[href^='https://m.imgur.com/'], .main a[href^='https://flic.kr/'], .main a[href^='https://www.flickr.com/photos/']");
     var getPhotoInfoCallback = function(data){
       if (data.photo) {
         var p = data.photo;
@@ -1413,8 +1455,7 @@ TermView.prototype = {
       if (found_flickr) {
         var flickrBase58Id = found_flickr[1];
         var flickrPhotoId = flickrBase58Id ? base58_decode(flickrBase58Id) : found_flickr[2];
-        var flickrApi = "https://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=c8c95356e465b8d7398ff2847152740e&photo_id="+flickrPhotoId+"&format=json&jsoncallback=?";
-        $.getJSON(flickrApi, getPhotoInfoCallback);
+        this.fetchFlickrPhoto(flickrPhotoId, getPhotoInfoCallback);
       } else if (href.indexOf('flickr.com/photos/') < 0) {
         // handle with non-photo flickr urls, such as albums or sets, and straight image links, imgur urls.
         var isImgurAlbum = href.match('imgur\.com\/\(a|gallery\)\/\(\\w\+\)');
@@ -1431,10 +1472,11 @@ TermView.prototype = {
           });
         } else {
           var type = aNode.getAttribute('type');
-          var src = (type == 'p') ? href : (href.indexOf('imgur.com') > 0) ? href.replace(/(http(s)?):\/\/imgur.com/, "$1://i.imgur.com") + '.jpg' : '';
+          var src = (type == 'p') ? href : (href.indexOf('imgur.com') > 0) ? href.replace(/(http(s)?):\/\/(?:m\.)?imgur.com/, "$1://i.imgur.com") + '.jpg' : '';
           if (src) {
             var imgNode = document.createElement('img');
             imgNode.setAttribute('class', 'easyReadingImg');
+            imgNode.setAttribute('loading', 'lazy');
             imgNode.setAttribute('src', src);
             imgNode.style.webkitTransform = 'scale('+Math.floor(1/this.scaleX*100)/100+','+Math.floor(1/this.scaleY*100)/100+')';
             aNode.parentNode.appendChild(imgNode);
@@ -1454,6 +1496,19 @@ TermView.prototype = {
       var href = vNode.getAttribute('href');
       if (!href)
         continue;
+      var imgurVideo = href.match(/^https?:\/\/i\.imgur\.com\/(\w+)\.(?:gifv|mp4)$/i);
+      if (imgurVideo) {
+        var videoNode = document.createElement('video');
+        videoNode.setAttribute('class', 'easyReadingImg');
+        videoNode.setAttribute('src', 'https://i.imgur.com/' + imgurVideo[1] + '.mp4');
+        videoNode.autoplay = true;
+        videoNode.loop = true;
+        videoNode.muted = true;
+        videoNode.playsInline = true;
+        vNode.parentNode.appendChild(videoNode);
+        vNode.setAttribute('view_shown', 'true');
+        continue;
+      }
       var youtubeShortCode = href.parseYoutubeUrl();
       if (youtubeShortCode) {
         var divNode = document.createElement('div');

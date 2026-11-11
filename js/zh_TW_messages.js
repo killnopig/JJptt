@@ -1,4 +1,4 @@
-﻿locale.zh_TW = {
+locale.zh_TW = {
   "appName": {
     "message": "PttChrome",
     "description": "The title of the application, displayed in the web store."
@@ -194,6 +194,27 @@
   },
   "options_threadLastNext": {
     "message": "控制文章前篇 / 下篇"
+  },
+  "options_enablePushInsights": {
+    "message": "推文分析：顯示樓層、IP 國籍、可疑帳號標記"
+  },
+  "options_hideBlacklisted": {
+    "message": "完全隱藏黑名單使用者的推文和文章（不勾選則淡化）"
+  },
+  "options_blacklistedTitleKeywords": {
+    "message": "標題關鍵字黑名單（以逗號隔開，符合的文章在列表中隱藏或淡化）"
+  },
+  "options_watchlistInstruction": {
+    "message": "觀察名單：每行一個使用者 ID，後面可以加空格和備註。推文會被標記。"
+  },
+  "cmenu_addWatchUserId": {
+    "message": "加入觀察名單"
+  },
+  "cmenu_removeWatchUserId": {
+    "message": "從觀察名單移除"
+  },
+  "prompt_watchNote": {
+    "message": "把 %s 加入觀察名單。備註（可留空）："
   },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"

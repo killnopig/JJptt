@@ -198,6 +198,27 @@ locale.en_US = {
   "options_threadLastNext": {
     "message": "Controls thread previous / next"
   },
+  "options_enablePushInsights": {
+    "message": "Push insights: floor numbers, IP country and suspicious-account hints"
+  },
+  "options_hideBlacklisted": {
+    "message": "Hide blacklisted users' pushes and articles completely (otherwise fade them)"
+  },
+  "options_blacklistedTitleKeywords": {
+    "message": "Title keyword blacklist (comma separated; matching articles are hidden or faded in lists)"
+  },
+  "options_watchlistInstruction": {
+    "message": "Watchlist: one user ID per line, optionally followed by a space and a note. Their pushes get flagged."
+  },
+  "cmenu_addWatchUserId": {
+    "message": "Add to watchlist"
+  },
+  "cmenu_removeWatchUserId": {
+    "message": "Remove from watchlist"
+  },
+  "prompt_watchNote": {
+    "message": "Add %s to the watchlist. Note (optional):"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },

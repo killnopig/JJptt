@@ -1,4 +1,4 @@
-﻿var PREFS_CATEGORIES = ['mouseBrowsing', 'appearance'];
+var PREFS_CATEGORIES = ['mouseBrowsing', 'appearance'];
 var PREFS_NAV = ['general', 'autologin', 'blacklist', 'extensions', 'about'];
 var DEFAULT_PREFS = {
 
@@ -8,7 +8,7 @@ var DEFAULT_PREFS = {
   openInPackagedApp     : false,
   enablePicPreview      : true,
   enableNotifications   : true,
-  enableEasyReading     : false,
+  enableEasyReading     : true,
   endTurnsOnLiveUpdate  : false,
   copyOnSelect          : false,
   antiIdleTime          : 0,
@@ -34,6 +34,11 @@ var DEFAULT_PREFS = {
   // blacklist
   enableBlacklist : false,
   blacklistedUserIds  : '{}',
+  hideBlacklisted : false,
+  blacklistedTitleKeywords : '',
+
+  enablePushInsights : true,
+  watchlistedUserIds : '{}',
 
   // quickSearch
   quickSearchList: '[{"name":"goo.gl","url":"http://goo.gl/%s"}]'

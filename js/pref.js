@@ -6,6 +6,9 @@ function PttChromePref(app, onInitializedCallback) {
 
   this.enableBlacklist = false;
   this.blacklistedUserIds = {};
+  this.watchlistedUserIds = {};
+  this.hideBlacklisted = false;
+  this.titleKeywords = [];
 
   this.quickSearches = [];
 
@@ -19,6 +22,7 @@ PttChromePref.prototype = {
 
   updateSettingsToUi: function() {
     this.refreshBlacklistOnUi();
+    this.refreshWatchlistOnUi();
 
     var self = this;
     var htmlStr = '';
@@ -34,8 +38,8 @@ PttChromePref.prototype = {
       $('#opt_'+i).empty();
       var val = this.values[i];
 
-      // for blacklisted userids
-      if (i === 'blacklistedUserIds') {
+      // for blacklisted / watchlisted userids
+      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds') {
         continue;
       }
       if (i === 'quickSearchList') {
@@ -163,6 +167,7 @@ PttChromePref.prototype = {
 
     // blacklist
     $('#opt_blacklistInstruction').text(i18n('options_blacklistInstruction'));
+    $('#opt_watchlistInstruction').text(i18n('options_watchlistInstruction'));
 
     this.setupExtensionsPage();
 
@@ -293,6 +298,7 @@ PttChromePref.prototype = {
         self.clearStorage();
         self.values = JSON.parse(JSON.stringify(DEFAULT_PREFS));
         self.blacklistedUserIds = {};
+        self.watchlistedUserIds = {};
         self.quickSearches = JSON.parse(DEFAULT_PREFS.quickSearchList);
         self.logins = ['',''];
         self.updateSettingsToUi();
@@ -439,6 +445,35 @@ PttChromePref.prototype = {
     $('#about_new').html(whatsNewListHtml);
   },
 
+  // Watchlist: one ID per line, optionally followed by a note.
+  refreshWatchlistOnUi: function() {
+    var ids = this.watchlistedUserIds;
+    var lines = Object.keys(ids).map(function(id) {
+      return ids[id] ? id + ' ' + ids[id] : id;
+    });
+    $('#opt_watchlistedUsers').val(lines.join('\n'));
+  },
+
+  readWatchlistValues: function() {
+    var listStr = $('#opt_watchlistedUsers').val() || '';
+    var ids = {};
+    listStr.split('\n').forEach(function(line) {
+      var m = /^\s*(\w+)\s*(.*?)\s*$/.exec(line);
+      if (m) ids[m[1].toLowerCase()] = m[2];
+    });
+    this.watchlistedUserIds = ids;
+    this.setWatchlistValue();
+  },
+
+  setWatchlistValue: function() {
+    this.values.watchlistedUserIds = JSON.stringify(this.watchlistedUserIds);
+  },
+
+  setWatchlistStorage: function() {
+    this.setWatchlistValue();
+    this.setStorage({ values: { watchlistedUserIds: this.values.watchlistedUserIds } });
+  },
+
   refreshBlacklistOnUi: function() {
     var listNode = $('#opt_blacklistedUsers');
     var listStr = Object.keys(this.blacklistedUserIds).join('\n');
@@ -475,9 +510,10 @@ PttChromePref.prototype = {
 
   readValueFromUi: function() {
     this.readBlacklistValues();
+    this.readWatchlistValues();
     var selectedVal;
     for (var i in this.values) {
-      if (i === 'blacklistedUserIds') {
+      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds') {
         continue;
       }
       if (i === 'quickSearchList') {
@@ -571,7 +607,10 @@ PttChromePref.prototype = {
             this.quickSearches = JSON.parse(this.values[i]);
           }
         } else {
-          if (i === 'blacklistedUserIds') {
+          if (i === 'watchlistedUserIds') {
+            this.watchlistedUserIds = JSON.parse(msg.data.values[i]);
+            this.values[i] = msg.data.values[i];
+          } else if (i === 'blacklistedUserIds') {
             this.blacklistedUserIds = JSON.parse(msg.data.values[i]);
           } else if (i === 'quickSearchList') {
             var val = msg.data.values[i];

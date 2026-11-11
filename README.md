@@ -4,6 +4,17 @@
 
 原版要靠已停用的 Chrome App 開 TCP 連線；JJptt 改成透過自己的 Cloudflare Worker 轉接站（`worker/`）連到 PTT。預設走 SSH，加密在瀏覽器裡完成，轉接站看不到你的帳密。
 
+## 功能
+
+- **推文樓層**：好讀模式下每則推文右邊標出第幾樓
+- **IP 國籍**：在會記錄推文 IP 的看板，標出推文者 IP 所在國家；國外 IP 以橘色顯示
+- **可疑帳號標記**（紅色）：同一 IP 用多個帳號推文、推文者跟作者同 IP；同一帳號在一篇文章推很多次也會標出「第 k/n 推」。這些只是提示，不代表一定是網軍
+- **觀察名單**（紫色）：在推文上按右鍵「加入觀察名單」，可以加備註
+- **自動縮圖**：好讀模式下圖片網址（imgur、Twitter、各種圖片連結）直接顯示圖片，imgur 動圖會播放；一般模式滑鼠移到網址上顯示預覽
+- **黑名單**：依帳號淡化或完全隱藏推文和文章，也能用標題關鍵字隱藏文章（設定 → 黑名單）
+
+推文分析和好讀模式預設開啟，可以在設定裡關掉。
+
 JJptt 有兩種用法：
 
 - **擴充功能版**：搭配本機小程式，直接從你的電腦連到 PTT，不經過任何轉接站
@@ -55,3 +66,7 @@ npm run build
 `npm run build` 會打包網站，並把結果複製到 `extension/`。
 
 本機小程式的原始碼在 `native-host/main.go`，改完用 `sh native-host/build.sh` 重新編譯所有平台的執行檔（需要 Go）。
+
+## 資料來源
+
+IP 國籍資料（`data/geoip-v4.bin`）由 [ip-location-db](https://github.com/sapics/ip-location-db) 的 geo-whois-asn-country 轉換而來，資料授權為 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，來源：[Number Resource Organization (NRO)](https://www.nro.net/)。更新方式見 `tools/build-geoip.js`。
