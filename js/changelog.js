@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.7.1',
+    date: '2026-11-11',
+    changes: [
+      '換上 JJptt 新圖示（擴充功能、工具列、分頁圖示）；斷線時分頁圖示變灰'
+    ]
+  },
+  {
     version: '1.7.0',
     date: '2026-11-11',
     changes: [

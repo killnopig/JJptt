@@ -8,7 +8,7 @@ const out = __dirname;
 
 const dirs = ['css', 'fonts', 'cursor', 'icon', 'data'];
 const files = [
-  'icon_16.png', 'icon_128.png', 'icon_512.png', 'LICENSE',
+  'icon_16.png', 'icon_48.png', 'icon_128.png', 'icon_512.png', 'LICENSE',
   'js/jquery-2.1.1.min.js', 'js/bootstrap.min.js', 'js/paramikojs_ssh.min.js',
   'js/hammer.min.js', 'js/pttchrome.min.js',
 ];
