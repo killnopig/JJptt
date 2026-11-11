@@ -136,11 +136,14 @@ locale.zh_TW = {
   "update_current": {
     "message": "目前 v%s\n有新版時按下會自動重新開啟"
   },
+  "options_updateCheckMinutes": {
+    "message": "每幾分鐘檢查一次新版本（0 = 只在開啟 JJptt 和打開設定時檢查，最少 5）"
+  },
   "update_title": {
     "message": "檢查更新"
   },
   "update_help": {
-    "message": "JJptt 每次開啟時會自動檢查 GitHub 上有沒有新版本。按「立即更新」會自動下載，下載完 JJptt 會自己關閉再重新開啟。\n如果按鈕不能用：雙擊 jjptt 資料夾裡的 update-jjptt.command（Windows 用 update-jjptt.bat），下載完成後畫面上會出現「套用更新」按鈕，按下去一樣會重新開啟。"
+    "message": "JJptt 開啟時、打開設定時，以及每隔下面設定的時間，會自動檢查 GitHub 上有沒有新版本。按「立即更新」會自動下載，下載完 JJptt 會自己關閉再重新開啟。\n如果按鈕不能用：雙擊 jjptt 資料夾裡的 update-jjptt.command（Windows 用 update-jjptt.bat），下載完成後畫面上會出現「套用更新」按鈕，按下去一樣會重新開啟。"
   },
   "update_check": {
     "message": "立即檢查"

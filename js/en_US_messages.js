@@ -136,11 +136,14 @@ locale.en_US = {
   "update_current": {
     "message": "Now v%s\nJJptt reopens if there is an update"
   },
+  "options_updateCheckMinutes": {
+    "message": "Minutes between update checks (0 = only when JJptt or the settings open; at least 5)"
+  },
   "update_title": {
     "message": "Updates"
   },
   "update_help": {
-    "message": "JJptt checks GitHub for a new version every time it opens. Update now downloads it, then JJptt closes and reopens.\nIf the button does not work: double-click update-jjptt.command (update-jjptt.bat on Windows) in the jjptt folder; then click Apply update, which also reopens JJptt."
+    "message": "JJptt checks GitHub for a new version when it opens, when the settings open and at the interval below. Update now downloads it, then JJptt closes and reopens.\nIf the button does not work: double-click update-jjptt.command (update-jjptt.bat on Windows) in the jjptt folder; then click Apply update, which also reopens JJptt."
   },
   "update_check": {
     "message": "Check now"

@@ -54,6 +54,7 @@ var DEFAULT_PREFS = {
   colorRepeatPushers : true,
   factSameIp : true,
   factAuthorIp : true,
+  updateCheckMinutes : 30,
   factReport : true,
   factReportMinPushes : 10,
   factReportCollapsed : true,

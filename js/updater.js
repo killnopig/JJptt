@@ -19,7 +19,7 @@ function JJUpdater(app) {
 // old right after a push), raw file as a fallback.
 JJUpdater.REMOTE_API = 'https://api.github.com/repos/killnopig/JJptt/contents/extension/manifest.json?ref=gh-pages';
 JJUpdater.REMOTE_MANIFEST = 'https://raw.githubusercontent.com/killnopig/JJptt/gh-pages/extension/manifest.json';
-JJUpdater.CHECK_EVERY = 6 * 3600 * 1000;
+JJUpdater.CHECK_EVERY = 30 * 60 * 1000;
 
 JJUpdater.compare = function(a, b) {
   var pa = String(a || '0').split('.'), pb = String(b || '0').split('.');
@@ -62,11 +62,27 @@ JJUpdater.prototype.fetchRemoteVersion = function() {
   });
 };
 
+// Setting: minutes between checks (0 = only when JJptt or the settings open).
+JJUpdater.prototype.everyMs = function() {
+  var v = this.app.pref && this.app.pref.values;
+  var n = parseInt(v ? v.updateCheckMinutes : 30, 10);
+  if (isNaN(n)) n = 30;
+  return n > 0 ? Math.max(5, n) * 60000 : 0;
+};
+
 JJUpdater.prototype.start = function() {
   if (!this.available()) return;
   var self = this;
   this.check(false);
-  setInterval(function() { self.check(false); }, JJUpdater.CHECK_EVERY);
+  // re-read the setting every time, so a change applies without reopening
+  var loop = function() {
+    var ms = self.everyMs();
+    self.loopTimer = setTimeout(function() {
+      if (self.everyMs()) self.check(false);
+      loop();
+    }, ms || 60000);
+  };
+  loop();
 };
 
 // manual = from the settings button: also report "already up to date"

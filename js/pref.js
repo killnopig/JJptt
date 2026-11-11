@@ -294,6 +294,7 @@ PttChromePref.prototype = {
     $('#prefModal').on('shown.bs.modal', function(e) {
       self.app.disableLiveHelper();
       self.app.modalShown = true;
+      if (self.app.updater && self.app.updater.available()) self.app.updater.check(false);  // fresh status in the window
     });
     $('#prefModal').on('hidden.bs.modal', function(e) {
       if (self.shouldResetToDefault) {
