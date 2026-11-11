@@ -1214,25 +1214,31 @@ TermView.prototype = {
     }
     this.listMap = { slotOf: slotOf, rowOf: rowOf, html: html, hidden: {}, reversed: true };
 
-    // Entering a board on a short last page: look at the previous page once
-    // (PageUp), then once it has been drawn come back to the newest article
-    // (End). Sent separately: PTT would otherwise only draw the final screen.
+    // Entering a board: start on the newest article ("$" = last article in
+    // PTT). If the last page is short, first look at the previous page once
+    // (PageUp) so the screen can be filled, then "$" once it has been drawn
+    // (sent separately: PTT would otherwise only draw the final screen).
     if (!this.conn) return;
+    var conn = this.conn;
     if (st.fill === 'start') {
       st.fill = 'done';
+      var curText = buf.getRowText(buf.cur_y, 0, buf.cols);
+      var curNum = /^.\s*(\d+)\s/.exec(curText);
+      var maxNum = nums.length ? nums[0] : 0;
       // count only rows that are shown (hidden pinned posts leave gaps)
       if (entered && numbered && numbered + (hidePinned ? 0 : pinnedNow.length) < slots) {
         st.fill = 'up';
-        this.conn.send('\x1b[5~');
-        var conn = this.conn;
+        conn.send('\x1b[5~');
         st.fillTimer = setTimeout(function() {  // safety net
-          if (st.fill === 'up') { st.fill = 'done'; conn.send('\x1b[4~'); }
+          if (st.fill === 'up') { st.fill = 'done'; conn.send('$'); }
         }, 1500);
+      } else if (entered && maxNum && (!curNum || +curNum[1] !== maxNum)) {
+        conn.send('$');
       }
     } else if (st.fill === 'up' && !pinnedNow.length) {
       st.fill = 'done';
       clearTimeout(st.fillTimer);
-      this.conn.send('\x1b[4~');
+      conn.send('$');
     }
   },
 

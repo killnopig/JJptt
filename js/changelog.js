@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.11.1',
+    date: '2026-11-11',
+    changes: [
+      '修正：「最新的在上面」進板時游標沒有停在編號最大（最新）的那篇；改用 PTT 的「$」跳到最後一篇'
+    ]
+  },
+  {
     version: '1.11.0',
     date: '2026-11-11',
     changes: [
