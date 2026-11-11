@@ -1325,6 +1325,9 @@ pttchrome.App.prototype.onPrefChange = function(pref, name) {
     case 'watchText':
       this.pushInsights.annotate();
       break;
+    case 'readerImageMaxPercent':
+      if (this.reader && this.reader.isOpen()) this.reader.layout();
+      break;
     case 'enableReader':
       this.reader.setEnabled(pref.get(name));
       break;

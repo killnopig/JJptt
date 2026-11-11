@@ -1072,11 +1072,11 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 .jjt-root .jjt-line[data-jj-level="watch"]::after { color: #d58bff; }
 .jjt-root .jjt-line[data-jj-level="warn"]::after { color: #ff5c5c; }
 .jjt-root .jjr-media { margin: 4px 0 10px; }
-#jjReader.jjt-root .jjr-img { margin: 4px auto 0; max-height: calc(var(--jj-box-h, 70vh) * 0.3); }
+#jjReader.jjt-root .jjr-img { margin: 4px auto 0; max-height: calc(var(--jj-box-h, 70vh) * var(--jj-img-frac, 0.4)); }
 .jjt-root .jjr-card { max-width: 100%; }
 .jjt-root .jjt-status { flex: none; display: flex; white-space: pre; overflow-x: clip; overflow-y: visible; }
 .jjt-root .jjt-status-fill { flex: 1; }
-#jjReader.jjt-root .jjt-push-media .jjr-img { max-height: calc(var(--jj-box-h, 70vh) * 0.3); margin: 2px 0 6px; }
+#jjReader.jjt-root .jjt-push-media .jjr-img { max-height: calc(var(--jj-box-h, 70vh) * var(--jj-img-frac, 0.4)); margin: 2px 0 6px; }
 
 #jjLoading {
   position: fixed;

@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.10.2',
+    date: '2026-11-11',
+    changes: [
+      '新增設定「閱讀模式圖片最大高度」（畫面的 %，預設 40）'
+    ]
+  },
+  {
     version: '1.10.1',
     date: '2026-11-11',
     changes: [

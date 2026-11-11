@@ -46,6 +46,7 @@ var DEFAULT_PREFS = {
   labelLayout : 0,
   enableReader : true,
   readerLowResImages : true,
+  readerImageMaxPercent : 40,
   textColor : '#c0c0c0',
   floorColor : '#8a8a8a',
   countryDisplay : 0,

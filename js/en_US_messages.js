@@ -384,6 +384,9 @@ locale.en_US = {
   "options_pushFilterDefault": {
     "message": "Push count filled in for Z search (0 = off)"
   },
+  "options_readerImageMaxPercent": {
+    "message": "Reader image max height (% of the view, 10-100)"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },

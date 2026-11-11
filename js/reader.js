@@ -1099,6 +1099,11 @@ PttReader.prototype.layout = function() {
   scroller.style.marginTop = Math.max(0, rect.top) + 'px';
   scroller.style.height = (chh * (rows - 1)) + 'px';
   o.style.setProperty('--jj-box-h', (chh * (rows - 1)) + 'px');
+  // image height limit (setting, % of the box)
+  var pref = this.app.pref;
+  var pct = parseInt(pref && pref.values ? pref.values.readerImageMaxPercent : 40, 10);
+  if (!(pct >= 10 && pct <= 100)) pct = 40;
+  o.style.setProperty('--jj-img-frac', pct / 100);
   this.updateStatus();
 };
 
