@@ -739,10 +739,22 @@ locale.en_US = {
     "message": "Rest on a list row this long before loading it (ms, 0 = at once)"
   },
   "options_factFloodRun": {
-    "message": "Put an account on the blacklist for 24 hours when it pushes many times in a row in one article"
+    "message": "Flood blacklist: an account pushing many times in a row in one article is tagged and put on the blacklist for 24 hours"
   },
   "options_factFloodRunMin": {
     "message": "Pushes in a row"
+  },
+  "options_fgFlood": {
+    "message": "Push runs"
+  },
+  "options_factFloodRunChain": {
+    "message": "Count a run even when others cut in (within 3 floors and 2 minutes, like the grouped view); off = strictly unbroken"
+  },
+  "options_factFloodRunSkipAuthor": {
+    "message": "Don't count the author replying in their own article"
+  },
+  "options_factFloodRunKeepRemoved": {
+    "message": "Don't re-add anyone you took off the blacklist by hand for 24 hours"
   },
   "options_tempBlacklistRemove": {
     "message": "remove"

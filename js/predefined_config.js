@@ -1,4 +1,4 @@
-var PREFS_CATEGORIES = ['mouseBrowsing', 'appearance', 'listLayout', 'askAi', 'factLists', 'factDetect', 'autologinBox', 'genReader', 'genList', 'genOther', 'fgReport', 'fgStyle', 'fgIp', 'fgTime', 'fgContent', 'fgHistory', 'mbBasic', 'mbButtons', 'fgTask'];
+var PREFS_CATEGORIES = ['mouseBrowsing', 'appearance', 'listLayout', 'askAi', 'factLists', 'factDetect', 'autologinBox', 'genReader', 'genList', 'genOther', 'fgReport', 'fgStyle', 'fgIp', 'fgTime', 'fgContent', 'fgHistory', 'mbBasic', 'mbButtons', 'fgTask', 'fgFlood'];
 var PREFS_NAV = ['general', 'layout', 'mouseBrowsing', 'blacklist', 'syncBackup', 'autologin', 'about'];
 var DEFAULT_PREFS = {
 
@@ -43,6 +43,7 @@ var DEFAULT_PREFS = {
   pushFilterDefault : 10,
   autoBlacklistSameUrl : true,
   tempBlacklist : '{}',
+  floodExempt : '{}',
   listNewestFirst : true,
   hidePinned : true,
   blacklistedTitleKeywords : '',
@@ -86,6 +87,9 @@ var DEFAULT_PREFS = {
   factHosting : true,
   factFloodRun : true,
   factFloodRunMin : 10,
+  factFloodRunChain : true,
+  factFloodRunSkipAuthor : true,
+  factFloodRunKeepRemoved : true,
   readerGroupRuns : true,
   factTask : true,
   factTaskMin : 10,

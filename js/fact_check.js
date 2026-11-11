@@ -27,6 +27,7 @@ FactCheck.DEFAULTS = {
   factSquad: true, factSquadMin: 3,
   factHosting: true,
   factFloodRun: true, factFloodRunMin: 10,
+  factFloodRunChain: true, factFloodRunSkipAuthor: true, factFloodRunKeepRemoved: true,
   factTask: true, factTaskMin: 10, factTaskMax: 12, factTaskWindow: 5, factTaskQuietHours: 2, factTaskShort: 5,
   factTaskSquad: true, factTaskSquadMin: 2
 };
@@ -55,6 +56,41 @@ FactCheck.pushTime = function(text, post) {
   var t = new Date(year, +m[1] - 1, +m[2], +m[3], +m[4]).getTime();
   if (t < post - 180 * 86400000) t = new Date(year + 1, +m[1] - 1, +m[2], +m[3], +m[4]).getTime();
   return t;
+};
+
+// "11/12 10:02" -> a number of minutes (good enough to compare nearby pushes)
+FactCheck.pushMinute = function(p) {
+  var m = /(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{2})/.exec((p && p.time) || '');
+  if (!m) return null;
+  return ((Number(m[1]) * 31 + Number(m[2])) * 24 + Number(m[3])) * 60 + Number(m[4]);
+};
+
+// Splits push indices (in floor order) into runs, one person each: a push
+// joins the person's run when it comes within 3 floors and 2 minutes of the
+// run's last push, even if others cut in. Used by 連推 (fact check) and by
+// 連續推文排在一起 (reader), so both see the same runs.
+FactCheck.chains = function(indices, pushes) {
+  var placed = {}, out = [];
+  for (var j = 0; j < indices.length; ++j) {
+    var first = indices[j];
+    if (placed[first]) continue;
+    placed[first] = true;
+    var chain = [first];
+    var id = String(pushes[first].id).toLowerCase();
+    var lastPos = j, lastT = FactCheck.pushMinute(pushes[first]);
+    for (var k = j + 1; k < indices.length && k <= lastPos + 3; ++k) {
+      var c = indices[k];
+      if (placed[c] || String(pushes[c].id).toLowerCase() !== id) continue;
+      var t = FactCheck.pushMinute(pushes[c]);
+      if (lastT !== null && t !== null && t - lastT > 2) continue;
+      placed[c] = true;
+      chain.push(c);
+      lastPos = k;
+      lastT = t;
+    }
+    out.push(chain);
+  }
+  return out;
 };
 
 FactCheck.bodyChars = function(text) {
@@ -327,27 +363,48 @@ FactCheck.prototype.analyze = function(article) {
     }
   }
 
-  // 7. 連續推文洗版: one account with a long unbroken run of pushes goes on
-  //    the 24-hour blacklist (deferred: this runs while the article draws)
+  // 7. 連續推文洗版: one account with a long run of pushes goes on the
+  //    24-hour blacklist (deferred: this runs while the article draws).
+  //    Each can be turned off: runs count the way 連續推文排在一起 groups them
+  //    (others may cut in for up to 2 floors, within 2 minutes) instead of
+  //    strictly unbroken; the author replying in their own article doesn't
+  //    count; nobody the user took off the blacklist is put back within 24 h.
   if (this.opt('factFloodRun')) {
     var floodMin = this.opt('factFloodRunMin');
     var self7 = this, flooders = {};
-    var runStart = 0;
-    for (i = 1; i <= n; ++i) {
-      if (i < n && ids[i] === ids[runStart]) continue;
-      if (i - runStart >= floodMin) flooders[ids[runStart]] = Math.max(flooders[ids[runStart]] || 0, i - runStart);
-      runStart = i;
+    var useChain7 = this.opt('factFloodRunChain'), keep7 = this.opt('factFloodRunKeepRemoved');
+    var authorId7 = this.opt('factFloodRunSkipAuthor') ?
+        String((article.meta && article.meta['作者']) || '').split(' ')[0].toLowerCase() : '';
+    var runs7 = [];
+    if (useChain7) {
+      var all7 = [];
+      for (i = 0; i < n; ++i) all7.push(i);
+      runs7 = FactCheck.chains(all7, pushes);
+    } else {
+      for (i = 0; i < n; ++i) {  // strictly unbroken runs
+        if (i && ids[i] === ids[i - 1]) runs7[runs7.length - 1].push(i);
+        else runs7.push([i]);
+      }
     }
+    runs7.forEach(function(ch) {
+      var id = ids[ch[0]];
+      if (!id || id === authorId7 || ch.length < floodMin) return;
+      flooders[id] = Math.max(flooders[id] || 0, ch.length);
+    });
     Object.keys(flooders).forEach(function(id) {
       for (var k = 0; k < n; ++k) if (ids[k] === id) add(k, '連推' + flooders[id], 'warn');
     });
     var fl = Object.keys(flooders);
     if (fl.length) {
-      report.push('連續推文：' + fl.length + ' 個帳號一口氣連推 ' + floodMin + ' 則以上，已加入 24 小時黑名單');
+      var pref7 = this.app.pref;
+      var exempt7 = fl.filter(function(id) { return keep7 && pref7 && pref7.isFloodExempt && pref7.isFloodExempt(id); });
+      report.push('連續推文：' + fl.length + ' 個帳號連推 ' + floodMin + ' 則以上' + (useChain7 ? '（被別人插話、3 樓內 2 分鐘內接著推的也算）' : '（中間沒有別人）') +
+                  (exempt7.length < fl.length ? '，已加入 24 小時黑名單' : '') +
+                  (exempt7.length ? '；' + exempt7.join('、') + ' 你手動移除過，24 小時內不再加入' : ''));
       setTimeout(function() {
         var pref = self7.app.pref;
         fl.forEach(function(id) {
-          if (pref && !pref.isBlacklisted(id)) {
+          if (pref && !pref.isBlacklisted(id) && !(keep7 && pref.isFloodExempt && pref.isFloodExempt(id))) {
             pref.addTempBlacklist(id, 24 * 3600 * 1000);
             if (self7.app.showToast) self7.app.showToast(i18n('flood_autoBlacklisted').replace('%s', id).replace('%n', flooders[id]), 5000);
           }

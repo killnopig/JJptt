@@ -1,5 +1,7 @@
 # JJptt
 
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-%E8%AB%8B%E6%88%91%E5%96%9D%E6%9D%AF%E5%92%96%E5%95%A1-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/killnopig)
+
 **在瀏覽器裡上 PTT，順手把帶風向的抓出來。**
 
 - **直連、不經手**：擴充功能版用本機小程式直接連 ptt.cc，不經過任何轉接站，帳號密碼只留在你的電腦。

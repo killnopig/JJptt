@@ -9,6 +9,7 @@ function PttChromePref(app, onInitializedCallback) {
   this.watchlistedUserIds = {};
   this.notedUserIds = {};
   this.tempBlacklist = {};   // id -> expiry time (ms), e.g. from the spam guard
+  this.floodExempt = {};     // id -> expiry time (ms): taken off by hand, 連推 won't re-add
   this.hideBlacklisted = false;
   this.titleKeywords = [];
 
@@ -39,11 +40,29 @@ PttChromePref.prototype = {
     if (this.app.reader) this.app.reader.rerender();
   },
 
+  // Taken off the blacklist by hand: also keep 連推 from putting them back
+  // on for 24 hours (it runs again every time the article is shown).
   removeTempBlacklist: function(id) {
     id = String(id).toLowerCase();
+    this.pruneFloodExempt();
+    this.floodExempt[id] = Date.now() + 24 * 3600 * 1000;
+    this.values.floodExempt = JSON.stringify(this.floodExempt);
+    this.setStorage({ values: { floodExempt: this.values.floodExempt } });
     if (!(id in this.tempBlacklist)) return;
     delete this.tempBlacklist[id];
     this.saveTempBlacklist();
+  },
+
+  isFloodExempt: function(id) {
+    var until = this.floodExempt[String(id).toLowerCase()];
+    return !!(until && until > Date.now());
+  },
+
+  pruneFloodExempt: function() {
+    var now = Date.now();
+    for (var id in this.floodExempt) {
+      if (this.floodExempt[id] <= now || isNaN(this.floodExempt[id])) delete this.floodExempt[id];
+    }
   },
 
   pruneTempBlacklist: function() {
@@ -72,8 +91,7 @@ PttChromePref.prototype = {
       var row = $('<div class="jj-temp-black"></div>').text(id + ' — ' + i18n('options_tempBlacklistLeft').replace('%s', hours) + ' ').appendTo(box);
       $('<a href="#"></a>').text(i18n('options_tempBlacklistRemove')).click(function(e) {
         e.preventDefault();
-        delete self.tempBlacklist[id];
-        self.saveTempBlacklist();
+        self.removeTempBlacklist(id);
         self.refreshTempBlacklistOnUi();
         self.app.view.redraw(true);
         if (self.app.reader) self.app.reader.rerender();
@@ -102,7 +120,7 @@ PttChromePref.prototype = {
       var val = this.values[i];
 
       // for blacklisted / watchlisted userids
-      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'notedUserIds' || i === 'tempBlacklist') {
+      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'notedUserIds' || i === 'tempBlacklist' || i === 'floodExempt') {
         continue;
       }
       if (i === 'quickSearchList') {
@@ -620,7 +638,7 @@ PttChromePref.prototype = {
       this.values.hideBlacklisted = m === 1;
     }
     for (var i in this.values) {
-      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'notedUserIds' || i === 'tempBlacklist') {
+      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'notedUserIds' || i === 'tempBlacklist' || i === 'floodExempt') {
         continue;
       }
       if (i === 'quickSearchList') {
@@ -718,6 +736,9 @@ PttChromePref.prototype = {
         } else {
           if (i === 'tempBlacklist') {
             try { this.tempBlacklist = JSON.parse(msg.data.values[i]) || {}; } catch (e) { this.tempBlacklist = {}; }
+            this.values[i] = msg.data.values[i];
+          } else if (i === 'floodExempt') {
+            try { this.floodExempt = JSON.parse(msg.data.values[i]) || {}; } catch (e) { this.floodExempt = {}; }
             this.values[i] = msg.data.values[i];
           } else if (i === 'watchlistedUserIds') {
             this.watchlistedUserIds = JSON.parse(msg.data.values[i]);

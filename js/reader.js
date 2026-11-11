@@ -1310,33 +1310,8 @@ PttReader.prototype.factReportNode = function(article) {
 // that continue within 3 floors and 2 minutes after others cut in are moved
 // up next to their earlier ones (the floor numbers stay as they were).
 PttReader.groupRuns = function(lines, pushes) {
-  var minuteOf = function(p) {
-    var m = /(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{2})/.exec((p && p.time) || '');
-    if (!m) return null;
-    var mo = Number(m[1]), d = Number(m[2]), h = Number(m[3]), mi = Number(m[4]);
-    return ((mo * 31 + d) * 24 + h) * 60 + mi;
-  };
   var reorder = function(block) {
-    var placed = {}, out = [];
-    for (var j = 0; j < block.length; ++j) {
-      var first = block[j];
-      if (placed[first]) continue;
-      placed[first] = true;
-      out.push(first);
-      var id = String(pushes[first].id).toLowerCase();
-      var lastPos = j, lastT = minuteOf(pushes[first]);
-      for (var k = j + 1; k < block.length && k <= lastPos + 3; ++k) {
-        var c = block[k];
-        if (placed[c] || String(pushes[c].id).toLowerCase() !== id) continue;
-        var t = minuteOf(pushes[c]);
-        if (lastT !== null && t !== null && t - lastT > 2) continue;
-        placed[c] = true;
-        out.push(c);
-        lastPos = k;
-        lastT = t;
-      }
-    }
-    return out;
+    return [].concat.apply([], FactCheck.chains(block, pushes));
   };
   var i = 0;
   while (i < lines.length) {

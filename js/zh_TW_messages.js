@@ -736,16 +736,28 @@ locale.zh_TW = {
     "message": "在文章列表停留多久就先抓那篇（毫秒，0 = 立刻）"
   },
   "options_factFloodRun": {
-    "message": "同一個帳號在一篇文章裡一口氣連續推文太多則（中間沒有別人），自動加入黑名單 24 小時"
+    "message": "連推黑名單：同一個帳號在一篇文章裡連續推文太多則，標「連推N」並自動加入黑名單 24 小時（名單分頁可以看到、提早移除）"
   },
   "options_factFloodRunMin": {
     "message": "連續幾則以上"
+  },
+  "options_fgFlood": {
+    "message": "連續推文"
+  },
+  "options_factFloodRunChain": {
+    "message": "被別人插話打斷也算同一串（3 樓內、2 分鐘內接著推的；跟「連續推文排在一起」同一套算法）；關掉 = 中間完全沒有別人才算"
+  },
+  "options_factFloodRunSkipAuthor": {
+    "message": "原 PO 在自己文章裡連續回覆不算"
+  },
+  "options_factFloodRunKeepRemoved": {
+    "message": "手動移出黑名單的人，24 小時內不再自動加入"
   },
   "options_tempBlacklistRemove": {
     "message": "移除"
   },
   "flood_autoBlacklisted": {
-    "message": "已自動把 %s 加入黑名單 24 小時（一口氣連推 %n 則）"
+    "message": "已自動把 %s 加入黑名單 24 小時（連推 %n 則）"
   },
   "options_readerGroupRuns": {
     "message": "閱讀模式：同一個人被別人插話打斷的連續推文自動排在一起（3 樓內、2 分鐘內接著推的；樓層號碼保留原本的）"
