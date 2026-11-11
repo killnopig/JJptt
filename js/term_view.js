@@ -692,21 +692,21 @@ TermView.prototype = {
         conn.send('\x1b');
         break;
       case 33: //Page Up
-        conn.send(this.listReversed() ? '\x1b[6~' : '\x1b[5~');
+        conn.send('\x1b[5~');
         break;
       case 34: //Page Down
-        conn.send(this.listReversed() ? '\x1b[5~' : '\x1b[6~');
+        conn.send('\x1b[6~');
         break;
       case 35: //End
         if ((this.bbscore.buf.pageState == 2 || this.bbscore.buf.pageState == 3) &&
             this.bbscore.endTurnsOnLiveUpdate) {
           this.bbscore.onLiveHelperEnableClicked(false);
         } else {
-          conn.send(this.listReversed() ? '\x1b[1~' : '\x1b[4~');
+          conn.send('\x1b[4~');
         }
         break;
       case 36: //Home
-        conn.send(this.listReversed() ? '\x1b[4~' : '\x1b[1~');
+        conn.send('\x1b[1~');
         break;
       case 37: //Arrow Left
         if(this.checkLeftDB())
@@ -715,7 +715,7 @@ TermView.prototype = {
           conn.send('\x1b[D');
         break;
       case 38: //Arrow Up
-        conn.send(this.listReversed() ? '\x1b[B' : '\x1b[A');
+        conn.send('\x1b[A');
         break;
       case 39: //Arrow Right
         if(this.checkCurDB())
@@ -724,7 +724,7 @@ TermView.prototype = {
           conn.send('\x1b[C');
         break;
       case 40: //Arrow Down
-        conn.send(this.listReversed() ? '\x1b[A' : '\x1b[B');
+        if (!this.blockIntoHiddenPinned()) conn.send('\x1b[B');
         break;
       case 45: //Insert
         conn.send('\x1b[2~');
@@ -1218,7 +1218,9 @@ TermView.prototype = {
         html[slot] = it.html || st.cache[it.num];
       }
     }
-    this.listMap = { slotOf: slotOf, rowOf: rowOf, html: html, hidden: {}, reversed: true };
+    var selM = /^.\s*(\d+)\s/.exec(buf.getRowText(selRow, 0, buf.cols));
+    this.listMap = { slotOf: slotOf, rowOf: rowOf, html: html, hidden: {}, reversed: true,
+                     hidePinned: hidePinned, selNum: selM ? +selM[1] : 0, maxNum: nums.length ? nums[0] : 0 };
 
     // Entering a board: start on the newest article. If the last page is
     // short, first look at the previous page once (PageUp) so the screen can
@@ -1283,6 +1285,15 @@ TermView.prototype = {
     if (!this.listMap) return slot;
     var r = this.listMap.rowOf[slot];
     return r >= 0 ? r : this.buf.cur_y;  // rows from earlier screens: stay put
+  },
+
+  // Newest-first list with hidden pinned posts: ↓ on the newest article would
+  // move PTT's selection into the (hidden) pinned posts after it, so the
+  // selection disappears. Ignore that key there.
+  blockIntoHiddenPinned: function() {
+    var map = this.listMap;
+    if (!map || !map.reversed || !map.hidePinned || this.buf.pageState != 2) return false;
+    return map.selNum > 0 && map.selNum === map.maxNum;
   },
 
   listReversed: function() {

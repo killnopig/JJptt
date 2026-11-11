@@ -340,7 +340,7 @@ locale.en_US = {
     "message": "Use lower resolution images in the reader (faster; click for the original)"
   },
   "options_listNewestFirst": {
-    "message": "Article lists show the newest first (arrow keys follow the screen)"
+    "message": "Article lists show the newest first (display only; arrow keys keep PTT's direction)"
   },
   "options_hidePinned": {
     "message": "Hide ★ pinned posts in article lists"

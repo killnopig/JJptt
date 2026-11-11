@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.11.5',
+    date: '2026-11-11',
+    changes: [
+      '「最新的在上面」只翻轉畫面：方向鍵、PageUp／PageDown、Home／End、滑鼠滾輪與閱讀模式的上下一篇都維持 PTT 原本的方向',
+      '隱藏置底公告時，在最新那篇按 ↓ 不再讓游標跑進看不到的公告'
+    ]
+  },
+  {
     version: '1.11.4',
     date: '2026-11-11',
     changes: [
