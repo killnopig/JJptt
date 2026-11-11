@@ -1362,3 +1362,5 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
   background: #fff; border: 1px solid #c0392b; color: #c0392b;
 }
 #prefModal #opt_reset:hover { background: #fdecea; color: #a93226; }
+.jjt-root .jjt-fact-sum { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.jjt-root .jjt-fact-host { color: #ff5c5c; font-weight: bold; }

@@ -258,6 +258,7 @@ PttReader.prototype.startPrefetch = function(board, author, title) {
   var h = { board: board, author: author, title: title.replace(/^(?:R|Re|Fw|轉)\s*:\s*/i, 'Re: '), time: '' };
   var p = this.findArticle(h);
   p.catch(function() { delete self.prefetch[key]; });
+  p.then(function(article) { self.preloadMedia(article); }, function() {});
   this.prefetch[key] = { promise: p, at: Date.now(), board: board.toLowerCase(), author: author.toLowerCase(),
                          title: PttReader.prefetchKey('', '', title).slice(2) };
   var keys = Object.keys(this.prefetch);
@@ -432,6 +433,8 @@ PttReader.prototype.ensureOverlay = function() {
   o.addEventListener('mouseover', function(e) {
     var a = e.target.closest && e.target.closest('a[href]');
     if (!a) return;
+    var pv = self.app.pref && self.app.pref.values;
+    if (pv && pv.readerHoverPreview === false) return;  // option off
     var src = PttReader.previewFor(a.getAttribute('href'));
     if (src) self.showHoverPreview(src, e);
   });
@@ -797,6 +800,47 @@ PttReader.lowResSrc = function(src) {
   return src;
 };
 
+PttReader.prototype.preloadImages = function() {
+  var pref = this.app.pref;
+  return !!(pref && pref.values && pref.values.readerPrefetchImages !== false);
+};
+
+// Option "預先讀取時連圖片一起下載": fetch the pictures of an article loaded
+// ahead (images, YouTube thumbnails, link-preview pictures) so they are in
+// the browser cache when the article is opened.
+PttReader.prototype.preloadMedia = function(article) {
+  if (!article || !this.preloadImages()) return;
+  var self = this;
+  this.preloaded = this.preloaded || [];
+  var seen = {};
+  var urls = String(article.text || '').match(/https?:\/\/[^\s<>"'，。）)]+/g) || [];
+  var get = function(src) {
+    if (!src || seen[src]) return;
+    seen[src] = true;
+    var im = new Image();
+    im.referrerPolicy = 'no-referrer';
+    im.src = src;
+    self.preloaded.push(im);  // keep a reference until it has loaded
+    if (self.preloaded.length > 300) self.preloaded.splice(0, 100);
+  };
+  var cards = [];
+  urls.slice(0, 60).forEach(function(u) {
+    var img = PttReader.imageSrc(u);
+    var yt = u.parseYoutubeUrl ? u.parseYoutubeUrl() : null;
+    if (/^https?:\/\/i\.imgur\.com\/\w+\.(?:gifv|mp4)$/i.test(u)) return;  // videos stay on demand
+    if (img) get(self.displaySrc(img));
+    else if (yt) get('https://i.ytimg.com/vi/' + yt.split(/[?&]/)[0] + '/hqdefault.jpg');
+    else cards.push(u);
+  });
+  if (!cards.length) return;
+  this.previewPermission().then(function(ok) {
+    if (!ok) return;
+    cards.slice(0, 15).forEach(function(u) {
+      self.fetchPreview(u).then(function(info) { if (info && info.image) get(info.image); });
+    });
+  });
+};
+
 PttReader.prototype.displaySrc = function(src) {
   var pref = this.app.pref;
   var low = !pref || !pref.values || pref.values.readerLowResImages !== false;
@@ -824,7 +868,7 @@ PttReader.prototype.linkBlock = function(url, mediaOnly) {
     wrap.appendChild(v);
   } else if (img) {
     var im = el('img', 'jjr-img');
-    im.loading = 'lazy';
+    im.loading = this.preloadImages() ? 'eager' : 'lazy';
     im.referrerPolicy = 'no-referrer';
     im.src = this.displaySrc(img);
     im.setAttribute('data-full', img);
@@ -1162,13 +1206,42 @@ PttReader.prototype.factReportNode = function(article) {
   var minPushes = parseInt(pref && pref.values ? pref.values.factReportMinPushes : 10, 10);
   if (isNaN(minPushes)) minPushes = 10;
   if ((article.pushes || []).length < minPushes) return null;
-  var lines = this.factReport || [];
+  var lines = PttReader.mergeFactLines(this.factReport || []);
   var box = el('div', 'jjt-fact');
   var expanded = !!(pref && pref.values && pref.values.factReportCollapsed === false);
   if (!expanded) box.classList.add('jjt-fact-closed');
   var head = el('div', 'jjt-fact-head');
   head.appendChild(el('span', 'jjt-fact-title', '真.事實查核中心'));
-  head.appendChild(el('span', 'jjt-fact-sum', lines.length ? '抓到 ' + lines.length + ' 項疑點（僅供參考）' : '沒有發現明顯的協同推文跡象'));
+  // one line, data-centre findings first and in full (the most telling),
+  // then the other kinds by name ("秒推：…" -> 秒推)
+  var hostLine = '';
+  var kinds = [];
+  lines.forEach(function(t) {
+    t = String(t);
+    if (!hostLine && /^(同機房|機房)/.test(t)) {
+      // "同機房：DigitalOcean 2 個帳號（a、b）；AWS 1 個帳號（c）" -> "同機房：DigitalOcean×2、AWS×1"
+      var provs = [], m, re = /(?:^|；)\s*(?:[^：；]*：)?\s*([^；：（]+?)\s+(\d+)\s*個帳號/g;
+      while ((m = re.exec(t))) provs.push(m[1].trim() + '×' + m[2]);
+      hostLine = t.split('：')[0].replace(/^機房／VPN IP/, '機房') + '：' + (provs.join('、') || t.split('：').slice(1).join('：'));
+      return;
+    }
+    var k = t.split(/[：:]/)[0].replace(/^疑似/, '').trim();
+    var n = /（(\d+) 組）/.exec(k);
+    k = k.replace(/（\d+ 組）/, '') + (n ? '×' + n[1] : '');
+    if (k && kinds.indexOf(k) < 0) kinds.push(k);
+  });
+  var sumEl = el('span', 'jjt-fact-sum');
+  sumEl.title = '僅供參考，不代表一定是網軍';
+  if (!lines.length) {
+    sumEl.textContent = '沒有發現明顯的協同推文跡象';
+  } else {
+    if (hostLine) sumEl.appendChild(el('span', 'jjt-fact-host', '⚠ ' + hostLine));
+    if (kinds.length) {
+      var rest = (hostLine ? '｜另有：' : '抓到 ' + lines.length + ' 項疑點：') + kinds.slice(0, 5).join('、') + (kinds.length > 5 ? '…' : '');
+      sumEl.appendChild(document.createTextNode(rest));
+    }
+  }
+  head.appendChild(sumEl);
   if (lines.length) {
     var toggle = el('span', 'jjt-fact-toggle', expanded ? '▾ 收起' : '▸ 展開');
     head.appendChild(toggle);
@@ -1192,6 +1265,27 @@ PttReader.prototype.factReportNode = function(article) {
   box.appendChild(head);
   lines.forEach(function(t) { box.appendChild(el('div', 'jjt-fact-line', '・' + t)); });
   return box;
+};
+
+// "罐頭A：…", "罐頭B：…" -> "罐頭（2 組）：…；…"; "脈衝 1：…", "脈衝 2：…" likewise.
+PttReader.mergeFactLines = function(lines) {
+  var order = [], groups = {};
+  lines.forEach(function(t) {
+    t = String(t);
+    var i = t.indexOf('：');
+    var head = i >= 0 ? t.slice(0, i) : t, body = i >= 0 ? t.slice(i + 1) : '';
+    var kind = head.replace(/\s*\d+$/, '').replace(/[A-Z]$/, '').trim();
+    if (!(kind in groups)) { groups[kind] = []; order.push(kind); }
+    groups[kind].push({ head: head, body: body });
+  });
+  return order.map(function(kind) {
+    var g = groups[kind];
+    if (g.length === 1) return kind + (g[0].body ? '：' + g[0].body : '');  // one group: no label needed
+    return kind + '（' + g.length + ' 組）：' + g.map(function(x) {
+      var tag = x.head.slice(kind.length).trim();
+      return (tag ? '[' + tag + '] ' : '') + x.body;
+    }).join('；');
+  });
 };
 
 PttReader.prototype.askAiAboutPushes = function(article) {

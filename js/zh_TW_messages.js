@@ -244,7 +244,7 @@ locale.zh_TW = {
     "message": "關閉分頁時先詢問"
   },
   "options_enablePicPreview": {
-    "message": "當滑鼠在圖片連結上時顯示圖片預覽"
+    "message": "終端機畫面：滑鼠移到圖片網址上時顯示預覽"
   },
   "options_enableNotifications": {
     "message": "啟用水球通知"
@@ -722,6 +722,12 @@ locale.zh_TW = {
   },
   "fact_historyConfirm": {
     "message": "確定要清除累積的推文順序資料嗎？共伴效應和首殺班底會從頭累積。"
+  },
+  "options_readerPrefetchImages": {
+    "message": "預先讀取時連圖片一起下載（圖片、YouTube 縮圖、網址預覽圖，打開的文章也一次載入全部圖片；比較快但流量多很多）"
+  },
+  "options_readerHoverPreview": {
+    "message": "閱讀模式：滑鼠移到圖片或 YouTube 網址上時，旁邊顯示大圖"
   },
   "options_readerImageMaxPercent": {
     "message": "閱讀模式圖片最大高度（畫面的 %，10～100）"

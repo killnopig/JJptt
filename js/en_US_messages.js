@@ -244,7 +244,7 @@ locale.en_US = {
     "message": "Ask before closing tab."
   },
   "options_enablePicPreview": {
-    "message": "Enable preview when hover on image URLs."
+    "message": "Terminal view: preview pictures when hovering image links"
   },
   "options_enableNotifications": {
     "message": "Enable notifications when a message is received."
@@ -725,6 +725,12 @@ locale.en_US = {
   },
   "fact_historyConfirm": {
     "message": "Clear the collected push data? Co-occurrence and squads start over."
+  },
+  "options_readerPrefetchImages": {
+    "message": "Load pictures ahead too (images, YouTube thumbnails, link previews; the open article loads all its pictures at once; faster but uses much more data)"
+  },
+  "options_readerHoverPreview": {
+    "message": "Article view: show a large picture next to the mouse over image / YouTube links"
   },
   "options_readerImageMaxPercent": {
     "message": "Reader image max height (% of the view, 10-100)"
