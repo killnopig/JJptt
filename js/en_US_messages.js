@@ -249,6 +249,15 @@ locale.en_US = {
   "drive_status_error": {
     "message": "Sync failed"
   },
+  "options_save": {
+    "message": "Save & close"
+  },
+  "options_autosaveHint": {
+    "message": "Closing with × also saves"
+  },
+  "options_saved": {
+    "message": "✓ Settings saved"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },

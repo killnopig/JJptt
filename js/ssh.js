@@ -124,6 +124,8 @@ SecureShellConnection.prototype.onDataAvailable = function(str) {
 
 // from cli to paramikojs
 SecureShellConnection.prototype.send = function(str) {
+  // Typing or changing settings while disconnected must not throw.
+  if (!this.shell) return;
   this.shell.send(str);
 };
 

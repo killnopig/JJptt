@@ -125,15 +125,33 @@ PttChromePref.prototype = {
       '<input type="text" class="form-control">');
     $('#login_password').html(
       '<label style="font-weight:normal;">'+i18n('autologin_password')+'</label>'+
-      '<input type="text" class="form-control" style="text-security:disc; -webkit-text-security:disc;">');
+      '<div class="input-group">'+
+        '<input type="password" class="form-control" autocomplete="off">'+
+        '<span class="input-group-btn">'+
+          '<button id="login_passwordToggle" class="btn btn-default" type="button" tabindex="-1">'+
+            '<span class="glyphicon glyphicon-eye-open"></span>'+
+          '</button>'+
+        '</span>'+
+      '</div>');
     $('#login_username > input').val(this.logins[0]);
-    $('#login_password > input').val(this.logins[1]);
+    $('#login_password input').val(this.logins[1]);
+    $('#login_passwordToggle').click(function() {
+      var input = $('#login_password input');
+      var show = input.attr('type') === 'password';
+      input.attr('type', show ? 'text' : 'password');
+      $(this).find('.glyphicon')
+        .toggleClass('glyphicon-eye-open', !show)
+        .toggleClass('glyphicon-eye-close', show);
+    });
   },
 
   setupSettingsUi: function() {
     var self = this;
     var i;
     $('#opt_title').text(i18n('menu_settings'));
+
+    $('#opt_save').text(i18n('options_save'));
+    $('#opt_autosaveHint').text(i18n('options_autosaveHint'));
 
     $('#opt_reset').off();
     $('#opt_reset').text(i18n('options_reset'));
@@ -223,6 +241,7 @@ PttChromePref.prototype = {
         self.readValueFromUi();
       }
       self.saveAndDoneWithIt();
+      self.app.showToast(i18n('options_saved'));
       self.app.switchToEasyReadingMode(self.app.view.useEasyReadingMode);
     });
   },

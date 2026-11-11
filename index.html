@@ -61,6 +61,7 @@
       <li id="cmenu_settings" class="cmenuItem"><a></a></li>
     </ul>
 
+    <div id="jjToast"></div>
     <div id="BBSWindow" style="display:none">
       <input id="t" type="text" autocomplete="off" style="box-sizing:content-box; color:initial; border: none; width: 200px; height: 24px; position:absolute; left:-10000px; top:0px; z-index:2;resize: none; font-family:inherit !important;" autofocus/>
       <div id="cursor" class="terminal_display">_</div>
@@ -98,6 +99,10 @@
               <li><a id="optNav_about" href="#tabContentAbout" name="about" data-toggle="pill">About</a></li>
             </ul>
 
+            <div id="opt_saveArea">
+              <button id="opt_save" type="button" class="btn btn-primary" data-dismiss="modal"></button>
+              <small id="opt_autosaveHint"></small>
+            </div>
             <button id="opt_reset" type="button" class="btn btn-default"></button>
           </div>
           <h3 id="modalHeader">General</h3>

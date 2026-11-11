@@ -636,6 +636,17 @@ pttchrome.App.prototype.doRemoveWatchUserId = function(userid) {
   this.pushInsights.annotate();
 };
 
+pttchrome.App.prototype.showToast = function(text) {
+  var toast = document.getElementById('jjToast');
+  if (!toast) return;
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(this.toastTimer);
+  this.toastTimer = setTimeout(function() {
+    toast.classList.remove('show');
+  }, 2000);
+};
+
 pttchrome.App.prototype.doSettings = function() {
   $('#prefModal').modal('show');
 };

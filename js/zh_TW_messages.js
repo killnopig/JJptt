@@ -246,6 +246,15 @@ locale.zh_TW = {
   "drive_status_error": {
     "message": "同步失敗"
   },
+  "options_save": {
+    "message": "儲存並關閉"
+  },
+  "options_autosaveHint": {
+    "message": "按 × 關閉也會自動儲存"
+  },
+  "options_saved": {
+    "message": "✓ 設定已儲存"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },
