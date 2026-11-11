@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.8.1',
+    date: '2026-11-11',
+    changes: [
+      '看文章時先在背景載入列表上的前一篇和後一篇（推文數篩選等列表也適用），用 ↑↓ 換篇時幾乎立刻顯示',
+      '預先載入的文章保留 3 分鐘'
+    ]
+  },
+  {
     version: '1.8.0',
     date: '2026-11-11',
     changes: [

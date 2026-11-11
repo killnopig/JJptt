@@ -231,35 +231,69 @@ PttReader.prefetchKey = function(board, author, title) {
   return (board + '|' + author + '|' + t).toLowerCase();
 };
 
-PttReader.prototype.schedulePrefetch = function() {
-  var self = this;
+// Remembers the articles visible in the list (also in filtered views such
+// as "推文數 ≥ 10") and where the cursor is, to know the neighbours of the
+// article being read.
+PttReader.prototype.snapshotList = function() {
   var buf = this.app.buf;
-  if (buf.pageState != 2 || !this.lastBoard) return;
-  var row = null;
+  var rows = [], cursor = -1;
   for (var r = 3; r < 23; ++r) {
     var text = buf.getRowText(r, 0, buf.cols);
-    if (/^[>●]/.test(text)) { row = text; break; }
+    var author = text.parseThreadForUserId();
+    var title = text.parseThreadTitle();
+    if (!author || !title) continue;
+    if (/^[>●]/.test(text)) cursor = rows.length;
+    rows.push({ author: author, title: title });
   }
-  if (!row) return;
-  var author = row.parseThreadForUserId();
-  var title = row.parseThreadTitle();
-  if (!author || !title) return;
-  var key = PttReader.prefetchKey(this.lastBoard, author, title);
+  if (cursor >= 0 && this.lastBoard) this.listSnap = { board: this.lastBoard, rows: rows, index: cursor };
+};
+
+// Starts fetching an article in the background (no-op if already cached).
+PttReader.prototype.startPrefetch = function(board, author, title) {
+  var self = this;
+  var key = PttReader.prefetchKey(board, author, title);
+  this.prefetch = this.prefetch || {};
+  var have = this.prefetch[key];
+  if (have && Date.now() - have.at < PttReader.PREFETCH_TTL) return;
+  var h = { board: board, author: author, title: title.replace(/^(?:R|Re|Fw|轉)\s*:\s*/i, 'Re: '), time: '' };
+  var p = this.findArticle(h);
+  p.catch(function() { delete self.prefetch[key]; });
+  this.prefetch[key] = { promise: p, at: Date.now(), board: board.toLowerCase(), author: author.toLowerCase(),
+                         title: PttReader.prefetchKey('', '', title).slice(2) };
+  var keys = Object.keys(this.prefetch);
+  if (keys.length > 15) delete this.prefetch[keys[0]];
+};
+
+PttReader.PREFETCH_TTL = 180000;
+
+// In the list: fetch the article under the cursor once it rests there.
+PttReader.prototype.schedulePrefetch = function() {
+  var self = this;
+  if (this.app.buf.pageState != 2 || !this.lastBoard) return;
+  this.snapshotList();
+  var snap = this.listSnap;
+  if (!snap || snap.board !== this.lastBoard) return;
+  var cur = snap.rows[snap.index];
+  var key = PttReader.prefetchKey(snap.board, cur.author, cur.title);
   if (key === this.prefetchPending) return;
   this.prefetchPending = key;
   clearTimeout(this.prefetchTimer);
-  var board = this.lastBoard;
   this.prefetchTimer = setTimeout(function() {
-    self.prefetch = self.prefetch || {};
-    if (self.prefetch[key]) return;
-    var h = { board: board, author: author, title: title.replace(/^(?:R|Re|Fw|轉)\s*:\s*/i, 'Re: '), time: '' };
-    var p = self.findArticle(h);
-    p.catch(function() { delete self.prefetch[key]; });
-    self.prefetch[key] = { promise: p, at: Date.now(), board: board.toLowerCase(), author: author.toLowerCase(),
-                           title: PttReader.prefetchKey('', '', title).slice(2) };
-    var keys = Object.keys(self.prefetch);
-    if (keys.length > 15) delete self.prefetch[keys[0]];
+    self.startPrefetch(snap.board, cur.author, cur.title);
   }, 400);
+};
+
+// While reading: fetch the previous and next article of the list.
+PttReader.prototype.prefetchNeighbours = function(h) {
+  var snap = this.listSnap;
+  if (!snap || String(snap.board).toLowerCase() !== String(h.board).toLowerCase()) return;
+  var cur = snap.rows[snap.index];
+  if (!cur || cur.author.toLowerCase() !== String(h.author).toLowerCase()) return;
+  var self = this;
+  [snap.index - 1, snap.index + 1].forEach(function(i) {
+    var row = snap.rows[i];
+    if (row) self.startPrefetch(snap.board, row.author, row.title);
+  });
 };
 
 // Prefetched article for this header, if fresh (pushes keep coming in).
@@ -278,7 +312,7 @@ PttReader.prototype.takePrefetch = function(h) {
       break;
     }
   }
-  if (!hit || Date.now() - hit.at > 60000) return null;
+  if (!hit || Date.now() - hit.at > PttReader.PREFETCH_TTL) return null;
   delete this.prefetch[key];
   return hit.promise.then(function(article) {
     var t = PttReader.normalizeTitle(article.meta['時間']);
@@ -458,6 +492,9 @@ PttReader.prototype.dismiss = function() {
 
 PttReader.prototype.closeAndSend = function(keys) {
   this.dismiss();
+  // keep the list position in step when moving to the previous / next one
+  if (this.listSnap && keys === PttReader.KEYS_PREV) this.listSnap.index--;
+  if (this.listSnap && keys === PttReader.KEYS_NEXT) this.listSnap.index++;
   if (this.app.conn && this.app.conn.send) this.app.conn.send(keys);
 };
 
@@ -554,6 +591,7 @@ PttReader.prototype.openFor = function(h, key, manual) {
     self.render(article, h);
     self.show();
     self.restorePosition();
+    self.prefetchNeighbours(h);
     PttReader.lastTiming.renderMs = Date.now() - tFetched;
     console.log('JJptt 閱讀模式載入：' + (how === 'url' ? '直接用文章網址' : how === 'prefetch' ? '列表預先載入' : '搜尋網址＋下載') +
       ' ' + PttReader.lastTiming.fetchMs + 'ms，排版 ' + PttReader.lastTiming.renderMs + 'ms');
