@@ -89,6 +89,7 @@ pttchrome.App = function(onInitializedCallback, options) {
   this.inputHelper = new InputHelper(this);
   this.pushInsights = new PushInsights(this);
   this.driveSync = new DriveSync(this);
+  this.factCheck = new FactCheck(this);
   this.updater = new JJUpdater(this);
   this.spamGuard = new SpamGuard(this);
   this.reader = new PttReader(this);
@@ -668,11 +669,13 @@ pttchrome.App.AI_URLS = [
   'https://copilot.microsoft.com/?q=%s'
 ];
 
-pttchrome.App.prototype.askAi = function(text) {
+// promptOverride: a question to use instead of the "is this true?" one
+pttchrome.App.prototype.askAi = function(text, promptOverride, maxLen) {
   var values = this.pref.values || {};
   text = String(text || '').replace(/\u00a0/g, ' ').trim();
   if (!text) return;
-  if (text.length > 3000) text = text.slice(0, 3000) + '…';
+  maxLen = maxLen || 3000;
+  if (text.length > maxLen) text = text.slice(0, maxLen) + '…';
   var service = parseInt(values.aiService, 10) || 0;
   var url = pttchrome.App.AI_URLS[service] || '';
   if (service >= pttchrome.App.AI_URLS.length) url = String(values.aiCustomUrl || '').trim();
@@ -680,7 +683,7 @@ pttchrome.App.prototype.askAi = function(text) {
     this.showToast(i18n('ai_noUrl'), 4000);
     return;
   }
-  var prompt = String(values.aiPrompt || '').trim() || '%s';
+  var prompt = promptOverride || String(values.aiPrompt || '').trim() || '%s';
   prompt = prompt.indexOf('%s') >= 0 ? prompt.replace('%s', text) : prompt + '\n\n' + text;
   var q = encodeURIComponent(prompt);
   window.open(url.indexOf('%s') >= 0 ? url.replace('%s', q) : url + q, '_blank', 'noreferrer');

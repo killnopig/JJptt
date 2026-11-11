@@ -549,6 +549,42 @@ locale.zh_TW = {
   "options_repeatPusherMin": {
     "message": "推文幾則以上才變色（最少 2）"
   },
+  "options_factReport": {
+    "message": "閱讀模式在推文上方顯示「真.事實查核中心」報告（含「請 AI 分析推文風向」按鈕）"
+  },
+  "options_factFastPush": {
+    "message": "秒推：發文後幾分鐘內就推文的人標「秒推」，內文長到不可能讀完的標「秒推‧沒讀完」"
+  },
+  "options_factFastMinutes": {
+    "message": "秒推的時間範圍（分鐘；PTT 推文時間只到分鐘）"
+  },
+  "options_factBurst": {
+    "message": "脈衝：一兩分鐘內突然湧入大量推文，前後又很久沒人推，標「脈衝1、脈衝2…」"
+  },
+  "options_factBurstMin": {
+    "message": "一波至少幾則才算脈衝"
+  },
+  "options_factQuietMin": {
+    "message": "前後安靜多久才算（分鐘）"
+  },
+  "options_factBoost": {
+    "message": "補血：前面噓比較多，接著一長串很短的純推，標「補血?」"
+  },
+  "options_factBoostRun": {
+    "message": "連續幾則純推才算補血"
+  },
+  "options_factCanned": {
+    "message": "罐頭推文：不同帳號說幾乎一樣的話，同一組標「罐頭A、罐頭B…」"
+  },
+  "options_factCannedMin": {
+    "message": "至少幾個帳號才算一組"
+  },
+  "options_factSubnet": {
+    "message": "同網段：不同帳號的 IP 前三段相同（例如 101.12.34.x），標「同網段」"
+  },
+  "options_factSubnetMin": {
+    "message": "至少幾個帳號才標"
+  },
   "options_readerImageMaxPercent": {
     "message": "閱讀模式圖片最大高度（畫面的 %，10～100）"
   },

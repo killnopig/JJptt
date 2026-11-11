@@ -373,6 +373,9 @@ PttReader.prototype.fetchArticle = function(url) {
     if (self.app.spamGuard) {
       try { self.app.spamGuard.record(article); } catch (e) { console.log('spam guard', e); }
     }
+    if (self.app.factCheck) {
+      try { self.app.factCheck.analyze(article); } catch (e) { console.log('fact check', e); }
+    }
     return article;
   });
 };
@@ -1110,8 +1113,14 @@ PttReader.prototype.render = function(article, h) {
   var lines = PttReader.toLines(article.body);
   if (lines.length && !lines[lines.length - 1].length && lines[lines.length - 1].push_index === undefined) lines.pop();
   var pushNodes = this.renderPushes(article);
+  var reportShown = false;
   for (var i = 0; i < lines.length; ++i) {
     if (lines[i].push_index !== undefined) {
+      if (!reportShown) {  // fact-check report right above the first push
+        reportShown = true;
+        var rep = this.factReportNode(article);
+        if (rep) page.appendChild(rep);
+      }
       var pn = pushNodes[lines[i].push_index];
       if (pn) {
         pn.line.setAttribute('data-line', 5 + i);
@@ -1131,6 +1140,45 @@ PttReader.prototype.render = function(article, h) {
   }
   this.updateStatus();
   this.loadPreviews(page);
+};
+
+// Box above the pushes listing what the fact-check rules found, with a
+// button that asks the AI about the whole thread.
+PttReader.prototype.factReportNode = function(article) {
+  var self = this;
+  var el = PttReader.el;
+  var pref = this.app.pref;
+  if (pref && pref.values && pref.values.factReport === false) return null;
+  var lines = this.factReport || [];
+  var box = el('div', 'jjt-fact');
+  var head = el('div', 'jjt-fact-head');
+  head.appendChild(el('span', 'jjt-fact-title', '真.事實查核中心'));
+  head.appendChild(el('span', 'jjt-fact-sum', lines.length ? '抓到 ' + lines.length + ' 項疑點（僅供參考）' : '沒有發現明顯的協同推文跡象'));
+  var ask = el('button', 'jjt-fact-ai', '請 AI 分析推文風向');
+  ask.type = 'button';
+  ask.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    self.askAiAboutPushes(article);
+  });
+  head.appendChild(ask);
+  box.appendChild(head);
+  lines.forEach(function(t) { box.appendChild(el('div', 'jjt-fact-line', '・' + t)); });
+  return box;
+};
+
+PttReader.prototype.askAiAboutPushes = function(article) {
+  var pushes = article.pushes || [];
+  var title = article.meta['標題'] || '';
+  var body = String(article.text || '').split('\n※ 發信站')[0].replace(/\s+/g, ' ').slice(0, 600);
+  var list = pushes.slice(0, 200).map(function(p, i) {
+    return (i + 1) + '樓 ' + p.tag + ' ' + p.id + ': ' + String(p.content).trim() + ' (' + [p.ip, p.time].filter(Boolean).join(' ') + ')';
+  }).join('\n');
+  var found = (this.factReport || []).join('\n');
+  var text = '標題：' + title + '\n發文時間：' + (article.meta['時間'] || '') + '\n內文摘要：' + body +
+             (found ? '\n\nJJptt 自動偵測到：\n' + found : '') + '\n\n推文（共 ' + pushes.length + ' 則，以下前 ' +
+             Math.min(200, pushes.length) + ' 則）：\n' + list;
+  this.app.askAi(text, '以下是 PTT 一篇文章和它的推文。請分析推文是否有協同帶風向（網軍）的跡象：例如發文後極短時間內集體進場、同一時間湧入大量立場一致的推文、連續空泛的純推補血、不同帳號用幾乎相同的句型、同網段或境外 IP。請指出可疑的帳號與樓層、理由，以及這些推文想引導的立場；也請說明哪些看起來是正常鄉民討論。最後提醒這只是推測。\n\n%s', 7000);
 };
 
 // After showing: start at the top, or at the line the terminal is showing
@@ -1234,6 +1282,12 @@ PttReader.prototype.renderPushes = function(article) {
   var authorIpMatch = /來自: ((?:\d{1,3}\.){3}\d{1,3})/.exec(article.text);
   var authorIp = authorIpMatch ? authorIpMatch[1] : '';
 
+  var fact = { tags: [], report: [] };
+  if (this.app.factCheck) {
+    try { fact = this.app.factCheck.analyze(article); } catch (e) { console.log('fact check', e); }
+  }
+  this.factReport = fact.report;
+
   var idsByIp = {}, countById = {};
   article.pushes.forEach(function(p) {
     var id = p.id.toLowerCase();
@@ -1283,6 +1337,12 @@ PttReader.prototype.renderPushes = function(article) {
       tags.push(T.watch);
       if (level !== 'warn') level = 'watch';
     }
+    (fact.tags[i] || []).forEach(function(t) {  // 真.事實查核中心 rules
+      hints.push(t.t);
+      tags.push(t.t);
+      if (t.lvl === 'warn') level = 'warn';
+      else if (!level || level === 'foreign') level = 'watch';
+    });
     var notes = (pref && pref.notedUserIds) || {};
     if (id in notes) {  // the user's own named list (網軍 by default)
       parts.push(pref.customListName() + (notes[id] ? ':' + notes[id] : ''));

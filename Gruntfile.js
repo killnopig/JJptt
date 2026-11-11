@@ -42,6 +42,7 @@ module.exports = function(grunt) {
           'js/geoip.js',
           'js/push_insights.js',
           'js/spam_guard.js',
+          'js/fact_check.js',
           'js/reader.js',
           'js/predefined_config.js', 
           'js/pref.js', 

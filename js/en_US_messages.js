@@ -552,6 +552,42 @@ locale.en_US = {
   "options_repeatPusherMin": {
     "message": "Pushes needed before colouring (at least 2)"
   },
+  "options_factReport": {
+    "message": "Show the fact-check report above the pushes in the article view (with an Ask AI button)"
+  },
+  "options_factFastPush": {
+    "message": "Fast pushes within a few minutes of posting (marked stronger when the article is too long to have been read)"
+  },
+  "options_factFastMinutes": {
+    "message": "Fast push window (minutes; PTT push times only have minutes)"
+  },
+  "options_factBurst": {
+    "message": "Bursts: many pushes in a minute or two after/before a quiet stretch"
+  },
+  "options_factBurstMin": {
+    "message": "Pushes needed for a burst"
+  },
+  "options_factQuietMin": {
+    "message": "Quiet minutes around a burst"
+  },
+  "options_factBoost": {
+    "message": "Boosting: a long run of short 推 after 噓 had the upper hand"
+  },
+  "options_factBoostRun": {
+    "message": "Run length of 推 for boosting"
+  },
+  "options_factCanned": {
+    "message": "Canned pushes: different accounts posting near-identical text"
+  },
+  "options_factCannedMin": {
+    "message": "Accounts needed for a group"
+  },
+  "options_factSubnet": {
+    "message": "Same /24 network: different accounts whose IPs share the first three parts"
+  },
+  "options_factSubnetMin": {
+    "message": "Accounts needed"
+  },
   "options_readerImageMaxPercent": {
     "message": "Reader image max height (% of the view, 10-100)"
   },

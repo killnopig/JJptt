@@ -1244,3 +1244,17 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 #tabContentBlacklist #opt_blacklistedUsers { height: 120px !important; min-height: 0; }
 
 .jj-reopen { color: #c0392b; font-weight: bold; margin: 0 0 8px; }
+
+/* 真.事實查核中心 report above the pushes */
+.jjt-root .jjt-fact {
+  margin: 6px 0 10px; padding: 8px 12px; border: 1px solid #5a3a00; border-radius: 8px;
+  background: #1a1306; color: #f0d9a8; font-size: 0.75em; line-height: 1.6; white-space: normal;
+}
+.jjt-root .jjt-fact-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.jjt-root .jjt-fact-title { font-weight: bold; color: #ffb347; }
+.jjt-root .jjt-fact-sum { color: #c9b38a; flex: 1; }
+.jjt-root .jjt-fact-ai {
+  border: 0; border-radius: 6px; padding: 2px 10px; background: #ff9f1c; color: #1a1306;
+  font-size: 1em; cursor: pointer;
+}
+.jjt-root .jjt-fact-line { color: #f0d9a8; }
