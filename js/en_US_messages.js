@@ -134,7 +134,7 @@ locale.en_US = {
     "message": "Update JJptt"
   },
   "update_current": {
-    "message": "Now v%s"
+    "message": "Now v%s\nJJptt reopens if there is an update"
   },
   "update_title": {
     "message": "Updates"

@@ -134,7 +134,7 @@ locale.zh_TW = {
     "message": "更新 JJptt"
   },
   "update_current": {
-    "message": "目前 v%s"
+    "message": "目前 v%s\n有新版時按下會自動重新開啟"
   },
   "update_title": {
     "message": "檢查更新"

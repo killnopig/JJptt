@@ -315,7 +315,7 @@ JJUpdater.prototype.setupUi = function() {
     e.preventDefault();
     self.updateFromSettings();
   });
-  $('#opt_updateVersion').text(i18n('update_current').replace('%s', this.running()));
+  $('#opt_updateVersion').css('white-space', 'pre-line').text(i18n('update_current').replace('%s', this.running()));
   $('#opt_update, #opt_updateVersion').toggle(this.available());
   $('#update_row').toggle(this.available());
 };

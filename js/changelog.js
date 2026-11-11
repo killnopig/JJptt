@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.23.5',
+    date: '2026-11-12',
+    changes: [
+      '「更新 JJptt」下面的小字靠左，並提醒有新版時按下會自動重新開啟'
+    ]
+  },
+  {
     version: '1.23.4',
     date: '2026-11-12',
     changes: [
