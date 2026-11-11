@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.8.3',
+    date: '2026-11-11',
+    changes: [
+      '閱讀模式限制在終端機的範圍內：內容在第 1～23 行之間捲動，狀態列在第 24 行，不再延伸到整個視窗',
+      '圖片（含推文裡的圖）最高不超過這個範圍的 30%；調整視窗大小時跟著終端機重新對齊'
+    ]
+  },
+  {
     version: '1.8.2',
     date: '2026-11-11',
     changes: [

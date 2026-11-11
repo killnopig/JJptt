@@ -387,6 +387,11 @@ PttReader.prototype.ensureOverlay = function() {
     if (!(e.target.closest && e.target.closest('a'))) o.focus();
   });
   o.addEventListener('contextmenu', function(e) { self.onContextMenu(e); });
+  window.addEventListener('resize', function() {
+    if (!self.isOpen()) return;
+    // wait for the terminal to re-layout first
+    setTimeout(function() { self.layout(); }, 0);
+  });
   o.querySelector('.jjt-scroll').addEventListener('scroll', function() { self.updateStatus(); });
   // images change the page height as they load
   o.addEventListener('load', function() { self.updateStatus(); }, true);
@@ -938,18 +943,7 @@ PttReader.prototype.render = function(article, h) {
   var page = o.querySelector('.jjt-page');
   page.innerHTML = '';
 
-  // Match the terminal's font, size and position.
-  var chw = view.chw || 10, chh = view.chh || 20;
-  this.lineHeight = chh;
-  var rect = view.mainDisplay.getBoundingClientRect();
-  var gutter = chw * (view.leftGutterCols ? view.leftGutterCols() : 0);
-  page.style.fontFamily = getComputedStyle(view.mainDisplay).fontFamily;
-  page.style.fontSize = chh + 'px';
-  page.style.lineHeight = chh + 'px';
-  page.style.width = (chw * 80) + 'px';
-  page.style.marginLeft = Math.max(0, rect.left + gutter) + 'px';
-  page.style.paddingTop = Math.max(0, rect.top) + 'px';
-  page.style.setProperty('--jj-cols-w', (chw * 80) + 'px');
+  this.layout();
 
   page.appendChild(this.headerNode(article, h));
 
@@ -1009,6 +1003,31 @@ PttReader.prototype.restorePosition = function() {
   this.updateStatus();
   // keep it there while images above finish loading
   requestAnimationFrame(function() { self.updateStatus(); });
+};
+
+// Puts the view exactly in the terminal's box: rows 1-23 scroll, the status
+// bar sits on row 24, same font, size and columns.
+PttReader.prototype.layout = function() {
+  if (!this.overlay) return;
+  var view = this.app.view;
+  var o = this.overlay;
+  var page = o.querySelector('.jjt-page');
+  var scroller = o.querySelector('.jjt-scroll');
+  var chw = view.chw || 10, chh = view.chh || 20;
+  var rows = (this.app.buf && this.app.buf.rows) || 24;
+  this.lineHeight = chh;
+  var rect = view.mainDisplay.getBoundingClientRect();
+  var gutter = chw * (view.leftGutterCols ? view.leftGutterCols() : 0);
+  page.style.fontFamily = getComputedStyle(view.mainDisplay).fontFamily;
+  page.style.fontSize = chh + 'px';
+  page.style.lineHeight = chh + 'px';
+  page.style.width = (chw * 80) + 'px';
+  page.style.marginLeft = Math.max(0, rect.left + gutter) + 'px';
+  page.style.paddingTop = '0px';
+  scroller.style.marginTop = Math.max(0, rect.top) + 'px';
+  scroller.style.height = (chh * (rows - 1)) + 'px';
+  o.style.setProperty('--jj-box-h', (chh * (rows - 1)) + 'px');
+  this.updateStatus();
 };
 
 PttReader.prototype.updateStatus = function() {
