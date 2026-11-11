@@ -735,6 +735,21 @@ locale.zh_TW = {
   "options_readerListPrefetchDelay": {
     "message": "在文章列表停留多久就先抓那篇（毫秒，0 = 立刻）"
   },
+  "options_factFloodRun": {
+    "message": "同一個帳號在一篇文章裡一口氣連續推文太多則（中間沒有別人），自動加入黑名單 24 小時"
+  },
+  "options_factFloodRunMin": {
+    "message": "連續幾則以上"
+  },
+  "options_tempBlacklistRemove": {
+    "message": "移除"
+  },
+  "flood_autoBlacklisted": {
+    "message": "已自動把 %s 加入黑名單 24 小時（一口氣連推 %n 則）"
+  },
+  "options_readerGroupRuns": {
+    "message": "閱讀模式：同一個人被別人插話打斷的連續推文自動排在一起（3 樓內、2 分鐘內接著推的；樓層號碼保留原本的）"
+  },
   "options_readerImageMaxPercent": {
     "message": "閱讀模式圖片最大高度（畫面的 %，10～100）"
   },

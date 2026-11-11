@@ -26,6 +26,7 @@ FactCheck.DEFAULTS = {
   factCooccur: true, factCooccurRate: 70, factCooccurMin: 5,
   factSquad: true, factSquadMin: 3,
   factHosting: true,
+  factFloodRun: true, factFloodRunMin: 10,
   factTask: true, factTaskMin: 10, factTaskMax: 12, factTaskWindow: 5, factTaskQuietHours: 2, factTaskShort: 5,
   factTaskSquad: true, factTaskSquadMin: 2
 };
@@ -326,6 +327,35 @@ FactCheck.prototype.analyze = function(article) {
     }
   }
 
+  // 7. 連續推文洗版: one account with a long unbroken run of pushes goes on
+  //    the 24-hour blacklist (deferred: this runs while the article draws)
+  if (this.opt('factFloodRun')) {
+    var floodMin = this.opt('factFloodRunMin');
+    var self7 = this, flooders = {};
+    var runStart = 0;
+    for (i = 1; i <= n; ++i) {
+      if (i < n && ids[i] === ids[runStart]) continue;
+      if (i - runStart >= floodMin) flooders[ids[runStart]] = Math.max(flooders[ids[runStart]] || 0, i - runStart);
+      runStart = i;
+    }
+    Object.keys(flooders).forEach(function(id) {
+      for (var k = 0; k < n; ++k) if (ids[k] === id) add(k, '連推' + flooders[id], 'warn');
+    });
+    var fl = Object.keys(flooders);
+    if (fl.length) {
+      report.push('連續推文：' + fl.length + ' 個帳號一口氣連推 ' + floodMin + ' 則以上，已加入 24 小時黑名單');
+      setTimeout(function() {
+        var pref = self7.app.pref;
+        fl.forEach(function(id) {
+          if (pref && !pref.isBlacklisted(id)) {
+            pref.addTempBlacklist(id, 24 * 3600 * 1000);
+            if (self7.app.showToast) self7.app.showToast(i18n('flood_autoBlacklisted').replace('%s', id).replace('%n', flooders[id]), 5000);
+          }
+        });
+      }, 0);
+    }
+  }
+
   // Phase 2: patterns over many articles
   this.history.record(article, ids, this.lastFastIds || {}, this.lastTaskIds);
   this.historyTags(article, ids, add, report);
@@ -352,7 +382,7 @@ FactCheck.prototype.analyze = function(article) {
       var shared = provs.filter(function(pv) { return Object.keys(byProvider[pv]).length >= 2; });
       var parts = provs.map(function(pv) {
         var accs = Object.keys(byProvider[pv]);
-        return pv + ' ' + accs.length + ' 個帳號（' + accs.slice(0, 5).join('、') + (accs.length > 5 ? '…' : '') + '）';
+        return pv + ' ' + accs.length + ' 個帳號';
       });
       report.unshift((shared.length ? '同機房：' : '機房／VPN IP：') + parts.join('；'));
     }

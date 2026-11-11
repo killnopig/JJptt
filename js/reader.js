@@ -1204,6 +1204,8 @@ PttReader.prototype.render = function(article, h) {
   var lines = PttReader.toLines(article.body);
   if (lines.length && !lines[lines.length - 1].length && lines[lines.length - 1].push_index === undefined) lines.pop();
   var pushNodes = this.renderPushes(article);
+  var pv = this.app.pref && this.app.pref.values;
+  if (!(pv && pv.readerGroupRuns === false)) PttReader.groupRuns(lines, article.pushes);
   var reportShown = false;
   for (var i = 0; i < lines.length; ++i) {
     if (lines[i].push_index !== undefined) {
@@ -1304,6 +1306,48 @@ PttReader.prototype.factReportNode = function(article) {
   return box;
 };
 
+// Option "連續推文排在一起": in each block of push lines, a person's pushes
+// that continue within 3 floors and 2 minutes after others cut in are moved
+// up next to their earlier ones (the floor numbers stay as they were).
+PttReader.groupRuns = function(lines, pushes) {
+  var minuteOf = function(p) {
+    var m = /(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{2})/.exec((p && p.time) || '');
+    if (!m) return null;
+    var mo = Number(m[1]), d = Number(m[2]), h = Number(m[3]), mi = Number(m[4]);
+    return ((mo * 31 + d) * 24 + h) * 60 + mi;
+  };
+  var reorder = function(block) {
+    var placed = {}, out = [];
+    for (var j = 0; j < block.length; ++j) {
+      var first = block[j];
+      if (placed[first]) continue;
+      placed[first] = true;
+      out.push(first);
+      var id = String(pushes[first].id).toLowerCase();
+      var lastPos = j, lastT = minuteOf(pushes[first]);
+      for (var k = j + 1; k < block.length && k <= lastPos + 3; ++k) {
+        var c = block[k];
+        if (placed[c] || String(pushes[c].id).toLowerCase() !== id) continue;
+        var t = minuteOf(pushes[c]);
+        if (lastT !== null && t !== null && t - lastT > 2) continue;
+        placed[c] = true;
+        out.push(c);
+        lastPos = k;
+        lastT = t;
+      }
+    }
+    return out;
+  };
+  var i = 0;
+  while (i < lines.length) {
+    if (lines[i].push_index === undefined) { i++; continue; }
+    var start = i, block = [];
+    while (i < lines.length && lines[i].push_index !== undefined) block.push(lines[i++].push_index);
+    var order = reorder(block);
+    for (var n = 0; n < order.length; ++n) lines[start + n].push_index = order[n];
+  }
+};
+
 // "罐頭A：…", "罐頭B：…" -> "罐頭（2 組）：…；…"; "脈衝 1：…", "脈衝 2：…" likewise.
 PttReader.mergeFactLines = function(lines) {
   var order = [], groups = {};
@@ -1311,7 +1355,8 @@ PttReader.mergeFactLines = function(lines) {
     t = String(t);
     var i = t.indexOf('：');
     var head = i >= 0 ? t.slice(0, i) : t, body = i >= 0 ? t.slice(i + 1) : '';
-    var kind = head.replace(/\s*\d+$/, '').replace(/[A-Z]$/, '').trim();
+    // group label: "脈衝 1" -> 脈衝, "罐頭A" -> 罐頭 (a letter right after Chinese only, so "VPN IP" stays)
+    var kind = head.replace(/\s*\d+$/, '').replace(/([\u4e00-\u9fff])[A-Z]$/, '$1').trim();
     if (!(kind in groups)) { groups[kind] = []; order.push(kind); }
     groups[kind].push({ head: head, body: body });
   });

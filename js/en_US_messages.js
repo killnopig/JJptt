@@ -738,6 +738,21 @@ locale.en_US = {
   "options_readerListPrefetchDelay": {
     "message": "Rest on a list row this long before loading it (ms, 0 = at once)"
   },
+  "options_factFloodRun": {
+    "message": "Put an account on the blacklist for 24 hours when it pushes many times in a row in one article"
+  },
+  "options_factFloodRunMin": {
+    "message": "Pushes in a row"
+  },
+  "options_tempBlacklistRemove": {
+    "message": "remove"
+  },
+  "flood_autoBlacklisted": {
+    "message": "%s is on the blacklist for 24 hours (%n pushes in a row)"
+  },
+  "options_readerGroupRuns": {
+    "message": "Article view: keep one person's run of pushes together when others cut in (within 3 floors and 2 minutes; floor numbers stay)"
+  },
   "options_readerImageMaxPercent": {
     "message": "Reader image max height (% of the view, 10-100)"
   },

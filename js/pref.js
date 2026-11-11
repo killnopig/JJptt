@@ -69,7 +69,15 @@ PttChromePref.prototype = {
     box.text(i18n('options_tempBlacklist') + (ids.length ? '' : i18n('options_tempBlacklistNone')));
     ids.forEach(function(id) {
       var hours = Math.max(1, Math.round((self.tempBlacklist[id] - now) / 3600000));
-      $('<div class="jj-temp-black"></div>').text(id + ' — ' + i18n('options_tempBlacklistLeft').replace('%s', hours)).appendTo(box);
+      var row = $('<div class="jj-temp-black"></div>').text(id + ' — ' + i18n('options_tempBlacklistLeft').replace('%s', hours) + ' ').appendTo(box);
+      $('<a href="#"></a>').text(i18n('options_tempBlacklistRemove')).click(function(e) {
+        e.preventDefault();
+        delete self.tempBlacklist[id];
+        self.saveTempBlacklist();
+        self.refreshTempBlacklistOnUi();
+        self.app.view.redraw(true);
+        if (self.app.reader) self.app.reader.rerender();
+      }).appendTo(row);
     });
   },
 
