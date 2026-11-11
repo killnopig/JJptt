@@ -1082,6 +1082,9 @@ TermView.prototype = {
     var reverse = !!pref.values.listNewestFirst;
     var hidePinned = !!pref.values.hidePinned;
     if (!reverse && !hidePinned) return;
+    // only article lists ("編號 日 期 作 者 文 章 標 題"), not board lists
+    // ("編號 看 板 類別 ...")
+    if (!/日\s*期\s*作\s*者/.test(this.buf.getRowText(2, 0, this.buf.cols))) return;
     var first = 3, last = this.buf.rows - 2;  // article rows between header and status
     var normal = [], pinned = [], rest = [];
     for (var r = first; r <= last; ++r) {

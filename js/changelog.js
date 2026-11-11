@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.9.2',
+    date: '2026-11-11',
+    changes: [
+      '修正：「最新的在上面」與「隱藏置底公告」也套用到了看板列表；現在只改文章列表'
+    ]
+  },
+  {
     version: '1.9.1',
     date: '2026-11-11',
     changes: [
