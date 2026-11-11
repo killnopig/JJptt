@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.7.3',
+    date: '2026-11-11',
+    changes: [
+      '更換圖示'
+    ]
+  },
+  {
     version: '1.7.2',
     date: '2026-11-11',
     changes: [
