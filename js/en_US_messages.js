@@ -625,10 +625,10 @@ locale.en_US = {
     "message": "All off"
   },
   "options_fgTask": {
-    "message": "10-push task articles"
+    "message": "Threshold pushing"
   },
   "options_factTask": {
-    "message": "10-push task articles: about 10 pushes, all right after posting, then silence, and the first 10 are short bare 推; their accounts are tagged"
+    "message": "Threshold pushing: pushes stop right after reaching about 10 (where the list starts showing the count), all just after posting, then silence, and the first 10 are short bare 推"
   },
   "options_factTaskMin": {
     "message": "Fewest pushes"
@@ -646,7 +646,7 @@ locale.en_US = {
     "message": "Longest first-10 push (characters)"
   },
   "options_factTaskSquad": {
-    "message": "Task crew: accounts in the first 10 pushes of several 10-push task articles"
+    "message": "Threshold crew: accounts in the first 10 pushes of several threshold-pushed articles"
   },
   "options_factTaskSquadMin": {
     "message": "Articles needed"

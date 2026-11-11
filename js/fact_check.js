@@ -300,7 +300,7 @@ FactCheck.prototype.analyze = function(article) {
     }
   }
 
-  // 6. 10 推任務文: pushed to exactly ~10 right after posting, then nobody,
+  // 6. 門檻推文: pushed just past the list's push-count threshold (~10) right after posting, then nobody,
   //    and the first 10 are bare short 推
   this.lastTaskIds = null;
   if (this.opt('factTask') && post) {
@@ -318,10 +318,10 @@ FactCheck.prototype.analyze = function(article) {
     if (n >= tMin && n <= tMax && allIn && pure && Date.now() - lastT >= quietMs) {
       this.lastTaskIds = {};
       for (i = 0; i < head.length; ++i) {
-        add(i, '10推任務', 'warn');
+        add(i, '門檻推文', 'warn');
         this.lastTaskIds[ids[i]] = true;
       }
-      report.push('疑似 10 推任務文：共 ' + n + ' 推，全部在發文 ' + this.opt('factTaskWindow') + ' 分鐘內，之後 ' +
+      report.push('疑似門檻推文：推文剛好衝到 ' + n + ' 推（過了列表顯示推文數的門檻）就停，全部在發文 ' + this.opt('factTaskWindow') + ' 分鐘內，之後 ' +
                   Math.floor((Date.now() - lastT) / 3600000) + ' 小時以上沒人推；前 ' + head.length + ' 推都是 ' + shortLen + ' 字以內的純推');
     }
   }
@@ -431,13 +431,13 @@ FactCheck.prototype.historyTags = function(article, ids, add, report) {
     for (i = 0; i < ids.length; ++i) {
       var tc = taskCounts.counts[ids[i]] || 0;
       if (tc >= tmin) {
-        add(i, '任務班底(' + tc + '篇)', 'warn');
+        add(i, '門檻班底(' + tc + '篇)', 'warn');
         if (crew.indexOf(ids[i]) < 0) crew.push(ids[i]);
       }
     }
     if (crew.length) {
-      report.push('任務班底：' + crew.slice(0, 8).map(function(k) { return k + '（' + taskCounts.counts[k] + ' 篇）'; }).join('、') +
-                  (crew.length > 8 ? '…' : '') + '——在累積的 ' + taskCounts.total + ' 篇 10 推任務文中，反覆出現在前 10 推');
+      report.push('門檻班底：' + crew.slice(0, 8).map(function(k) { return k + '（' + taskCounts.counts[k] + ' 篇）'; }).join('、') +
+                  (crew.length > 8 ? '…' : '') + '——在累積的 ' + taskCounts.total + ' 篇門檻推文中，反覆出現在前 10 推');
     }
   }
   if (this.opt('factSquad') && this.lastFastIds) {

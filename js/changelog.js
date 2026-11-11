@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.25.3',
+    date: '2026-11-12',
+    changes: [
+      '「10 推任務文」改名「門檻推文」（推文剛好衝過列表顯示推文數的門檻就停，衝的是曝光），「任務班底」改名「門檻班底」'
+    ]
+  },
+  {
     version: '1.25.2',
     date: '2026-11-12',
     changes: [

@@ -622,10 +622,10 @@ locale.zh_TW = {
     "message": "全部關閉"
   },
   "options_fgTask": {
-    "message": "10 推任務文"
+    "message": "門檻推文"
   },
   "options_factTask": {
-    "message": "10 推任務文：推文數剛好在 10 推左右、全部集中在發文後幾分鐘、之後很久沒人推，而且前 10 推都是很短的純推，前 10 推的帳號標「10推任務」"
+    "message": "門檻推文：推文剛好衝到 10 推左右（列表開始顯示推文數、比較顯眼）就停住——全部集中在發文後幾分鐘、之後很久沒人推，而且前 10 推都是很短的純推；前 10 推的帳號標「門檻推文」"
   },
   "options_factTaskMin": {
     "message": "推文數下限"
@@ -643,7 +643,7 @@ locale.zh_TW = {
     "message": "前 10 推每則最多幾個字"
   },
   "options_factTaskSquad": {
-    "message": "任務班底：同一個帳號在好幾篇「10 推任務文」的前 10 推都出現，標「任務班底(N篇)」"
+    "message": "門檻班底：同一個帳號在好幾篇「門檻推文」的前 10 推都出現，標「門檻班底(N篇)」"
   },
   "options_factTaskSquadMin": {
     "message": "至少出現在幾篇"
