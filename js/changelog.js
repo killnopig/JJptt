@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.4.2',
+    date: '2026-11-11',
+    changes: [
+      '修正排版錯亂：PTT 現在用 OSC 8 控制碼把網址包成可點連結，原本被當成文字印出（出現「8;;https://…」、網址重複、整個畫面錯位）',
+      '閱讀模式：改用更可靠的方式通過「已滿 18 歲」確認；長標題被終端機截斷也能找到文章；沒開啟時會顯示原因'
+    ]
+  },
+  {
     version: '1.4.1',
     date: '2026-11-11',
     changes: [

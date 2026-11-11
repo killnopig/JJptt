@@ -273,6 +273,21 @@ locale.zh_TW = {
   "reader_openWeb": {
     "message": "網頁版"
   },
+  "reader_failed": {
+    "message": "閱讀模式沒有開啟：%s（留在終端機畫面）"
+  },
+  "reader_err_over18": {
+    "message": "PTT 網頁版要求確認已滿 18 歲，自動確認失敗"
+  },
+  "reader_err_notOnWeb": {
+    "message": "這個看板沒有在 PTT 網頁版公開"
+  },
+  "reader_err_notFound": {
+    "message": "在 PTT 網頁版找不到這篇文章（可能剛發文、已刪除或改過標題）"
+  },
+  "reader_err_network": {
+    "message": "連不到 www.ptt.cc"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },

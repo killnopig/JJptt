@@ -39,10 +39,12 @@ PttReader.prototype.headerFromTerminal = function() {
   if (buf.pageState != 3) return null;
   var r0 = buf.getRowText(0, 0, buf.cols);
   var r1 = buf.getRowText(1, 0, buf.cols);
+  var r2 = buf.getRowText(2, 0, buf.cols);
   var m0 = /^\s*作者\s+(\w+).*?看板\s+(\S+)/.exec(r0);
   var m1 = /^\s*標題\s+(.*?)\s*$/.exec(r1);
+  var m2 = /^\s*時間\s+(.*?)\s*$/.exec(r2);
   if (!m0 || !m1) return null;
-  return { author: m0[1], board: m0[2], title: m1[1] };
+  return { author: m0[1], board: m0[2], title: m1[1], time: m2 ? m2[1] : '' };
 };
 
 // Called after every terminal redraw.
@@ -63,9 +65,35 @@ PttReader.prototype.onTerminalUpdate = function() {
 
 // ---- fetching ------------------------------------------------------------
 
+// Boards such as Gossiping ask "are you over 18?". Answer it by sending the
+// over18 cookie: a session rule adds it to our requests to www.ptt.cc (this
+// works even when third-party cookies are blocked), and the cookie itself is
+// set as a fallback.
 PttReader.prototype.ensureOver18 = function() {
   if (this.cookieReady) return this.cookieReady;
-  this.cookieReady = new Promise(function(resolve) {
+  var addRule = new Promise(function(resolve) {
+    var dnr = chrome.declarativeNetRequest;
+    if (!(dnr && dnr.updateSessionRules)) {
+      resolve();
+      return;
+    }
+    dnr.updateSessionRules({
+      removeRuleIds: [1801],
+      addRules: [{
+        id: 1801,
+        priority: 1,
+        action: {
+          type: 'modifyHeaders',
+          requestHeaders: [{ header: 'cookie', operation: 'set', value: 'over18=1' }]
+        },
+        condition: { urlFilter: '||www.ptt.cc/', resourceTypes: ['xmlhttprequest'] }
+      }]
+    }, function() {
+      if (chrome.runtime.lastError) console.log('over18 rule:', chrome.runtime.lastError.message);
+      resolve();
+    });
+  });
+  var setCookie = new Promise(function(resolve) {
     if (!(chrome.cookies && chrome.cookies.set)) {
       resolve();
       return;
@@ -79,6 +107,7 @@ PttReader.prototype.ensureOver18 = function() {
       expirationDate: Math.floor(Date.now() / 1000) + 365 * 86400
     }, function() { resolve(); });
   });
+  this.cookieReady = Promise.all([addRule, setCookie]);
   return this.cookieReady;
 };
 
@@ -86,7 +115,9 @@ PttReader.prototype.fetchDoc = function(url) {
   return this.ensureOver18().then(function() {
     return fetch(url, { credentials: 'include' });
   }).then(function(res) {
-    if (!res.ok) throw new Error('ptt web ' + res.status);
+    if (/\/ask\/over18/.test(res.url)) throw new Error(i18n('reader_err_over18'));
+    if (res.status === 404) throw new Error(i18n('reader_err_notOnWeb'));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.text();
   }).then(function(html) {
     return new DOMParser().parseFromString(html, 'text/html');
@@ -97,10 +128,13 @@ PttReader.normalizeTitle = function(t) {
   return String(t || '').replace(/\s+/g, ' ').trim();
 };
 
-// Finds the article's web URL by searching the board for the author's posts.
-PttReader.prototype.findArticleUrl = function(h) {
+// Finds the article by searching the board for the author's posts. The
+// terminal cuts long titles at the screen edge, so titles are compared by
+// prefix and the post time (from the article page) decides between matches.
+PttReader.prototype.findArticle = function(h) {
   var self = this;
   var want = PttReader.normalizeTitle(h.title);
+  var candidates = [];
   var search = function(page) {
     var url = PttReader.WEB + '/bbs/' + encodeURIComponent(h.board) +
       '/search?q=' + encodeURIComponent('author:' + h.author) + (page > 1 ? '&page=' + page : '');
@@ -109,14 +143,26 @@ PttReader.prototype.findArticleUrl = function(h) {
       for (var i = 0; i < ents.length; ++i) {
         var a = ents[i].querySelector('.title a');
         if (!a) continue;
-        if (PttReader.normalizeTitle(a.textContent) === want) {
-          return PttReader.WEB + a.getAttribute('href');
+        var t = PttReader.normalizeTitle(a.textContent);
+        if (t === want || (want.length >= 6 && (t.indexOf(want) === 0 || want.indexOf(t) === 0))) {
+          candidates.push(PttReader.WEB + a.getAttribute('href'));
         }
       }
-      return page < 3 && ents.length ? search(page + 1) : null;
+      if (!candidates.length && page < 3 && ents.length) return search(page + 1);
+      return candidates;
     });
   };
-  return search(1);
+  var tryNext = function(list) {
+    if (!list.length) throw new Error(i18n('reader_err_notFound'));
+    return self.fetchArticle(list[0]).then(function(article) {
+      var t = PttReader.normalizeTitle(article.meta['時間']);
+      if (h.time && t && t !== PttReader.normalizeTitle(h.time) && list.length > 1) {
+        return tryNext(list.slice(1));
+      }
+      return article;
+    });
+  };
+  return search(1).then(tryNext);
 };
 
 PttReader.prototype.fetchArticle = function(url) {
@@ -253,10 +299,7 @@ PttReader.prototype.onKeyDown = function(e) {
 PttReader.prototype.openFor = function(h, key) {
   var self = this;
   this.loadingKey = key;
-  this.findArticleUrl(h).then(function(url) {
-    if (!url) throw new Error('not found on web');
-    return self.fetchArticle(url);
-  }).then(function(article) {
+  this.findArticle(h).then(function(article) {
     if (self.loadingKey !== key) return;  // moved on meanwhile
     // Still reading the same article in the terminal?
     var now = self.headerFromTerminal();
@@ -267,9 +310,12 @@ PttReader.prototype.openFor = function(h, key) {
     self.render(article, h);
     self.show();
   }).catch(function(e) {
-    console.log('reader unavailable for this article:', e.message);
+    console.log('reader unavailable for this article:', e);
     if (self.loadingKey === key) self.loadingKey = '';
     self.dismissedKey = key;  // stay in the terminal for this one
+    var msg = (e && e.message) || String(e);
+    if (/Failed to fetch/i.test(msg)) msg = i18n('reader_err_network');
+    self.app.showToast(i18n('reader_failed').replace('%s', msg), 5000);
   });
 };
 

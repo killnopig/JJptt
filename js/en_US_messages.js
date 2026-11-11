@@ -276,6 +276,21 @@ locale.en_US = {
   "reader_openWeb": {
     "message": "Open on web"
   },
+  "reader_failed": {
+    "message": "Reader view not opened: %s (staying in the terminal)"
+  },
+  "reader_err_over18": {
+    "message": "PTT web asked for the over-18 confirmation and it could not be answered"
+  },
+  "reader_err_notOnWeb": {
+    "message": "this board is not public on PTT web"
+  },
+  "reader_err_notFound": {
+    "message": "the article was not found on PTT web (new, deleted or retitled?)"
+  },
+  "reader_err_network": {
+    "message": "cannot reach www.ptt.cc"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },

@@ -10,6 +10,10 @@ lib.AnsiParser.STATE_TEXT = 0;
 lib.AnsiParser.STATE_ESC = 1;
 lib.AnsiParser.STATE_CSI = 2;
 lib.AnsiParser.STATE_C1 = 3;
+// Operating System Command: ESC ] ... (BEL | ESC \). PTT now wraps URLs in
+// OSC 8 hyperlinks (ESC ]8;;URL ESC \ text ESC ]8;; ESC \); these used to be
+// printed as text ("8;;https://...") and shifted the whole screen.
+lib.AnsiParser.STATE_OSC = 4;
 
 lib.AnsiParser.prototype.feed = function(data) {
   var term = this.termbuf;
@@ -315,10 +319,28 @@ lib.AnsiParser.prototype.feed = function(data) {
       this.esc = '';
       this.state = lib.AnsiParser.STATE_TEXT;
       break;
+    case lib.AnsiParser.STATE_OSC:
+      if (this.oscEsc) {
+        this.oscEsc = false;
+        this.state = lib.AnsiParser.STATE_TEXT;
+        if (ch != '\\') {
+          // ESC inside OSC that is not ST: end OSC and handle the new ESC
+          this.state = lib.AnsiParser.STATE_ESC;
+          --i;
+        }
+      } else if (ch == '\x07') {
+        this.state = lib.AnsiParser.STATE_TEXT;
+      } else if (ch == '\x1b') {
+        this.oscEsc = true;
+      }
+      break;
     case lib.AnsiParser.STATE_ESC:
       if (ch == '[')
         this.state=lib.AnsiParser.STATE_CSI;
-      else {
+      else if (ch == ']') {
+        this.state = lib.AnsiParser.STATE_OSC;
+        this.oscEsc = false;
+      } else {
         this.state=lib.AnsiParser.STATE_C1;
         --i;
       }
