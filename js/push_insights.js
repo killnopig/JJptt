@@ -72,10 +72,12 @@ PushInsights.prototype.fitLabel = function(full, parts, warn, T, spaceCols) {
 
 // "IP as flag" layout: hide the IP text in the row (keeping its width so
 // the date stays in place) and show the country flag over it.
-PushInsights.prototype.maskIp = function(row, ip, flag) {
+PushInsights.prototype.maskIp = function(row, ip, flag, note) {
+  note = note || '';
   var existing = row.querySelector('.jj-ip');
   if (existing && existing.textContent === ip) {
     if (existing.getAttribute('data-flag') !== flag) existing.setAttribute('data-flag', flag);
+    if (existing.getAttribute('data-note') !== note) existing.setAttribute('data-note', note);
     return;
   }
   var walker = document.createTreeWalker(row, NodeFilter.SHOW_TEXT, null, false);
@@ -88,6 +90,7 @@ PushInsights.prototype.maskIp = function(row, ip, flag) {
     var span = document.createElement('span');
     span.className = 'jj-ip';
     span.setAttribute('data-flag', flag);
+    span.setAttribute('data-note', note);
     ipNode.parentNode.insertBefore(span, ipNode);
     span.appendChild(ipNode);
     return;
@@ -264,11 +267,12 @@ PushInsights.prototype.annotate = function() {
 
     var full = parts.concat(warn.length ? [(T.prefix ? T.prefix + ' ' : '') + warn.join(' ')] : []).join(' ');
     var label = this.fitLabel(full, parts, warn, T, view.rightSpaceCols);
-    // IP-as-flag layout: short hint labels next to the flag, in the IP's place
+    // IP-as-flag layout: the notes go in front of the flag, in the IP's
+    // place, instead of the right margin (often off screen)
     if (p.ip && view.ipAsFlag && view.ipAsFlag()) {
-      var inline = (tags.length ? (T.prefix || '') + tags.join('') + ' ' : '') + (flagText || '');
-      this.maskIp(p.row, p.ip, inline);
-      this.setAttr(p.row, 'data-jj-ilevel', tags.length ? level : '');
+      this.maskIp(p.row, p.ip, flagText || '', full);
+      this.setAttr(p.row, 'data-jj-ilevel', full ? level : '');
+      label = '';
     }
     this.setAttr(p.row, 'data-jj-floor', floorText);
     this.setAttr(p.row, 'data-jj', label);

@@ -675,7 +675,7 @@ TermView.prototype = {
       // newest-first list: space pages down on screen (older articles),
       // which is PTT's page up
       if (e.keyCode == 32 && this.listReversed()) {
-        conn.send('\x1b[5~');
+        this.pageReversed(1);
         e.preventDefault();
         e.stopPropagation();
         return;
@@ -701,10 +701,12 @@ TermView.prototype = {
         conn.send('\x1b');
         break;
       case 33: //Page Up
-        conn.send(this.listReversed() ? '\x1b[6~' : '\x1b[5~');
+        if (this.listReversed()) this.pageReversed(-1);
+        else conn.send('\x1b[5~');
         break;
       case 34: //Page Down
-        conn.send(this.listReversed() ? '\x1b[5~' : '\x1b[6~');
+        if (this.listReversed()) this.pageReversed(1);
+        else conn.send('\x1b[6~');
         break;
       case 35: //End
         if ((this.bbscore.buf.pageState == 2 || this.bbscore.buf.pageState == 3) &&
@@ -1141,6 +1143,39 @@ TermView.prototype = {
     this.listMap = { slotOf: slotOf, rowOf: rowOf, hidden: hidden, reversed: reverse };
   },
 
+  // Newest-first list: move a page on screen. dir 1 = down (older
+  // articles), -1 = up (newer). The cursor moves one page of article numbers
+  // with PTT's ↑/↓ and the window moves with it, so the cursor stays on the
+  // same screen row (from the newest at the top, space lands on the article
+  // a page older, at the top).
+  pageReversed: function(dir) {
+    var map = this.listMap, st = this.revState, conn = this.conn;
+    if (!map || !st || !conn) return;
+    var slots = map.slots || 20;
+    if (!map.selNum) {  // on a pinned post: PTT's own paging
+      conn.send(dir > 0 ? '\x1b[5~' : '\x1b[6~');
+      return;
+    }
+    var target = dir > 0 ? Math.max(1, map.selNum - slots) : Math.min(map.maxNum, map.selNum + slots);
+    var steps = Math.abs(target - map.selNum);
+    if (!steps) return;
+    var ws = Math.max(0, map.ws + dir * steps);
+    var rep = function(k, n) { return n > 0 ? new Array(n + 1).join(k) : ''; };
+    var keys = rep(dir > 0 ? '\x1b[A' : '\x1b[B', steps);
+    var via = 0;
+    if (dir > 0) {
+      // rows at the bottom of the new page that PTT has not shown yet: go
+      // there first so PTT shows them, then come back up to the target
+      var bottom = Math.max(1, map.maxNum - (ws + slots - 1 - (map.pinnedCount || 0)));
+      if (bottom < target && !(bottom in st.cache)) {
+        via = bottom;
+        keys = rep('\x1b[A', map.selNum - bottom);  // ↓ back once PTT shows it
+      }
+    }
+    st.pageTarget = { num: target, via: via, ws: ws, t: Date.now() };
+    conn.send(keys);
+  },
+
   // Newest-first article list. PTT shows one page at a time and the last
   // page is often short, so rows seen on earlier screens are remembered by
   // article number and the screen shows a continuous newest-first window
@@ -1200,6 +1235,8 @@ TermView.prototype = {
     }));
     // keep the cursor visible, moving the window as little as possible
     if (selRow < 0) selRow = buf.cur_y;
+    var curM = /^.\s*(\d+)\s/.exec(buf.getRowText(selRow, 0, buf.cols));
+    var curNum = curM ? +curM[1] : 0;
     this.listSelRow = selRow;
     var ci = -1;
     for (var i = 0; i < items.length; ++i) {
@@ -1209,6 +1246,20 @@ TermView.prototype = {
       if (ci <= pinned.length) st.ws = 0;             // at the newest: show the top
       else if (ci < st.ws) st.ws = ci;
       else if (ci >= st.ws + slots) st.ws = ci - slots + 1;
+    }
+    // paging (space / PageUp / PageDown): the window moves a whole page and
+    // the cursor keeps its place on screen, until the cursor gets there
+    var pt = st.pageTarget;
+    if (pt) {
+      if (Date.now() - pt.t > 4000) st.pageTarget = null;
+      else {
+        st.ws = pt.ws;
+        if (pt.via && curNum === pt.via) {
+          pt.via = 0;
+          if (this.conn) this.conn.send(new Array(pt.num - curNum + 1).join('\x1b[B'));
+        }
+        else if (!pt.via && curNum === pt.num) st.pageTarget = null;
+      }
     }
     st.ws = Math.max(0, Math.min(st.ws, Math.max(0, items.length - slots)));
 
@@ -1234,7 +1285,7 @@ TermView.prototype = {
     var selM = /^.\s*(\d+)\s/.exec(buf.getRowText(selRow, 0, buf.cols));
     this.listMap = { slotOf: slotOf, rowOf: rowOf, html: html, hidden: {}, reversed: true,
                      hidePinned: hidePinned, selNum: selM ? +selM[1] : 0, maxNum: nums.length ? nums[0] : 0,
-                     selIndex: ci };
+                     selIndex: ci, ws: st.ws, slots: slots, pinnedCount: pinned.length };
 
     // Entering a board: start on the newest article. If the last page is
     // short, first look at the previous page once (PageUp) so the screen can

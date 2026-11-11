@@ -82,6 +82,12 @@ locale.zh_TW = {
   "options_general": {
     "message": "一般"
   },
+  "options_layout": {
+    "message": "排版"
+  },
+  "options_listLayout": {
+    "message": "文章列表與閱讀模式"
+  },
   "options_autologin": {
     "message": "自動登入"
   },

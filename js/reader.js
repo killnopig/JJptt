@@ -871,6 +871,24 @@ PttReader.prototype.offerPreview = function(card, root) {
   card.querySelector('.jjr-card-text').appendChild(btn);
 };
 
+PttReader.fetchMsn = function(locale, id) {
+  var api = 'https://assets.msn.com/content/view/v2/Detail/' + locale.toLowerCase() + '/' + id;
+  return fetch(api, { credentials: 'omit' }).then(function(r) {
+    return r.ok ? r.json() : null;
+  }).then(function(j) {
+    if (!j || !j.title) return null;
+    var imgs = j.imageResources || [];
+    var img = imgs.length ? (imgs[0].url || '') : '';
+    if (img && img.indexOf('?') < 0) img += '?w=800';
+    return {
+      title: j.title,
+      desc: j.abstract || '',
+      image: img,
+      site: (j.provider && j.provider.name) || 'MSN'
+    };
+  }).catch(function() { return null; });
+};
+
 PttReader.prototype.fetchPreview = function(url) {
   this.previewCache = this.previewCache || {};
   if (this.previewCache[url]) return this.previewCache[url];
@@ -891,12 +909,19 @@ PttReader.prototype.fetchPreview = function(url) {
       if (image) {
         try { image = new URL(image, res.url).href; } catch (e) { image = ''; }
       }
-      return {
+      var info = {
         title: title,
         desc: meta(['og:description', 'description', 'twitter:description']),
         image: image,
         site: meta(['og:site_name'])
       };
+      // MSN article pages are built by script and carry no og: tags; their
+      // content API has the title, summary and pictures
+      var msn = /^https?:\/\/(?:www\.)?msn\.com\/([a-z]{2}-[a-z]{2})\/.*\/ar-([A-Za-z0-9]+)/i.exec(res.url);
+      if (msn && !image) {
+        return PttReader.fetchMsn(msn[1], msn[2]).then(function(m) { return m || info; });
+      }
+      return info;
     });
   }).catch(function() { return null; });
   this.previewCache[url] = p;
@@ -1248,13 +1273,13 @@ PttReader.prototype.renderPushes = function(article) {
     while (c.firstChild) left.appendChild(c.firstChild);
     line.appendChild(left);
     var right = el('span', 'q7 b0 jjt-push-right', ' ');
-    if (asFlag && tags.length) {
-      right.appendChild(el('span', 'jjt-itag jjt-itag-' + level, (T.prefix || '') + tags.join('') + ' '));
+    if (asFlag && full) {  // notes in front of the flag
+      right.appendChild(el('span', 'jjt-itag jjt-itag-' + (level || 'none'), full + ' '));
     }
     right.appendChild(document.createTextNode([asFlag ? flag : p.ip, p.time].filter(Boolean).join(' ')));
     line.appendChild(right);
     line.setAttribute('data-jj-floor', (i + 1) + '樓');
-    if (label) line.setAttribute('data-jj', label);
+    if (label && !asFlag) line.setAttribute('data-jj', label);
     line.setAttribute('title', ((i + 1) + '樓 ' + full).trim());
     if (level) line.setAttribute('data-jj-level', level);
     wrap.appendChild(line);

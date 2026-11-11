@@ -1147,6 +1147,26 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
   user-select: none;
 }
 
+/* notes (第k/n推, ⚠ 同IP, 觀察:備註) in front of the flag, small */
+#mainContainer .jj-ip::after {
+  content: attr(data-note);
+  position: absolute;
+  right: 2.4em;
+  top: 0;
+  font-size: 0.6em;
+  line-height: 1.6667;
+  padding-left: 0.4em;
+  background: #000;
+  color: #8a8a8a;
+  white-space: pre;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+#mainContainer .jj-ip[data-note=""]::after { display: none; }
+.jjt-root .jjt-itag { font-size: 0.6em; color: #8a8a8a; }
+#mainContainer > span[data-jj-ilevel="warn"] .jj-ip::after { color: #ff5c5c; }
+#mainContainer > span[data-jj-ilevel="watch"] .jj-ip::after { color: #d58bff; }
 #mainContainer > span[data-jj-ilevel="warn"] .jj-ip::before,
 .jjt-root .jjt-itag-warn { color: #ff5c5c; }
 #mainContainer > span[data-jj-ilevel="watch"] .jj-ip::before,

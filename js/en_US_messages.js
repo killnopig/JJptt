@@ -82,6 +82,12 @@ locale.en_US = {
   "options_general": {
     "message": "General"
   },
+  "options_layout": {
+    "message": "Layout"
+  },
+  "options_listLayout": {
+    "message": "List and article view"
+  },
   "options_autologin": {
     "message": "Auto login"
   },
