@@ -99,3 +99,7 @@ npm run build
 ## 資料來源
 
 IP 國籍資料（`data/geoip-v4.bin`）由 [ip-location-db](https://github.com/sapics/ip-location-db) 的 geo-whois-asn-country 轉換而來，資料授權為 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，來源：[Number Resource Organization (NRO)](https://www.nro.net/)。更新方式見 `tools/build-geoip.js`。
+
+## 致謝
+
+感謝中正機械 MBA91 几啟成，我的 MUSE。
