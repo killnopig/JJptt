@@ -34,6 +34,7 @@ module.exports = function(grunt) {
         },
         src: [
           'js/changelog.js',
+          'js/pitch.js',
           'js/pttchrome.js', 
           'js/touch_controller.js',
           'js/drive_sync.js',

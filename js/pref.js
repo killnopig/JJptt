@@ -445,6 +445,18 @@ PttChromePref.prototype = {
       $('#about_'+content).text(i18n('about_'+content));
     }
 
+    if (typeof JJPTT_PITCH !== 'undefined') {
+      var pitch = $('#about_pitch').empty();
+      $('<p class="jj-pitch-title"></p>').text(JJPTT_PITCH.title).appendTo(pitch);
+      var ul = $('<ul class="jj-pitch-list"></ul>').appendTo(pitch);
+      JJPTT_PITCH.points.forEach(function(pt) {
+        var li = $('<li></li>').appendTo(ul);
+        $('<b></b>').text(pt[0]).appendTo(li);
+        li.append(document.createTextNode('：' + pt[1]));
+      });
+      $('<p class="jj-pitch-foot"></p>').text(JJPTT_PITCH.footer).appendTo(pitch);
+    }
+
     var latest = JJPTT_CHANGELOG[0];
     $('#about_version').text('JJptt ' + latest.version + '（' + latest.date + '）');
 
