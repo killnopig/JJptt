@@ -1149,6 +1149,9 @@ PttReader.prototype.factReportNode = function(article) {
   var el = PttReader.el;
   var pref = this.app.pref;
   if (pref && pref.values && pref.values.factReport === false) return null;
+  var minPushes = parseInt(pref && pref.values ? pref.values.factReportMinPushes : 10, 10);
+  if (isNaN(minPushes)) minPushes = 10;
+  if ((article.pushes || []).length < minPushes) return null;
   var lines = this.factReport || [];
   var box = el('div', 'jjt-fact');
   var head = el('div', 'jjt-fact-head');
@@ -1283,6 +1286,10 @@ PttReader.prototype.renderPushes = function(article) {
   var authorIp = authorIpMatch ? authorIpMatch[1] : '';
 
   var fact = { tags: [], report: [] };
+  if (typeof HostingIp !== 'undefined' && !HostingIp.ready && HostingIp.loading && !this.waitHosting) {
+    this.waitHosting = true;
+    HostingIp.loading.then(function() { if (HostingIp.ready && self.isOpen()) self.rerender(); });
+  }
   if (this.app.factCheck) {
     try { fact = this.app.factCheck.analyze(article); } catch (e) { console.log('fact check', e); }
   }

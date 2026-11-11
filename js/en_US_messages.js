@@ -555,6 +555,12 @@ locale.en_US = {
   "options_factReport": {
     "message": "Show the fact-check report above the pushes in the article view (with an Ask AI button)"
   },
+  "options_factReportMinPushes": {
+    "message": "Pushes needed before the report box is shown"
+  },
+  "options_factHosting": {
+    "message": "Data-centre / VPN IPs: pushes from cloud, hosting or VPN providers (AWS, Google Cloud, DigitalOcean, M247 and others), tagged with the provider"
+  },
   "options_factFastPush": {
     "message": "Fast pushes within a few minutes of posting (marked stronger when the article is too long to have been read)"
   },

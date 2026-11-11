@@ -3,3 +3,5 @@ geo-whois-asn-country database of [ip-location-db](https://github.com/sapics/ip-
 
 Data licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 by the [Number Resource Organization (NRO)](https://www.nro.net/).
+
+`hosting-v4.bin`：雲端機房／VPN 業者的 IPv4 範圍，由 [ip-location-db](https://github.com/sapics/ip-location-db) 的 origin-asn（[PDDL](https://opendatacommons.org/licenses/pddl/1-0/)，公有領域）篩出 34 家業者轉換而來，見 `tools/build-hosting.js`。

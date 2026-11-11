@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.21.0',
+    date: '2026-11-12',
+    changes: [
+      '真.事實查核中心 第三階段：推文 IP 來自雲端機房或 VPN 業者（AWS、Google Cloud、Azure、DigitalOcean、M247、Cloudflare WARP 等 34 家）時標「機房:業者名」，報告裡也會列出；資料內建在擴充功能裡，不用連網查詢',
+      '報告框只在推文達到一定數量才出現，門檻可以自己填（預設 10 則）'
+    ]
+  },
+  {
     version: '1.20.0',
     date: '2026-11-12',
     changes: [

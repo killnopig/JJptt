@@ -14,6 +14,7 @@
 function FactCheck(app) {
   this.app = app;
   this.history = new FactHistory();
+  if (typeof HostingIp !== 'undefined') HostingIp.load();
 }
 
 FactCheck.DEFAULTS = {

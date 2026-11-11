@@ -552,6 +552,12 @@ locale.zh_TW = {
   "options_factReport": {
     "message": "閱讀模式在推文上方顯示「真.事實查核中心」報告（含「請 AI 分析推文風向」按鈕）"
   },
+  "options_factReportMinPushes": {
+    "message": "推文至少幾則才顯示報告框"
+  },
+  "options_factHosting": {
+    "message": "機房／VPN IP：推文 IP 來自雲端機房或 VPN 業者（AWS、Google Cloud、DigitalOcean、M247 等 34 家），標「機房:業者名」"
+  },
   "options_factFastPush": {
     "message": "秒推：發文後幾分鐘內就推文的人標「秒推」，內文長到不可能讀完的標「秒推‧沒讀完」"
   },
