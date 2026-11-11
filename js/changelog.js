@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.15.1',
+    date: '2026-11-11',
+    changes: [
+      '「額外功能」分頁排版整理：快速搜尋和問 AI 對齊、各加一行說明，輸入框不再切字'
+    ]
+  },
+  {
     version: '1.15.0',
     date: '2026-11-11',
     changes: [

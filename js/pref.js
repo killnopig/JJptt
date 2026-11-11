@@ -247,6 +247,8 @@ PttChromePref.prototype = {
     $('#opt_blacklistInstruction').text(i18n('options_blacklistInstruction'));
     $('#opt_watchlistInstruction').text(i18n('options_watchlistInstruction'));
     $('#opt_notesInstruction').text(i18n('options_notesInstruction'));
+    $('#ext_quickSearchNote').text(i18n('ext_quickSearchNote'));
+    $('#ext_askAiNote').text(i18n('ext_askAiNote'));
 
     this.setupExtensionsPage();
 

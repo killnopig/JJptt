@@ -160,6 +160,12 @@ locale.en_US = {
   "update_later": {
     "message": "Later"
   },
+  "ext_quickSearchNote": {
+    "message": "Select text, right-click → Quick Search to look it up on these sites."
+  },
+  "ext_askAiNote": {
+    "message": "Select text, right-click → Ask AI to open the AI below in a new tab with the question filled in; in the article view you can ask about the whole article."
+  },
   "options_autologin": {
     "message": "Auto login"
   },
@@ -298,7 +304,7 @@ locale.en_US = {
     "message": "Ask AI whether it is true"
   },
   "options_aiService": {
-    "message": "AI to use (select text, right-click → Ask AI)"
+    "message": "AI to use"
   },
   "ai_chatgpt": {
     "message": "ChatGPT"
@@ -319,7 +325,7 @@ locale.en_US = {
     "message": "Custom URL (below)"
   },
   "options_aiCustomUrl": {
-    "message": "Custom AI URL (%s = the question, e.g. https://example.com/chat?q=%s)"
+    "message": "Custom AI URL (used with Custom URL, %s = the question)"
   },
   "options_aiPrompt": {
     "message": "Question to ask (%s = the selected text)"
@@ -586,10 +592,10 @@ locale.en_US = {
     "message": "Quick Search"
   },
   "ext_addQuickSearchNamePlaceholder": {
-    "message": "Add search engine"
+    "message": "Name"
   },
   "ext_addQuickSearchQueryPlaceholder": {
-    "message": "URL with %s in place of query"
+    "message": "URL, %s = the selected text"
   },
 
   // about page

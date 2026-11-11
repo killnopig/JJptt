@@ -1192,7 +1192,7 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 .jjt-root .jjt-itag-foreign { color: #ffa940; }
 
 /* Ask AI settings: room for the URL and the question */
-#opt_aiCustomUrl input, #opt_aiPrompt input { width: 100% !important; max-width: 520px; }
+
 
 /* update notice at the top of the window */
 #jjUpdateBar {
@@ -1220,3 +1220,14 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 #tabContentSyncBackup #update_status { display: block; margin: 2px 0 0 !important; color: #333; }
 #tabContentSyncBackup p { margin: 0 0 10px; }
 #tabContentSyncBackup .list-group { margin-bottom: 22px; }
+
+/* 額外功能: sections line up, grey description, inputs one width */
+.jj-note { color: #555; margin: 0 0 10px; }
+#tabContentExtensions .list-group-item-text > div { margin-left: 0; }
+#tabContentExtensions .list-group { margin-bottom: 22px; }
+#tabContentExtensions #ext_quickSearchList { max-width: 520px; margin-bottom: 0; }
+#ext_quickSearchList .qSearchItemName { width: 30%; }
+#ext_quickSearchList .qSearchItemQuery { width: calc(70% - 40px); }
+#tabContentExtensions #opt_aiService select,
+#tabContentExtensions #opt_aiCustomUrl input,
+#tabContentExtensions #opt_aiPrompt input { width: 100%; max-width: 520px; }

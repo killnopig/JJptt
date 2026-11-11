@@ -160,6 +160,12 @@ locale.zh_TW = {
   "update_later": {
     "message": "稍後再說"
   },
+  "ext_quickSearchNote": {
+    "message": "選取文字後按右鍵 →「快速搜尋」，用這些網站搜尋選取的字。"
+  },
+  "ext_askAiNote": {
+    "message": "選取文字後按右鍵 →「問 AI：這是不是事實？」，會開新分頁到下面選的 AI 並自動填好問題；閱讀模式沒選字時可以問整篇。"
+  },
   "options_autologin": {
     "message": "自動登入"
   },
@@ -295,7 +301,7 @@ locale.zh_TW = {
     "message": "問 AI 這是不是事實"
   },
   "options_aiService": {
-    "message": "用哪個 AI（選取文字後按右鍵 →「問 AI」）"
+    "message": "用哪個 AI"
   },
   "ai_chatgpt": {
     "message": "ChatGPT"
@@ -316,7 +322,7 @@ locale.zh_TW = {
     "message": "自訂網址（填在下面）"
   },
   "options_aiCustomUrl": {
-    "message": "自訂 AI 網址（用 %s 代表問題，例如 https://example.com/chat?q=%s）"
+    "message": "自訂 AI 網址（選「自訂網址」時才用，%s 代表問題）"
   },
   "options_aiPrompt": {
     "message": "要問的話（%s 會換成選取的文字）"
@@ -583,10 +589,10 @@ locale.zh_TW = {
     "message": "快速搜尋"
   },
   "ext_addQuickSearchNamePlaceholder": {
-    "message": "新增搜尋引擎"
+    "message": "名稱"
   },
   "ext_addQuickSearchQueryPlaceholder": {
-    "message": "網址以 %s 取代網址中的搜尋字詞"
+    "message": "網址，%s 代表選取的文字"
   },
 
   // about page
