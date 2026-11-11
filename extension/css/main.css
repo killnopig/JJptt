@@ -1350,3 +1350,15 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 #prefModal .modal-body #ext_quickSearchList div.qSearchItemQuery { width: calc(70% - 40px) !important; float: left; margin-left: 5px; }
 
 #prefModal .modal-body .jj-disabled { opacity: 0.4; }
+
+/* sidebar buttons: update stands out (red on light blue), reset warns (red on white) */
+#prefModal #opt_update,
+#prefModal #opt_update:focus {
+  background: #e8f1fb; border: 1px solid #337ab7; color: #c0392b; font-weight: bold;
+}
+#prefModal #opt_update:hover { background: #d6e6f8; color: #a93226; }
+#prefModal #opt_reset,
+#prefModal #opt_reset:focus {
+  background: #fff; border: 1px solid #c0392b; color: #c0392b;
+}
+#prefModal #opt_reset:hover { background: #fdecea; color: #a93226; }

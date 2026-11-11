@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.25.7',
+    date: '2026-11-12',
+    changes: [
+      '設定左下角按鈕：「更新 JJptt」改成紅字淺藍底（比較顯眼），「設回預設值」改成紅字白底（提醒會清掉所有設定）'
+    ]
+  },
+  {
     version: '1.25.6',
     date: '2026-11-12',
     changes: [
