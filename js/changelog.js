@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.9.0',
+    date: '2026-11-11',
+    changes: [
+      '新增設定「文章列表最新的在上面」：列表上下翻轉，方向鍵、PageUp／PageDown、Home／End、滑鼠滾輪跟著畫面方向',
+      '新增設定「文章列表隱藏 ★ 置底公告」'
+    ]
+  },
+  {
     version: '1.8.3',
     date: '2026-11-11',
     changes: [

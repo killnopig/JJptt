@@ -495,6 +495,14 @@ PttReader.prototype.dismiss = function() {
   this.close();
 };
 
+// Keys to the article above (-1) / below (+1) on screen; with the list
+// shown newest first, "above" is the next article in PTT's order.
+PttReader.prototype.navKeys = function(dir) {
+  var pref = this.app.pref;
+  if (pref && pref.values && pref.values.listNewestFirst) dir = -dir;
+  return dir < 0 ? PttReader.KEYS_PREV : PttReader.KEYS_NEXT;
+};
+
 PttReader.prototype.closeAndSend = function(keys) {
   this.dismiss();
   // keep the list position in step when moving to the previous / next one
@@ -531,17 +539,17 @@ PttReader.prototype.onKeyDown = function(e) {
       break;
     case 'ArrowDown':
     case 'Enter':
-      if (atBottom) this.closeAndSend(PttReader.KEYS_NEXT);
+      if (atBottom) this.closeAndSend(this.navKeys(1));
       else scroller.scrollTop += line;
       break;
     case 'ArrowUp':
-      if (atTop) this.closeAndSend(PttReader.KEYS_PREV);
+      if (atTop) this.closeAndSend(this.navKeys(-1));
       else scroller.scrollTop -= line;
       break;
     case ' ':
     case 'PageDown':
     case 'ArrowRight':
-      if (atBottom) this.closeAndSend(PttReader.KEYS_NEXT);
+      if (atBottom) this.closeAndSend(this.navKeys(1));
       else scroller.scrollTop += page;
       break;
     case 'PageUp':

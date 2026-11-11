@@ -554,9 +554,14 @@ TermView.prototype = {
     }
 
     if (anylineUpdate) {
-      if (lineChangedCount > fullUpdateRowThreshold) {
+      // JJptt: article lists can be shown reversed / without pinned posts;
+      // then rows are drawn through a mapping and always fully.
+      this.updateListMap();
+      var mapped = !!this.listMap || this.prevListMapped;
+      this.prevListMapped = !!this.listMap;
+      if (lineChangedCount > fullUpdateRowThreshold || mapped) {
         if (!this.useEasyReadingMode) {
-          this.mainContainer.innerHTML = this.htmlRowStrArray.join('');
+          this.mainContainer.innerHTML = this.orderedRowHtml().join('');
           this.buf.prevPageState = this.buf.pageState;
         } else {
           this.populateEasyReadingPage();
@@ -684,21 +689,21 @@ TermView.prototype = {
         conn.send('\x1b');
         break;
       case 33: //Page Up
-        conn.send('\x1b[5~');
+        conn.send(this.listReversed() ? '\x1b[6~' : '\x1b[5~');
         break;
       case 34: //Page Down
-        conn.send('\x1b[6~');
+        conn.send(this.listReversed() ? '\x1b[5~' : '\x1b[6~');
         break;
       case 35: //End
         if ((this.bbscore.buf.pageState == 2 || this.bbscore.buf.pageState == 3) &&
             this.bbscore.endTurnsOnLiveUpdate) {
           this.bbscore.onLiveHelperEnableClicked(false);
         } else {
-          conn.send('\x1b[4~');
+          conn.send(this.listReversed() ? '\x1b[1~' : '\x1b[4~');
         }
         break;
       case 36: //Home
-        conn.send('\x1b[1~');
+        conn.send(this.listReversed() ? '\x1b[4~' : '\x1b[1~');
         break;
       case 37: //Arrow Left
         if(this.checkLeftDB())
@@ -707,7 +712,7 @@ TermView.prototype = {
           conn.send('\x1b[D');
         break;
       case 38: //Arrow Up
-        conn.send('\x1b[A');
+        conn.send(this.listReversed() ? '\x1b[B' : '\x1b[A');
         break;
       case 39: //Arrow Right
         if(this.checkCurDB())
@@ -716,7 +721,7 @@ TermView.prototype = {
           conn.send('\x1b[C');
         break;
       case 40: //Arrow Down
-        conn.send('\x1b[B');
+        conn.send(this.listReversed() ? '\x1b[A' : '\x1b[B');
         break;
       case 45: //Insert
         conn.send('\x1b[2~');
@@ -920,6 +925,7 @@ TermView.prototype = {
   },
 
   convertMN2XYEx: function(cx, cy) {
+    cy = this.slotOfRow(cy);
     var origin;
     var w = this.innerBounds.width;
     var h = this.innerBounds.height;
@@ -1064,6 +1070,72 @@ TermView.prototype = {
     //this.input.style.top = '0px';
     //this.input.style.left = '-100000px';
     this.isComposition = false;
+  },
+
+  // ---- list display mapping (newest first / hide pinned posts) -------------
+  // listMap.slotOf[row] = screen row where buffer row is shown,
+  // listMap.rowOf[slot] = buffer row shown on screen row.
+  updateListMap: function() {
+    this.listMap = null;
+    var pref = this.bbscore && this.bbscore.pref;
+    if (!pref || this.buf.pageState != 2) return;
+    var reverse = !!pref.values.listNewestFirst;
+    var hidePinned = !!pref.values.hidePinned;
+    if (!reverse && !hidePinned) return;
+    var first = 3, last = this.buf.rows - 2;  // article rows between header and status
+    var normal = [], pinned = [], rest = [];
+    for (var r = first; r <= last; ++r) {
+      var text = this.buf.getRowText(r, 0, this.buf.cols);
+      if (!text.trim()) { rest.push(r); continue; }
+      if (/^.{0,8}\u2605/.test(text)) {         // ★ pinned post
+        if (hidePinned) rest.push(r); else pinned.push(r);
+      } else {
+        normal.push(r);
+      }
+    }
+    var order = reverse ? pinned.concat(normal.reverse()) : normal.concat(pinned);
+    order = order.concat(rest);
+    var slotOf = [], rowOf = [], identity = true;
+    for (var i = 0; i < this.buf.rows; ++i) { slotOf[i] = i; rowOf[i] = i; }
+    for (var s = 0; s < order.length; ++s) {
+      rowOf[first + s] = order[s];
+      slotOf[order[s]] = first + s;
+      if (order[s] !== first + s) identity = false;
+    }
+    var hidden = {};
+    if (hidePinned) {
+      for (var h = 0; h < rest.length; ++h) hidden[rest[h]] = true;
+    }
+    if (identity && !Object.keys(hidden).length) return;
+    this.listMap = { slotOf: slotOf, rowOf: rowOf, hidden: hidden, reversed: reverse };
+  },
+
+  orderedRowHtml: function() {
+    var rows = this.htmlRowStrArray;
+    var map = this.listMap;
+    if (!map) return rows;
+    var out = [];
+    for (var slot = 0; slot < rows.length; ++slot) {
+      var r = map.rowOf[slot];
+      var html = rows[r] || '';
+      if (map.hidden[r] && this.buf.getRowText(r, 0, this.buf.cols).trim()) {
+        html = html.replace('class="', 'class="jj-hidden-row ');
+      }
+      out.push(html);
+    }
+    return out;
+  },
+
+  slotOfRow: function(row) {
+    return this.listMap ? this.listMap.slotOf[row] : row;
+  },
+
+  rowOfSlot: function(slot) {
+    return this.listMap ? this.listMap.rowOf[slot] : slot;
+  },
+
+  listReversed: function() {
+    return !!(this.listMap && this.listMap.reversed && this.buf.pageState == 2);
   },
 
   // Style for a blacklisted row: faded, or hidden when hideBlacklisted is on.

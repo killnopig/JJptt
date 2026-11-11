@@ -336,6 +336,12 @@ locale.zh_TW = {
   "options_readerLowResImages": {
     "message": "閱讀模式用低解析度圖片（載入較快，點圖片開原圖）"
   },
+  "options_listNewestFirst": {
+    "message": "文章列表最新的在上面（方向鍵跟著反過來，畫面往上 = ↑）"
+  },
+  "options_hidePinned": {
+    "message": "文章列表隱藏 ★ 置底公告"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },

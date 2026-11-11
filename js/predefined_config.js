@@ -35,6 +35,8 @@ var DEFAULT_PREFS = {
   enableBlacklist : true,
   blacklistedUserIds  : '{}',
   hideBlacklisted : false,
+  listNewestFirst : false,
+  hidePinned : false,
   blacklistedTitleKeywords : '',
 
   enablePushInsights : true,

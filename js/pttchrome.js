@@ -784,6 +784,7 @@ pttchrome.App.prototype.clientToPos = function(cX, cY) {
     row = 0;
   else if (row >= this.buf.rows-1)
     row = this.buf.rows-1;
+  row = this.view.rowOfSlot(row);  // reversed / filtered article list
 
   if (col < 0)
     col = 0;
@@ -1208,6 +1209,11 @@ pttchrome.App.prototype.onPrefChange = function(pref, name) {
       this.pref.enableBlacklist = pref.get(name);
       this.view.redraw(true);
       break;
+    case 'listNewestFirst':
+    case 'hidePinned':
+      this.view.redraw(true);
+      this.view.updateCursorPos();
+      break;
     case 'hideBlacklisted':
       this.pref.hideBlacklisted = pref.get(name);
       this.view.redraw(true);
@@ -1462,6 +1468,11 @@ pttchrome.App.prototype.mouse_scroll = function(e) {
   // hold left mouse key + scroll = thread prev/next
   var mouseWheelActionsUp = [ 'none', 'doArrowUp', 'doPageUp', 'previousThread' ];
   var mouseWheelActionsDown = [ 'none', 'doArrowDown', 'doPageDown', 'nextThread' ];
+  if (this.view.listReversed()) {  // newest-first list: wheel up goes to newer
+    var swap = mouseWheelActionsUp;
+    mouseWheelActionsUp = mouseWheelActionsDown;
+    mouseWheelActionsDown = swap;
+  }
 
   if (e.wheelDelta > 0) { // scrolling up
     if (this.mouseRightButtonDown) {

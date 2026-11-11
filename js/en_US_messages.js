@@ -339,6 +339,12 @@ locale.en_US = {
   "options_readerLowResImages": {
     "message": "Use lower resolution images in the reader (faster; click for the original)"
   },
+  "options_listNewestFirst": {
+    "message": "Article lists show the newest first (arrow keys follow the screen)"
+  },
+  "options_hidePinned": {
+    "message": "Hide ★ pinned posts in article lists"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },

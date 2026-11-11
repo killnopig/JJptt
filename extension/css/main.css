@@ -1102,3 +1102,4 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 .jjt-root .jjt-head-bg span { color: transparent !important; }
 .jjt-root .jjt-head-fg { position: absolute; top: 0; left: 0; right: 0; }
 .jjt-root .jjt-head-fg span { background-color: transparent !important; }
+#mainContainer > span.jj-hidden-row { visibility: hidden; }
