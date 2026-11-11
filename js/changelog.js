@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.25.6',
+    date: '2026-11-12',
+    changes: [
+      'README 重寫：Mac、Windows 分開的一步一步安裝教學（每一步寫清楚在哪裡點、要貼什麼），加上第一次使用、怎麼更新、常見問題；給開發者的內容移到最後的「進階」'
+    ]
+  },
+  {
     version: '1.25.5',
     date: '2026-11-12',
     changes: [
