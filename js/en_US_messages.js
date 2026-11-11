@@ -586,10 +586,19 @@ locale.en_US = {
     "message": "Run length of 推 for boosting"
   },
   "options_factCanned": {
-    "message": "Canned pushes: different accounts posting near-identical text"
+    "message": "Canned pushes: different accounts saying nearly the same thing within a short time (quotes of the title/article and copy chains excluded) and also showing another sign (fast, burst, boosting, same network, data centre) are tagged red; look-alikes without other signs get a grey 同梗 tag"
   },
   "options_factCannedMin": {
     "message": "Accounts needed for a group"
+  },
+  "options_factCannedSim": {
+    "message": "Similarity threshold (%, shared characters of the shorter push)"
+  },
+  "options_factCannedPhrase": {
+    "message": "Shared run of characters needed"
+  },
+  "options_factCannedWindow": {
+    "message": "Minutes they must arrive within (0 = any time)"
   },
   "options_factSubnet": {
     "message": "Same /24 network: different accounts whose IPs share the first three parts"

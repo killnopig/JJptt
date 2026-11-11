@@ -21,7 +21,7 @@ FactCheck.DEFAULTS = {
   factFastPush: true, factFastMinutes: 2,
   factBurst: true, factBurstMin: 6, factQuietMin: 5,
   factBoost: true, factBoostRun: 15,
-  factCanned: true, factCannedMin: 3,
+  factCanned: true, factCannedMin: 5, factCannedSim: 60, factCannedPhrase: 6, factCannedWindow: 10,
   factSubnet: true, factSubnetMin: 3,
   factCooccur: true, factCooccurRate: 70, factCooccurMin: 5,
   factSquad: true, factSquadMin: 3,
@@ -199,8 +199,11 @@ FactCheck.prototype.analyze = function(article) {
   }
 
   // 4. 罐頭推文: near-identical sentences from different accounts
+  var cannedGroups = [];
   if (this.opt('factCanned')) {
     var minAcc = this.opt('factCannedMin');
+    var simMin = this.opt('factCannedSim') / 100, phraseMin = Math.max(2, this.opt('factCannedPhrase'));
+    var windowMs = this.opt('factCannedWindow') * 60000;
     // people quote the title and the article: wording from there is not
     // a sign of coordination, so it is left out of the comparison
     var source = FactCheck.normalize((article.meta && article.meta['標題'] || '') + ' ' +
@@ -238,21 +241,37 @@ FactCheck.prototype.analyze = function(article) {
         // reworded slogans ("某黨自導自演" in different sentences): many
         // shared character pairs and one shared phrase of 4+ characters
         var overlap = shared[other] / Math.min(size, osize);
-        if (overlap >= 0.4 && FactCheck.sharePhrase(texts[i], texts[o], 4)) parent[find(o)] = find(i);
+        if (overlap >= simMin && FactCheck.sharePhrase(texts[i], texts[o], phraseMin)) parent[find(o)] = find(i);
       }
     }
     var groups = {};
     for (i = 0; i < n; ++i) if (grams[i]) (groups[find(i)] = groups[find(i)] || []).push(i);
-    var label = 0;
+    var countAcc = function(list) {
+      var a = {};
+      list.forEach(function(k) { a[ids[k]] = true; });
+      return Object.keys(a).length;
+    };
     for (var root in groups) {
-      var members = groups[root];
-      var accounts = {};
-      members.forEach(function(k) { accounts[ids[k]] = true; });
-      if (Object.keys(accounts).length < minAcc) continue;
-      var name = '罐頭' + String.fromCharCode(65 + (label++ % 26));
-      members.forEach(function(k) { add(k, name, 'warn'); });
-      report.push(name + '：' + Object.keys(accounts).length + ' 個帳號說幾乎一樣的話，例如「' +
-                  String(pushes[members[0]].content).trim().slice(0, 24) + '」');
+      // 接龍: the same line copied floor after floor is PTT culture
+      var members = groups[root].filter(function(k) {
+        return !(texts[k] && (texts[k - 1] === texts[k] || texts[k + 1] === texts[k]));
+      });
+      if (countAcc(members) < minAcc) continue;
+      // a meme spreads over the whole thread; a canned batch arrives together:
+      // keep the busiest stretch of `windowMs`
+      var best = [];
+      if (windowMs > 0) {
+        var byTime = members.filter(function(k) { return times[k]; }).sort(function(x, y) { return times[x] - times[y]; });
+        var lo = 0;
+        for (var hi = 0; hi < byTime.length; ++hi) {
+          while (times[byTime[hi]] - times[byTime[lo]] > windowMs) lo++;
+          var win = byTime.slice(lo, hi + 1);
+          if (countAcc(win) > countAcc(best)) best = win;
+        }
+      } else {
+        best = members;
+      }
+      cannedGroups.push({ all: members, batch: countAcc(best) >= minAcc ? best.sort(function(x, y) { return x - y; }) : [] });
     }
   }
 
@@ -309,6 +328,31 @@ FactCheck.prototype.analyze = function(article) {
       });
       report.unshift((shared.length ? '同機房：' : '機房／VPN IP：') + parts.join('；'));
     }
+  }
+
+  // 罐頭 last: a batch of look-alike pushes only counts as canned (red,
+  // in the report) when its accounts also show another sign (fast push,
+  // burst, boosting, same network, data centre); otherwise it is a meme
+  // and gets a grey 同梗 tag.
+  if (cannedGroups && cannedGroups.length) {
+    var strongSign = /^(秒推|脈衝|補血|同網段|機房|同機房)/;
+    var label = 0;
+    cannedGroups.forEach(function(g) {
+      var strong = g.batch.length && g.batch.some(function(k) {
+        return tags[k].some(function(t) { return strongSign.test(t.t); });
+      });
+      if (!strong) {
+        g.all.forEach(function(k) { add(k, '同梗', 'grey'); });
+        return;
+      }
+      var name = '罐頭' + String.fromCharCode(65 + (label++ % 26));
+      g.batch.forEach(function(k) { add(k, name, 'warn'); });
+      var accs = {};
+      g.batch.forEach(function(k) { accs[ids[k]] = true; });
+      var span = Math.round((times[g.batch[g.batch.length - 1]] - times[g.batch[0]]) / 60000);
+      report.push(name + '：' + Object.keys(accs).length + ' 個帳號在 ' + Math.max(1, span) + ' 分鐘內說幾乎一樣的話，' +
+                  '並且有秒推／脈衝／同網段／機房等其他疑點，例如「' + String(pushes[g.batch[0]].content).trim().slice(0, 24) + '」');
+    });
   }
 
   return { tags: tags, report: report };

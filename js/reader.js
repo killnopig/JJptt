@@ -1369,6 +1369,10 @@ PttReader.prototype.renderPushes = function(article) {
       if (level !== 'warn') level = 'watch';
     }
     (fact.tags[i] || []).forEach(function(t) {  // 真.事實查核中心 rules
+      if (t.lvl === 'grey') {  // weak hint: plain text, no ⚠
+        parts.push(t.t);
+        return;
+      }
       hints.push(t.t);
       tags.push(t.t);
       if (t.lvl === 'warn') level = 'warn';

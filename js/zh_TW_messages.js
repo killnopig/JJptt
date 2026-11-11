@@ -583,10 +583,19 @@ locale.zh_TW = {
     "message": "連續幾則純推才算補血"
   },
   "options_factCanned": {
-    "message": "罐頭推文：不同帳號說幾乎一樣的話，同一組標「罐頭A、罐頭B…」"
+    "message": "罐頭推文：不同帳號在短時間內說幾乎一樣的話（扣掉引用標題、內文和連續接龍），而且這些帳號還有秒推、脈衝、補血、同網段或機房其中一項，才標紅色「罐頭A」；只是說法相似的標灰色「同梗」"
   },
   "options_factCannedMin": {
     "message": "至少幾個帳號才算一組"
+  },
+  "options_factCannedSim": {
+    "message": "相似度門檻（%，共同用字佔較短那句的比例）"
+  },
+  "options_factCannedPhrase": {
+    "message": "至少要有幾個字連續相同"
+  },
+  "options_factCannedWindow": {
+    "message": "要在幾分鐘內集中出現（0 = 不限）"
   },
   "options_factSubnet": {
     "message": "同網段：不同帳號的 IP 前三段相同（例如 101.12.34.x），標「同網段」"
