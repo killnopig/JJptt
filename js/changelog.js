@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.11.3',
+    date: '2026-11-11',
+    changes: [
+      '修正：「最新的在上面」用終端機游標判斷選中的文章，但 PTT 不一定把游標放在「>」那行，導致畫面捲到錯的位置、看不到選中的最新文章；改用「>」標記判斷'
+    ]
+  },
+  {
     version: '1.11.2',
     date: '2026-11-11',
     changes: [

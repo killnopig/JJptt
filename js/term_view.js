@@ -1145,9 +1145,13 @@ TermView.prototype = {
       entered = true;
     }
     var pinnedNow = [], onScreen = {}, numbered = 0;
+    // The selected article is the row marked ">" (or "●"); PTT does not
+    // always leave the terminal cursor on that row.
+    var selRow = -1;
     for (var r = first; r <= last; ++r) {
       var text = buf.getRowText(r, 0, buf.cols);
       if (!text.trim()) continue;
+      if (selRow < 0 && /^[>\u25cf]/.test(text)) selRow = r;
       if (/^.{0,8}\u2605/.test(text)) {
         pinnedNow.push(r);
         continue;
@@ -1182,9 +1186,11 @@ TermView.prototype = {
       return { num: n, r: (n in onScreen) ? onScreen[n] : -1 };
     }));
     // keep the cursor visible, moving the window as little as possible
+    if (selRow < 0) selRow = buf.cur_y;
+    this.listSelRow = selRow;
     var ci = -1;
     for (var i = 0; i < items.length; ++i) {
-      if (items[i].r === buf.cur_y) { ci = i; break; }
+      if (items[i].r === selRow) { ci = i; break; }
     }
     if (ci >= 0) {
       if (ci <= pinned.length) st.ws = 0;             // at the newest: show the top
@@ -1222,7 +1228,7 @@ TermView.prototype = {
     var conn = this.conn;
     if (st.fill === 'start') {
       st.fill = 'done';
-      var curText = buf.getRowText(buf.cur_y, 0, buf.cols);
+      var curText = buf.getRowText(selRow, 0, buf.cols);
       var curNum = /^.\s*(\d+)\s/.exec(curText);
       var maxNum = nums.length ? nums[0] : 0;
       // count only rows that are shown (hidden pinned posts leave gaps)
