@@ -363,6 +363,24 @@ locale.zh_TW = {
   "options_labelLayoutCompact": {
     "message": "精簡保留：字稍小，一定看得到樓層、國旗與 ⚠"
   },
+  "options_autoBlacklistSameUrl": {
+    "message": "同一帳號 24 小時內把同一網址貼在超過 3 篇文章，自動加入黑名單 24 小時"
+  },
+  "options_tempBlacklist": {
+    "message": "目前的自動黑名單："
+  },
+  "options_tempBlacklistNone": {
+    "message": "（沒有）"
+  },
+  "options_tempBlacklistLeft": {
+    "message": "剩約 %s 小時"
+  },
+  "spam_autoBlacklisted": {
+    "message": "已自動把 %s 加入黑名單 24 小時（同一網址出現在 %n 篇文章）"
+  },
+  "options_pushFilterDefault": {
+    "message": "按 Z 搜尋推文數時自動填入（0 = 不填）"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },

@@ -523,7 +523,7 @@ TermView.prototype = {
               shouldFade = true;
             }
           }
-          if (userid in pref.blacklistedUserIds) {
+          if (userid && pref.isBlacklisted(userid)) {
             shouldFade = true;
           }
         }
@@ -592,6 +592,9 @@ TermView.prototype = {
       }
       if (this.bbscore && this.bbscore.reader) {
         this.bbscore.reader.onTerminalUpdate();
+      }
+      if (this.bbscore && this.bbscore.checkPrompts) {
+        this.bbscore.checkPrompts();
       }
     }
     //var time = new Date().getTime() - start;

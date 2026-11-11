@@ -89,6 +89,7 @@ pttchrome.App = function(onInitializedCallback, options) {
   this.inputHelper = new InputHelper(this);
   this.pushInsights = new PushInsights(this);
   this.driveSync = new DriveSync(this);
+  this.spamGuard = new SpamGuard(this);
   this.reader = new PttReader(this);
 
   this.navigateTo = { board: getQueryVariable('board'), aid: getQueryVariable('aid') };
@@ -622,6 +623,7 @@ pttchrome.App.prototype.doAddBlacklistUserId = function(userid) {
 
 pttchrome.App.prototype.doRemoveBlacklistUserId = function(userid) {
   delete this.pref.blacklistedUserIds[userid];
+  this.pref.removeTempBlacklist(userid);
   this.pref.setBlacklistValue();
   this.pref.setBlacklistStorage();
   if (this.view.useEasyReadingMode && this.buf.startedEasyReading) {
@@ -703,6 +705,27 @@ pttchrome.App.prototype.askCloseTabs = function(ids) {
   });
   keep.addEventListener('click', done);
   close.focus();
+};
+
+// Fills PTT prompts with the user's usual answer, e.g. the push count for
+// "搜尋推文數高於多少 (<0則搜噓文數) 的文章:" (Z in an article list). Only the
+// value is typed; the user can edit it and presses Enter.
+pttchrome.App.prototype.checkPrompts = function() {
+  var v = parseInt(this.pref && this.pref.values ? this.pref.values.pushFilterDefault : 0, 10);
+  var showing = false;
+  for (var r = this.buf.rows - 1; r >= this.buf.rows - 3; --r) {
+    if (this.buf.getRowText(r, 0, this.buf.cols).indexOf('\u641c\u5c0b\u63a8\u6587\u6578\u9ad8\u65bc\u591a\u5c11') >= 0) {  // 搜尋推文數高於多少
+      showing = true;
+      break;
+    }
+  }
+  if (!showing) {
+    this.pushFilterFilled = false;
+    return;
+  }
+  if (this.pushFilterFilled || !v) return;
+  this.pushFilterFilled = true;
+  this.conn.send(String(v));
 };
 
 // Tells the user once after JJptt was updated to a new version.
@@ -1735,7 +1758,7 @@ pttchrome.App.prototype.setupContextMenus = function() {
     }
 
     if (contextOnUserId) {
-      if (contextOnUserId in self.pref.blacklistedUserIds) {
+      if (self.pref.isBlacklisted(contextOnUserId)) {
         $('#cmenuRemoveBlacklistUserIdContent').text("'"+contextOnUserId+"'");
         $('#cmenu_addBlacklistUserId').hide();
         $('#cmenu_removeBlacklistUserId').show();

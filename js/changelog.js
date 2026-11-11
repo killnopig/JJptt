@@ -3,6 +3,15 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.10.0',
+    date: '2026-11-11',
+    changes: [
+      '黑名單使用者的推文不再顯示縮圖',
+      '新增：同一帳號 24 小時內把同一網址貼在超過 3 篇文章（內文或推文），自動加入黑名單 24 小時；設定 → 黑名單 可關閉並查看目前名單',
+      '按 Z 搜尋推文數時自動填入預設值（預設 10，設定 → 一般 可改，0 = 不填）'
+    ]
+  },
+  {
     version: '1.9.5',
     date: '2026-11-11',
     changes: [

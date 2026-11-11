@@ -7,6 +7,7 @@ function PttChromePref(app, onInitializedCallback) {
   this.enableBlacklist = false;
   this.blacklistedUserIds = {};
   this.watchlistedUserIds = {};
+  this.tempBlacklist = {};   // id -> expiry time (ms), e.g. from the spam guard
   this.hideBlacklisted = false;
   this.titleKeywords = [];
 
@@ -19,8 +20,61 @@ function PttChromePref(app, onInitializedCallback) {
 
 PttChromePref.prototype = {
 
+  // Blacklisted permanently, or temporarily (not expired yet).
+  isBlacklisted: function(id) {
+    if (!id) return false;
+    id = String(id).toLowerCase();
+    if (id in this.blacklistedUserIds) return true;
+    var until = this.tempBlacklist[id];
+    return !!(until && until > Date.now());
+  },
+
+  addTempBlacklist: function(id, ms) {
+    id = String(id).toLowerCase();
+    this.pruneTempBlacklist();
+    this.tempBlacklist[id] = Date.now() + ms;
+    this.saveTempBlacklist();
+    this.app.view.redraw(true);
+    if (this.app.reader) this.app.reader.rerender();
+  },
+
+  removeTempBlacklist: function(id) {
+    id = String(id).toLowerCase();
+    if (!(id in this.tempBlacklist)) return;
+    delete this.tempBlacklist[id];
+    this.saveTempBlacklist();
+  },
+
+  pruneTempBlacklist: function() {
+    var now = Date.now();
+    for (var id in this.tempBlacklist) {
+      if (this.tempBlacklist[id] <= now || isNaN(this.tempBlacklist[id])) delete this.tempBlacklist[id];
+    }
+  },
+
+  saveTempBlacklist: function() {
+    this.values.tempBlacklist = JSON.stringify(this.tempBlacklist);
+    this.setStorage({ values: { tempBlacklist: this.values.tempBlacklist } });
+    this.refreshTempBlacklistOnUi();
+  },
+
+  refreshTempBlacklistOnUi: function() {
+    var box = $('#opt_tempBlacklist');
+    if (!box.length) return;
+    this.pruneTempBlacklist();
+    var now = Date.now();
+    var self = this;
+    var ids = Object.keys(this.tempBlacklist);
+    box.text(i18n('options_tempBlacklist') + (ids.length ? '' : i18n('options_tempBlacklistNone')));
+    ids.forEach(function(id) {
+      var hours = Math.max(1, Math.round((self.tempBlacklist[id] - now) / 3600000));
+      $('<div class="jj-temp-black"></div>').text(id + ' — ' + i18n('options_tempBlacklistLeft').replace('%s', hours)).appendTo(box);
+    });
+  },
+
   updateSettingsToUi: function() {
     this.refreshBlacklistOnUi();
+    this.refreshTempBlacklistOnUi();
     this.refreshWatchlistOnUi();
 
     var self = this;
@@ -38,7 +92,7 @@ PttChromePref.prototype = {
       var val = this.values[i];
 
       // for blacklisted / watchlisted userids
-      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds') {
+      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'tempBlacklist') {
         continue;
       }
       if (i === 'quickSearchList') {
@@ -461,7 +515,7 @@ PttChromePref.prototype = {
     this.readWatchlistValues();
     var selectedVal;
     for (var i in this.values) {
-      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds') {
+      if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'tempBlacklist') {
         continue;
       }
       if (i === 'quickSearchList') {
@@ -555,7 +609,10 @@ PttChromePref.prototype = {
             this.quickSearches = JSON.parse(this.values[i]);
           }
         } else {
-          if (i === 'watchlistedUserIds') {
+          if (i === 'tempBlacklist') {
+            try { this.tempBlacklist = JSON.parse(msg.data.values[i]) || {}; } catch (e) { this.tempBlacklist = {}; }
+            this.values[i] = msg.data.values[i];
+          } else if (i === 'watchlistedUserIds') {
             this.watchlistedUserIds = JSON.parse(msg.data.values[i]);
             this.values[i] = msg.data.values[i];
           } else if (i === 'blacklistedUserIds') {

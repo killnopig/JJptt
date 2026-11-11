@@ -322,6 +322,7 @@ PttReader.prototype.takePrefetch = function(h) {
 };
 
 PttReader.prototype.fetchArticle = function(url) {
+  var self = this;
   return this.fetchDoc(url).then(function(doc) {
     var main = doc.getElementById('main-content');
     if (!main) throw new Error('no article content');
@@ -356,7 +357,11 @@ PttReader.prototype.fetchArticle = function(url) {
     // lines between them keep their position and line numbers stay right
     var drop = body.querySelectorAll('.article-metaline, .article-metaline-right, .richcontent, .push:not([data-push-index])');
     for (var k = 0; k < drop.length; ++k) drop[k].parentNode.removeChild(drop[k]);
-    return { url: url, meta: meta, text: body.textContent, body: body, pushes: pushes };
+    var article = { url: url, meta: meta, text: body.textContent, body: body, pushes: pushes };
+    if (self.app.spamGuard) {
+      try { self.app.spamGuard.record(article); } catch (e) { console.log('spam guard', e); }
+    }
+    return article;
   });
 };
 
@@ -496,7 +501,7 @@ PttReader.prototype.onContextMenu = function(e) {
   if (push) {
     var id = push.getAttribute('data-user');
     var pref = app.pref;
-    if (id in pref.blacklistedUserIds) {
+    if (pref.isBlacklisted(id)) {
       add(i18n('cmenu_removeBlacklistUserId') + " '" + id + "'", function() { app.doRemoveBlacklistUserId(id); self.rerender(); });
     } else {
       add(i18n('cmenu_addBlacklistUserId') + " '" + id + "'", function() { app.doAddBlacklistUserId(id); self.rerender(); });
@@ -1128,7 +1133,7 @@ PttReader.prototype.renderPushes = function(article) {
   var insights = this.app.pushInsights;
   var geo = insights.geo;
   var T = insights.hintTexts();
-  var black = (pref && pref.enableBlacklist && pref.blacklistedUserIds) || {};
+  var isBlack = function(id) { return !!(pref && pref.enableBlacklist && pref.isBlacklisted(id)); };
   var hide = pref && pref.hideBlacklisted;
   var watch = (pref && pref.watchlistedUserIds) || {};
   var authorId = String(article.meta['作者'] || '').split(' ')[0].toLowerCase();
@@ -1147,7 +1152,8 @@ PttReader.prototype.renderPushes = function(article) {
   article.pushes.forEach(function(p, i) {
     var id = p.id.toLowerCase();
     nth[id] = (nth[id] || 0) + 1;
-    if ((id in black) && hide) return;
+    var blackListed = isBlack(id);
+    if (blackListed && hide) return;
     var wrap = document.createDocumentFragment();
 
     var hints = [];
@@ -1180,7 +1186,7 @@ PttReader.prototype.renderPushes = function(article) {
     var label = insights.fitLabel(full, parts, hints, T, self.rightSpaceCols);
 
     // "推 userid: content          ip mm/dd hh:mm" in PTT colours
-    var line = el('div', 'jjt-line jjt-push' + ((id in black) ? ' jjt-faded' : ''));
+    var line = el('div', 'jjt-line jjt-push' + (blackListed ? ' jjt-faded' : ''));
     line.setAttribute('data-user', id);
     var left = el('span', 'jjt-push-left');
     left.appendChild(el('span', p.tag === '推' ? 'q15 b0' : 'q9 b0', p.tag + ' '));
@@ -1198,6 +1204,7 @@ PttReader.prototype.renderPushes = function(article) {
     result[i] = { line: line, frag: wrap };
     // images posted in pushes
     content.urls.forEach(function(u) {
+      if (blackListed) return;  // no thumbnails for blacklisted users
       if (!PttReader.imageSrc(u)) return;
       var media = self.linkBlock(u, true);
       media.className += ' jjt-push-media';

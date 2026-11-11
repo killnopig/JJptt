@@ -366,6 +366,24 @@ locale.en_US = {
   "options_labelLayoutCompact": {
     "message": "Compact: slightly smaller text, labels always visible"
   },
+  "options_autoBlacklistSameUrl": {
+    "message": "Blacklist an ID for 24 hours when it posts the same URL in more than 3 articles within 24 hours"
+  },
+  "options_tempBlacklist": {
+    "message": "Automatic blacklist: "
+  },
+  "options_tempBlacklistNone": {
+    "message": "(none)"
+  },
+  "options_tempBlacklistLeft": {
+    "message": "about %s h left"
+  },
+  "spam_autoBlacklisted": {
+    "message": "Blacklisted %s for 24 hours (same URL in %n articles)"
+  },
+  "options_pushFilterDefault": {
+    "message": "Push count filled in for Z search (0 = off)"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },
