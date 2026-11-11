@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.22.2',
+    date: '2026-11-12',
+    changes: [
+      '修正：「最新的在上面」的文章列表，在不是 PTT 目前這一頁的文章上按右鍵，會跳出瀏覽器原本的選單，看不到 JJptt 的設定和黑名單選項'
+    ]
+  },
+  {
     version: '1.22.1',
     date: '2026-11-12',
     changes: [

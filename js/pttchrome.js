@@ -1741,11 +1741,15 @@ pttchrome.App.prototype.setupContextMenus = function() {
     contextOnUserId = null;
     if (target.length) {
       // the clicked text can be nested several spans deep inside the row
-      var srow = target.closest('[srow]').attr('srow');
-      srow = parseInt(srow);
+      var srowEl = target.closest('[srow]');
+      var srow = parseInt(srowEl.attr('srow'));
       if (!isNaN(srow)) {
         var rowText = '';
-        if (self.view.useEasyReadingMode && self.buf.pageState == 3) {
+        if (srow < 0) {
+          // newest-first list: rows kept from earlier screens are not in the
+          // terminal buffer, read the text shown on screen instead
+          rowText = (srowEl.closest('#mainContainer > span').text() || srowEl.text()).replace(/\u00a0/g, ' ');
+        } else if (self.view.useEasyReadingMode && self.buf.pageState == 3) {
           rowText = self.buf.getRowText(srow, 0, self.buf.cols, self.buf.pageLines);
         } else {
           rowText = self.buf.getRowText(srow, 0, self.buf.cols);
