@@ -3,6 +3,15 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.5.0',
+    date: '2026-11-11',
+    changes: [
+      '設定新增「推文分析與顏色」：一般文字顏色、樓層顏色',
+      'IP 國籍可選擇顯示文字、國旗或國旗＋文字',
+      '可疑標記的前綴與字樣（同 IP 多帳號、與作者同 IP、觀察名單）可以自訂'
+    ]
+  },
+  {
     version: '1.4.2',
     date: '2026-11-11',
     changes: [

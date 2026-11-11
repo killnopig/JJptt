@@ -288,6 +288,39 @@ locale.zh_TW = {
   "reader_err_network": {
     "message": "連不到 www.ptt.cc"
   },
+  "options_insightsHeading": {
+    "message": "推文分析與顏色"
+  },
+  "options_textColor": {
+    "message": "一般文字顏色（終端機與閱讀模式內文）"
+  },
+  "options_floorColor": {
+    "message": "樓層顏色"
+  },
+  "options_countryDisplay": {
+    "message": "IP 國籍顯示"
+  },
+  "options_countryText": {
+    "message": "文字（台灣）"
+  },
+  "options_countryFlag": {
+    "message": "國旗（🇹🇼）"
+  },
+  "options_countryBoth": {
+    "message": "國旗＋文字"
+  },
+  "options_suspectPrefix": {
+    "message": "可疑標記前綴"
+  },
+  "options_suspectSameIpText": {
+    "message": "同 IP 多帳號的標示字樣"
+  },
+  "options_suspectAuthorIpText": {
+    "message": "與作者同 IP 的標示字樣"
+  },
+  "options_watchText": {
+    "message": "觀察名單的標示字樣"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },

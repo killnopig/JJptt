@@ -291,6 +291,39 @@ locale.en_US = {
   "reader_err_network": {
     "message": "cannot reach www.ptt.cc"
   },
+  "options_insightsHeading": {
+    "message": "Push insights & colours"
+  },
+  "options_textColor": {
+    "message": "Text colour (terminal and reader body)"
+  },
+  "options_floorColor": {
+    "message": "Floor number colour"
+  },
+  "options_countryDisplay": {
+    "message": "IP country display"
+  },
+  "options_countryText": {
+    "message": "Text"
+  },
+  "options_countryFlag": {
+    "message": "Flag"
+  },
+  "options_countryBoth": {
+    "message": "Flag + text"
+  },
+  "options_suspectPrefix": {
+    "message": "Hint prefix"
+  },
+  "options_suspectSameIpText": {
+    "message": "Label for one IP used by several IDs"
+  },
+  "options_suspectAuthorIpText": {
+    "message": "Label for same IP as the author"
+  },
+  "options_watchText": {
+    "message": "Label for watchlist"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },

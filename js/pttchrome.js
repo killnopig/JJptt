@@ -1219,6 +1219,19 @@ pttchrome.App.prototype.onPrefChange = function(pref, name) {
         .filter(function(k) { return k; });
       this.view.redraw(true);
       break;
+    case 'textColor':
+      document.documentElement.style.setProperty('--jj-text-color', pref.get(name) || '#c0c0c0');
+      break;
+    case 'floorColor':
+      document.documentElement.style.setProperty('--jj-floor-color', pref.get(name) || '#8a8a8a');
+      break;
+    case 'countryDisplay':
+    case 'suspectPrefix':
+    case 'suspectSameIpText':
+    case 'suspectAuthorIpText':
+    case 'watchText':
+      this.pushInsights.annotate();
+      break;
     case 'enableReader':
       this.reader.setEnabled(pref.get(name));
       break;

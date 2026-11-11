@@ -449,7 +449,9 @@ PttReader.prototype.render = function(article, h) {
 PttReader.prototype.renderPushes = function(article) {
   var el = PttReader.el;
   var pref = this.app.pref;
-  var geo = this.app.pushInsights.geo;
+  var insights = this.app.pushInsights;
+  var geo = insights.geo;
+  var T = insights.hintTexts();
   var black = (pref && pref.enableBlacklist && pref.blacklistedUserIds) || {};
   var hide = pref && pref.hideBlacklisted;
   var watch = (pref && pref.watchlistedUserIds) || {};
@@ -486,23 +488,23 @@ PttReader.prototype.renderPushes = function(article) {
     if (p.ip && geo.ready) {
       var cc = geo.lookup(p.ip);
       if (cc) {
-        country = geo.countryName(cc);
+        country = insights.countryLabel(cc);
         if (cc !== 'TW') level = 'foreign';
       }
     }
     if (p.ip) {
       var others = Object.keys(idsByIp[p.ip] || {}).filter(function(x) { return x !== id; });
       if (others.length) {
-        hints.push('同IP:' + others.slice(0, 2).join(',') + (others.length > 2 ? '等' + others.length + '人' : ''));
+        hints.push(T.sameIp + ':' + others.slice(0, 2).join(',') + (others.length > 2 ? '等' + others.length + '人' : ''));
         level = 'warn';
       }
       if (authorIp && p.ip === authorIp && id !== authorId) {
-        hints.push('與作者同IP');
+        hints.push(T.authorIp);
         level = 'warn';
       }
     }
     if (id in watch) {
-      hints.push('觀察' + (watch[id] ? ':' + watch[id] : ''));
+      hints.push(T.watch + (watch[id] ? ':' + watch[id] : ''));
       if (level !== 'warn') level = 'watch';
     }
     if (countById[id] >= 8) hints.push('第' + nth[id] + '/' + countById[id] + '推');
@@ -538,7 +540,7 @@ PttReader.prototype.renderPushes = function(article) {
       im.addEventListener('error', function() { im.style.display = 'none'; });
       row.appendChild(im);
     });
-    if (hints.length) row.appendChild(el('div', 'jjr-hint jjr-' + (level || 'info'), '⚠ ' + hints.join(' ')));
+    if (hints.length) row.appendChild(el('div', 'jjr-hint jjr-' + (level || 'info'), (T.prefix ? T.prefix + ' ' : '') + hints.join(' ')));
     list.appendChild(row);
   });
 

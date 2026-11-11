@@ -101,9 +101,13 @@ PttChromePref.prototype = {
             '<input type="number" class="form-control" value="'+val+'"'+popoverTooltips+'>');
           break;
         case 'string':
+          // *Color settings get a colour picker; values are set with .val()
+          // so quotes in user text can't break the markup.
+          var isColor = /Color$/.test(i);
           $('#opt_'+i).html(
             '<label style="font-weight:normal;">'+i18n('options_'+i)+'</label>'+
-            '<input type="text" class="form-control" value="'+val+'"'+popoverTooltips+'>');
+            '<input type="'+(isColor ? 'color' : 'text')+'" class="form-control'+(isColor ? ' jj-color' : '')+'"'+popoverTooltips+'>');
+          $('#opt_'+i+' input').val(val);
           break;
         case 'boolean':
           $('#opt_'+i).html(
@@ -150,6 +154,7 @@ PttChromePref.prototype = {
     var i;
     $('#opt_title').text(i18n('menu_settings'));
 
+    $('#opt_insightsHeading').text(i18n('options_insightsHeading'));
     $('#opt_save').text(i18n('options_save'));
     $('#opt_autosaveHint').text(i18n('options_autosaveHint'));
 

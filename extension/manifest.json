@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "JJptt",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "在瀏覽器裡上 PTT，透過本機程式直接連線 ptt.cc。",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmuxGnUXldKQkYerZxc1tikXiIDt3cTKF8Fx/+s+kISls4teIQwRQLkaulwkqT3Z5kp0kLajWdwen6bo0d0i68RyyKZSo+7REUXPx3/8lzSlvDrf9RQOv5H3//M58waIIKFhtaDmleKKY7Bzf3CQzjLNu8brnh/UPH42zqBCOs7CSkqd9g9Njqpwpk1JdqjpAshP13NmA4t1OQabPj0HjDClBXfceRpKhLpbQHz1dPowwqbb6pGxnnUjHuutJmTFY6iSy80inxUPc6RjbISpqWSvOZxDIslzt7UwfihnRYAGnki/2OrpLhr5bS7Kci2T1SWAm2PgsCyssF2/IBmx0/QIDAQAB",
   "icons": {

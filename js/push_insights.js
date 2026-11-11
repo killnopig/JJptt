@@ -30,6 +30,36 @@ PushInsights.AUTHOR_IP_RES = [
   /◆ From: ((?:\d{1,3}\.){3}\d{1,3})/                                // ◆ From: ip
 ];
 
+// User-adjustable label texts (settings → 推文分析與顏色).
+PushInsights.prototype.pref = function(name, fallback) {
+  var pref = this.app.pref;
+  var v = pref && pref.values ? pref.values[name] : undefined;
+  return (v === undefined || v === null || v === '') ? fallback : v;
+};
+
+PushInsights.flagEmoji = function(cc) {
+  if (!/^[A-Z]{2}$/.test(cc)) return '';
+  return String.fromCodePoint(0x1F1E6 + cc.charCodeAt(0) - 65, 0x1F1E6 + cc.charCodeAt(1) - 65);
+};
+
+// Country as text, flag or both (countryDisplay: 0 / 1 / 2).
+PushInsights.prototype.countryLabel = function(cc) {
+  var name = this.geo.countryName(cc);
+  var mode = parseInt(this.pref('countryDisplay', 0), 10);
+  if (mode === 1) return PushInsights.flagEmoji(cc) || name;
+  if (mode === 2) return (PushInsights.flagEmoji(cc) + ' ' + name).trim();
+  return name;
+};
+
+PushInsights.prototype.hintTexts = function() {
+  return {
+    prefix: this.pref('suspectPrefix', '⚠'),
+    sameIp: this.pref('suspectSameIpText', '同IP'),
+    authorIp: this.pref('suspectAuthorIpText', '與作者同IP'),
+    watch: this.pref('watchText', '觀察')
+  };
+};
+
 PushInsights.prototype.resetArticle = function() {
   this.articleKey = '';
   this.pendingAuthor = '';
@@ -148,6 +178,7 @@ PushInsights.prototype.annotate = function() {
 
   var pref = this.app.pref;
   var watchlist = (pref && pref.watchlistedUserIds) || {};
+  var T = this.hintTexts();
 
   for (i = 0; i < pushes.length; ++i) {
     var p = pushes[i];
@@ -161,7 +192,7 @@ PushInsights.prototype.annotate = function() {
     if (p.ip) {
       var cc = this.geo.lookup(p.ip);
       if (cc) {
-        parts.push(this.geo.countryName(cc));
+        parts.push(this.countryLabel(cc));
         if (cc !== this.homeCountry) {
           level = 'foreign';  // country shown in orange
         }
@@ -170,18 +201,18 @@ PushInsights.prototype.annotate = function() {
       if (others.length) {
         var shown = others.slice(0, 2).join(',');
         if (others.length > 2) shown += '等' + others.length + '人';  // 等N人
-        warn.push('同IP:' + shown);  // 同IP:
+        warn.push(T.sameIp + ':' + shown);
         level = 'warn';
       }
       if (this.authorIps[p.ip] && p.id !== this.authorId) {
-        warn.push('與作者同IP');  // 與作者同IP
+        warn.push(T.authorIp);
         level = 'warn';
       }
     }
 
     if (p.id in watchlist) {
       var note = watchlist[p.id];
-      warn.push('觀察' + (note ? ':' + note : ''));  // 觀察
+      warn.push(T.watch + (note ? ':' + note : ''));
       if (level !== 'warn') level = 'watch';
     }
 
@@ -190,7 +221,7 @@ PushInsights.prototype.annotate = function() {
       parts.push('第' + p.nth + '/' + total + '推');  // 第k/n推
     }
 
-    var label = parts.concat(warn.length ? ['⚠ ' + warn.join(' ')] : []).join(' ');
+    var label = parts.concat(warn.length ? [(T.prefix ? T.prefix + ' ' : '') + warn.join(' ')] : []).join(' ');
     this.setAttr(p.row, 'data-jj-floor', floorText);
     this.setAttr(p.row, 'data-jj', label);
     this.setAttr(p.row, 'data-jj-level', label ? level : '');

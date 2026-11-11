@@ -796,7 +796,7 @@ span {
   padding-right: 0.5em;
   font-size: 0.6em;
   line-height: 1.6667;
-  color: #8a8a8a;
+  color: var(--jj-floor-color, #8a8a8a);
   white-space: pre;
   pointer-events: none;
   -webkit-user-select: none;
@@ -923,7 +923,7 @@ span {
 #jjReader .jjr-title { font-size: 24px; line-height: 1.4; color: #fff; }
 #jjReader .jjr-info { margin-top: 8px; color: #dfe6f3; font-size: 15px; }
 #jjReader .jjr-info span { margin-right: 14px; }
-#jjReader .jjr-body { font-size: 20px; line-height: 1.65; }
+#jjReader .jjr-body { font-size: 20px; line-height: 1.65; color: var(--jj-text-color, #e8e8e8); }
 #jjReader .jjr-line { white-space: pre-wrap; word-break: break-word; }
 #jjReader .jjr-gap { height: 0.8em; }
 #jjReader .jjr-quote { color: #5fb3b3; }
@@ -958,7 +958,7 @@ span {
 #jjReader .jjr-push { padding: 10px 0; border-bottom: 1px solid #1f1f1f; }
 #jjReader .jjr-faded { opacity: .25; }
 #jjReader .jjr-push-top { font-size: 14px; color: #9aa0a6; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
-#jjReader .jjr-floor { min-width: 3.2em; color: #7a7a7a; }
+#jjReader .jjr-floor { min-width: 3.2em; color: var(--jj-floor-color, #8a8a8a); }
 #jjReader .jjr-tag { font-weight: bold; }
 #jjReader .jjr-tag-push { color: #fff; }
 #jjReader .jjr-tag-boo { color: #ff5c5c; }
@@ -1003,3 +1003,12 @@ span {
 #mainContainer i.jjb-w7 { background-size: 87.5% 100%; }
 /* rows and coloured spans fill the full line so backgrounds have no gaps */
 #mainContainer > span > span { display: inline-block; vertical-align: top; height: var(--jj-ch, auto); }
+
+/* JJptt: adjustable default text colour */
+#mainContainer > span,
+#easyReadingLastRow > span,
+#easyReadingReplyRow > span,
+.main .q7 {
+  color: var(--jj-text-color, #c0c0c0);
+}
+input.jj-color { width: 80px !important; height: 34px; padding: 2px; }

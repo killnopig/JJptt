@@ -39,6 +39,13 @@ var DEFAULT_PREFS = {
 
   enablePushInsights : true,
   enableReader : true,
+  textColor : '#c0c0c0',
+  floorColor : '#8a8a8a',
+  countryDisplay : 0,
+  suspectPrefix : '⚠',
+  suspectSameIpText : '同IP',
+  suspectAuthorIpText : '與作者同IP',
+  watchText : '觀察',
   watchlistedUserIds : '{}',
 
   // quickSearch
@@ -51,6 +58,7 @@ var PREF_OPTIONS = {
   mouseWheelFunction1 : [ 'options_none', 'options_upDown' , 'options_pageUpDown', 'options_threadLastNext' ],
   mouseWheelFunction2 : [ 'options_none', 'options_upDown' , 'options_pageUpDown', 'options_threadLastNext' ],
   mouseWheelFunction3 : [ 'options_none', 'options_upDown' , 'options_pageUpDown', 'options_threadLastNext' ],
+  countryDisplay : [ 'options_countryText', 'options_countryFlag', 'options_countryBoth' ],
 };
 
 // DUMP_TYPE
