@@ -1558,6 +1558,11 @@ pttchrome.App.prototype.mouse_scroll = function(e) {
   // hold left mouse key + scroll = thread prev/next
   var mouseWheelActionsUp = [ 'none', 'doArrowUp', 'doPageUp', 'previousThread' ];
   var mouseWheelActionsDown = [ 'none', 'doArrowDown', 'doPageDown', 'nextThread' ];
+  if (this.view.listReversed()) {  // newest-first list: wheel follows the screen
+    var swap = mouseWheelActionsUp;
+    mouseWheelActionsUp = mouseWheelActionsDown;
+    mouseWheelActionsDown = swap;
+  }
 
   if (e.wheelDelta > 0) { // scrolling up
     if (this.mouseRightButtonDown) {

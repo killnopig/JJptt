@@ -672,6 +672,15 @@ TermView.prototype = {
       }
     } else if (!e.ctrlKey && !e.altKey && !e.shiftKey) {
 
+      // newest-first list: space pages down on screen (older articles),
+      // which is PTT's page up
+      if (e.keyCode == 32 && this.listReversed()) {
+        conn.send('\x1b[5~');
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
       switch (e.keyCode) {
       case 8:
         if (this.checkLeftDB())
@@ -692,21 +701,21 @@ TermView.prototype = {
         conn.send('\x1b');
         break;
       case 33: //Page Up
-        conn.send('\x1b[5~');
+        conn.send(this.listReversed() ? '\x1b[6~' : '\x1b[5~');
         break;
       case 34: //Page Down
-        conn.send('\x1b[6~');
+        conn.send(this.listReversed() ? '\x1b[5~' : '\x1b[6~');
         break;
       case 35: //End
         if ((this.bbscore.buf.pageState == 2 || this.bbscore.buf.pageState == 3) &&
             this.bbscore.endTurnsOnLiveUpdate) {
           this.bbscore.onLiveHelperEnableClicked(false);
         } else {
-          conn.send('\x1b[4~');
+          conn.send(this.listReversed() ? '\x1b[1~' : '\x1b[4~');
         }
         break;
       case 36: //Home
-        conn.send('\x1b[1~');
+        conn.send(this.listReversed() ? '\x1b[4~' : '\x1b[1~');
         break;
       case 37: //Arrow Left
         if(this.checkLeftDB())
@@ -715,7 +724,9 @@ TermView.prototype = {
           conn.send('\x1b[D');
         break;
       case 38: //Arrow Up
-        conn.send('\x1b[A');
+        // newest-first list: ↑ goes up on screen (newer), stops at the top
+        if (this.listReversed()) { if (!this.listAtTop()) conn.send('\x1b[B'); }
+        else conn.send('\x1b[A');
         break;
       case 39: //Arrow Right
         if(this.checkCurDB())
@@ -724,7 +735,8 @@ TermView.prototype = {
           conn.send('\x1b[C');
         break;
       case 40: //Arrow Down
-        if (!this.blockIntoHiddenPinned()) conn.send('\x1b[B');
+        if (this.listReversed()) { if (!this.listAtBottom()) conn.send('\x1b[A'); }
+        else conn.send('\x1b[B');
         break;
       case 45: //Insert
         conn.send('\x1b[2~');
@@ -1181,6 +1193,7 @@ TermView.prototype = {
     if (!hidePinned) {
       if (pinnedNow.length) pinned = pinnedNow.map(function(r) { return { r: r }; });
       else pinned = st.pinned.map(function(h) { return { html: h, r: -1 }; });
+      pinned.reverse();  // flipped like the articles: the one after the newest sits right above it
     }
     var items = pinned.concat(nums.map(function(n) {
       return { num: n, r: (n in onScreen) ? onScreen[n] : -1 };
@@ -1220,7 +1233,8 @@ TermView.prototype = {
     }
     var selM = /^.\s*(\d+)\s/.exec(buf.getRowText(selRow, 0, buf.cols));
     this.listMap = { slotOf: slotOf, rowOf: rowOf, html: html, hidden: {}, reversed: true,
-                     hidePinned: hidePinned, selNum: selM ? +selM[1] : 0, maxNum: nums.length ? nums[0] : 0 };
+                     hidePinned: hidePinned, selNum: selM ? +selM[1] : 0, maxNum: nums.length ? nums[0] : 0,
+                     selIndex: ci };
 
     // Entering a board: start on the newest article. If the last page is
     // short, first look at the previous page once (PageUp) so the screen can
@@ -1287,13 +1301,15 @@ TermView.prototype = {
     return r >= 0 ? r : this.buf.cur_y;  // rows from earlier screens: stay put
   },
 
-  // Newest-first list with hidden pinned posts: ↓ on the newest article would
-  // move PTT's selection into the (hidden) pinned posts after it, so the
-  // selection disappears. Ignore that key there.
-  blockIntoHiddenPinned: function() {
+  // Newest-first list: the selection is on the top row of the list (newest
+  // article, or the first pinned post when they are shown) / on article 1.
+  listAtTop: function() {
     var map = this.listMap;
-    if (!map || !map.reversed || !map.hidePinned || this.buf.pageState != 2) return false;
-    return map.selNum > 0 && map.selNum === map.maxNum;
+    return !!(map && map.reversed && map.selIndex === 0);
+  },
+  listAtBottom: function() {
+    var map = this.listMap;
+    return !!(map && map.reversed && map.selNum === 1);
   },
 
   listReversed: function() {

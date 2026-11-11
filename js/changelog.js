@@ -3,6 +3,15 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.11.6',
+    date: '2026-11-11',
+    changes: [
+      '「最新的在上面」：按鍵跟著畫面——↑ 往上到較新的文章、↓ 往下到較舊的；在最上面那篇按 ↑ 停住不動，第 1 篇按 ↓ 也停住',
+      '置底公告翻轉後也倒過來排，緊接在最新文章上方',
+      '空白鍵往下跳一頁（較舊的文章），跟 PageDown 一樣'
+    ]
+  },
+  {
     version: '1.11.5',
     date: '2026-11-11',
     changes: [
