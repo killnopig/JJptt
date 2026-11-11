@@ -89,6 +89,7 @@ pttchrome.App = function(onInitializedCallback, options) {
   this.inputHelper = new InputHelper(this);
   this.pushInsights = new PushInsights(this);
   this.driveSync = new DriveSync(this);
+  this.updater = new JJUpdater(this);
   this.spamGuard = new SpamGuard(this);
   this.reader = new PttReader(this);
 

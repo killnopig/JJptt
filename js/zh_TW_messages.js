@@ -88,6 +88,63 @@ locale.zh_TW = {
   "options_listLayout": {
     "message": "文章列表與閱讀模式"
   },
+  "options_syncBackup": {
+    "message": "同步與備份"
+  },
+  "backup_title": {
+    "message": "備份成檔案"
+  },
+  "backup_note": {
+    "message": "把所有設定（黑名單、觀察名單、自訂名單、排版等，不含帳號密碼）存成一個檔案；換電腦或 Google 帳號出問題時可以匯入還原。"
+  },
+  "backup_export": {
+    "message": "匯出設定檔"
+  },
+  "backup_import": {
+    "message": "從檔案匯入…"
+  },
+  "backup_badFile": {
+    "message": "這不是 JJptt 的設定檔"
+  },
+  "backup_confirm": {
+    "message": "匯入會用檔案裡的設定取代目前的設定（帳號密碼不變）。確定要匯入嗎？"
+  },
+  "backup_imported": {
+    "message": "設定已匯入"
+  },
+  "update_title": {
+    "message": "檢查更新"
+  },
+  "update_help": {
+    "message": "JJptt 每次開啟時會自動檢查 GitHub 上有沒有新版本。\n有新版時：雙擊 jjptt 資料夾裡的 update-jjptt.command（Windows 用 update-jjptt.bat），下載完成後畫面上會出現「套用更新」按鈕。"
+  },
+  "update_check": {
+    "message": "立即檢查"
+  },
+  "update_checking": {
+    "message": "檢查中…"
+  },
+  "update_available": {
+    "message": "JJptt 有新版本 v%s。"
+  },
+  "update_howto": {
+    "message": "請雙擊 jjptt 資料夾裡的 update-jjptt.command 下載，完成後這裡會出現「套用更新」按鈕。"
+  },
+  "update_downloaded": {
+    "message": "新版本 v%s 已經下載好了。"
+  },
+  "update_apply": {
+    "message": "套用更新（重新開啟 JJptt）"
+  },
+  "update_latest": {
+    "message": "已經是最新版本 v%s"
+  },
+  "update_failed": {
+    "message": "連不到 GitHub，稍後再試"
+  },
+  "update_later": {
+    "message": "稍後再說"
+  },
   "options_autologin": {
     "message": "自動登入"
   },

@@ -3,6 +3,16 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.14.0',
+    date: '2026-11-11',
+    changes: [
+      '自動檢查更新：JJptt 開啟時（之後每 6 小時）檢查 GitHub 有沒有新版本，有的話畫面上方會提示',
+      '新增 update-jjptt.command（Mac）／update-jjptt.bat（Windows）：在 jjptt 資料夾雙擊就會下載新版；下載完 JJptt 會出現「套用更新」按鈕，按下去自動重新載入並重新開啟，不用再 git pull、按 ↻、重開分頁',
+      '設定新增「同步與備份」分頁：Google Drive 同步移到這裡，並可以把所有設定匯出成檔案、從檔案匯入（不含帳號密碼）',
+      '移除原版留下的「在 Chrome App 中開啟」選項，以及已經停止服務的 goo.gl 快速搜尋'
+    ]
+  },
+  {
     version: '1.13.0',
     date: '2026-11-11',
     changes: [

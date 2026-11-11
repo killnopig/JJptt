@@ -1,5 +1,5 @@
 var PREFS_CATEGORIES = ['mouseBrowsing', 'appearance', 'listLayout', 'askAi'];
-var PREFS_NAV = ['general', 'layout', 'mouseBrowsing', 'autologin', 'blacklist', 'extensions', 'about'];
+var PREFS_NAV = ['general', 'layout', 'mouseBrowsing', 'autologin', 'blacklist', 'syncBackup', 'extensions', 'about'];
 var DEFAULT_PREFS = {
 
   // general
@@ -63,7 +63,7 @@ var DEFAULT_PREFS = {
   aiPrompt : '以下是 PTT 上的內容，請查證這是不是事實，說明哪些部分正確、哪些錯誤或無法證實，並附上可信的來源：「%s」',
 
   // quickSearch
-  quickSearchList: '[{"name":"goo.gl","url":"http://goo.gl/%s"}]'
+  quickSearchList: '[]'
 };
 
 var PREF_OPTIONS = {

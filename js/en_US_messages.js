@@ -88,6 +88,63 @@ locale.en_US = {
   "options_listLayout": {
     "message": "List and article view"
   },
+  "options_syncBackup": {
+    "message": "Sync & backup"
+  },
+  "backup_title": {
+    "message": "Backup file"
+  },
+  "backup_note": {
+    "message": "Save all settings (blacklist, watchlist, custom list, layout…, not the login) to a file you can import on another computer."
+  },
+  "backup_export": {
+    "message": "Export settings"
+  },
+  "backup_import": {
+    "message": "Import from file…"
+  },
+  "backup_badFile": {
+    "message": "This is not a JJptt settings file"
+  },
+  "backup_confirm": {
+    "message": "Importing replaces the current settings with the ones in the file (the login stays). Import?"
+  },
+  "backup_imported": {
+    "message": "Settings imported"
+  },
+  "update_title": {
+    "message": "Updates"
+  },
+  "update_help": {
+    "message": "JJptt checks GitHub for a new version every time it opens.\nWhen there is one: double-click update-jjptt.command (update-jjptt.bat on Windows) in the jjptt folder; an \"Apply update\" button appears when the download is done."
+  },
+  "update_check": {
+    "message": "Check now"
+  },
+  "update_checking": {
+    "message": "Checking…"
+  },
+  "update_available": {
+    "message": "JJptt v%s is available."
+  },
+  "update_howto": {
+    "message": "Double-click update-jjptt.command in the jjptt folder to download it; an \"Apply update\" button appears here when it is done."
+  },
+  "update_downloaded": {
+    "message": "JJptt v%s has been downloaded."
+  },
+  "update_apply": {
+    "message": "Apply update (reopens JJptt)"
+  },
+  "update_latest": {
+    "message": "Up to date (v%s)"
+  },
+  "update_failed": {
+    "message": "Could not reach GitHub, try again later"
+  },
+  "update_later": {
+    "message": "Later"
+  },
   "options_autologin": {
     "message": "Auto login"
   },

@@ -240,7 +240,7 @@ DriveSync.prototype.apply = function(remote) {
     pref.blacklistedUserIds = JSON.parse(pref.values.blacklistedUserIds || '{}');
     pref.watchlistedUserIds = JSON.parse(pref.values.watchlistedUserIds || '{}');
     pref.notedUserIds = JSON.parse(pref.values.notedUserIds || '{}');
-    pref.quickSearches = JSON.parse(pref.values.quickSearchList || '[]');
+    pref.quickSearches = JSON.parse(pref.values.quickSearchList || '[]').filter(function(q) { return !/goo\.gl/i.test(q.url); });
   } catch (e) {
     console.log('bad synced settings', e);
   }

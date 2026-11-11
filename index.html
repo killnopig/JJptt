@@ -101,6 +101,7 @@
               <li><a id="optNav_mouseBrowsing" href="#tabContentMouseBrowsing" name="mouseBrowsing" data-toggle="pill">Mouse</a></li>
               <li><a id="optNav_autologin" href="#tabContentAutologin" name="autologin" data-toggle="pill">Auto login</a></li>
               <li><a id="optNav_blacklist" href="#tabContentBlacklist" name="blacklist" data-toggle="pill">Blacklist</a></li>
+              <li><a id="optNav_syncBackup" href="#tabContentSyncBackup" name="syncBackup" data-toggle="pill">Sync</a></li>
               <li><a id="optNav_extensions" href="#tabContentExtensions" name="extensions" data-toggle="pill">Extensions</a></li>
               <li><a id="optNav_about" href="#tabContentAbout" name="about" data-toggle="pill">About</a></li>
             </ul>
@@ -122,8 +123,6 @@
                 <div class="group">
                   <div class="list-group">
                     <div class="list-group-item-text">
-                      <div id="opt_openInPackagedApp" class="checkbox">
-                      </div>
                       <div id="opt_closeQuery" class="checkbox">
                       </div>
                       <div id="opt_enablePicPreview" class="checkbox">
@@ -254,14 +253,6 @@
                 <div id="opt_blacklistedTitleKeywords" class="form-group">
                 </div>
 
-                <div id="drive_sync" style="margin-bottom:10px">
-                  <span id="drive_title" style="margin-right:5px"></span>
-                  <a id="drive_connect" style="margin-top:-3px; display:none" class="btn btn-default"></a>
-                  <a id="drive_syncNow" style="margin-top:-3px; display:none" class="btn btn-default"></a>
-                  <a id="drive_disconnect" style="margin-top:-3px; display:none" class="btn btn-default"></a>
-                  <span id="drive_status" style="margin-left:5px"></span>
-                </div>
-
                 <span id="opt_blacklistInstruction"></span>
                 <!-- blacklist item start -->
                 <textarea id="opt_blacklistedUsers" class="form-control"></textarea>
@@ -271,6 +262,40 @@
                 <div id="opt_customListName" class="form-group" style="margin-top:15px"></div>
                 <div id="opt_notesInstruction"></div>
                 <textarea id="opt_notedUsers" class="form-control" style="height:120px"></textarea>
+              </div>
+
+              <div class="tab-pane" id="tabContentSyncBackup">
+                <div class="group">
+                  <div class="list-group">
+                    <h4 class="list-group-item-heading">Google Drive</h4>
+                    <div class="list-group-item-text">
+                      <div id="drive_sync" style="margin-bottom:10px">
+                  <span id="drive_title" style="margin-right:5px"></span>
+                  <a id="drive_connect" style="margin-top:-3px; display:none" class="btn btn-default"></a>
+                  <a id="drive_syncNow" style="margin-top:-3px; display:none" class="btn btn-default"></a>
+                  <a id="drive_disconnect" style="margin-top:-3px; display:none" class="btn btn-default"></a>
+                  <span id="drive_status" style="margin-left:5px"></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="list-group">
+                    <h4 id="backup_title" class="list-group-item-heading"></h4>
+                    <div class="list-group-item-text">
+                      <p id="backup_note" style="color:#555"></p>
+                      <a id="backup_export" class="btn btn-default"></a>
+                      <a id="backup_import" class="btn btn-default"></a>
+                      <input id="backup_file" type="file" accept=".json,application/json" style="display:none">
+                    </div>
+                  </div>
+                  <div class="list-group" id="update_row">
+                    <h4 id="update_title" class="list-group-item-heading"></h4>
+                    <div class="list-group-item-text">
+                      <p id="update_help" style="color:#555; white-space:pre-line"></p>
+                      <a id="update_check" class="btn btn-default"></a>
+                      <span id="update_status" style="margin-left:8px"></span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div class="tab-pane" id="tabContentExtensions">

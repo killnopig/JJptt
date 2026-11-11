@@ -263,6 +263,9 @@ PttChromePref.prototype = {
     if (this.app.driveSync) {
       this.app.driveSync.setupUi();
     }
+    if (this.app.updater) {
+      this.app.updater.setupUi();
+    }
   },
 
   populateSettingsToUi: function() {
@@ -643,7 +646,7 @@ PttChromePref.prototype = {
         if (!(i in msg.data.values) || msg.data.values[i] === null) {
           this.values[i] = DEFAULT_PREFS[i];
           if (i === 'quickSearchList') {
-            this.quickSearches = JSON.parse(this.values[i]);
+            this.quickSearches = JSON.parse(this.values[i]).filter(function(q) { return !/goo\.gl/i.test(q.url); });
           }
         } else {
           if (i === 'tempBlacklist') {
@@ -659,7 +662,7 @@ PttChromePref.prototype = {
             this.blacklistedUserIds = JSON.parse(msg.data.values[i]);
           } else if (i === 'quickSearchList') {
             var val = msg.data.values[i];
-            this.quickSearches = JSON.parse(val);
+            this.quickSearches = JSON.parse(val).filter(function(q) { return !/goo\.gl/i.test(q.url); });
             this.values[i] = val;
           } else {
             this.values[i] = msg.data.values[i];
@@ -678,6 +681,7 @@ PttChromePref.prototype = {
         this.initCallbackCalled = true;
         this.onInitializedCallback(this.app);
         if (this.app.driveSync) this.app.driveSync.startup();
+        if (this.app.updater) this.app.updater.start();
         this.app.announceUpdate();
         this.app.checkOtherTabs();
       }
