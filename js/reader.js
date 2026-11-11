@@ -1164,10 +1164,13 @@ PttReader.prototype.renderPushes = function(article) {
     var hints = [];
     var level = '';
     var parts = [];
+    var asFlag = self.app.view.ipAsFlag && self.app.view.ipAsFlag();
+    var flag = '';
     if (p.ip && geo.ready) {
       var cc = geo.lookup(p.ip);
       if (cc) {
-        parts.push(insights.countryLabel(cc));
+        if (asFlag) flag = PushInsights.flagEmoji(cc);
+        else parts.push(insights.countryLabel(cc));
         if (cc !== 'TW') level = 'foreign';
       }
     }
@@ -1200,7 +1203,7 @@ PttReader.prototype.renderPushes = function(article) {
     var c = content.node;
     while (c.firstChild) left.appendChild(c.firstChild);
     line.appendChild(left);
-    line.appendChild(el('span', 'q7 b0 jjt-push-right', ' ' + [p.ip, p.time].filter(Boolean).join(' ')));
+    line.appendChild(el('span', 'q7 b0 jjt-push-right', ' ' + [asFlag ? flag : p.ip, p.time].filter(Boolean).join(' ')));
     line.setAttribute('data-jj-floor', (i + 1) + '樓');
     if (label) line.setAttribute('data-jj', label);
     line.setAttribute('title', ((i + 1) + '樓 ' + full).trim());

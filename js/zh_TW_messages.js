@@ -384,6 +384,9 @@ locale.zh_TW = {
   "options_readerImageMaxPercent": {
     "message": "閱讀模式圖片最大高度（畫面的 %，10～100）"
   },
+  "options_labelLayoutIpFlag": {
+    "message": "隱藏 IP，改顯示國旗：字不縮小，國旗顯示在 IP 的位置"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },

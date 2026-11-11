@@ -70,6 +70,30 @@ PushInsights.prototype.fitLabel = function(full, parts, warn, T, spaceCols) {
   return [country, sign].filter(Boolean).join(' ');
 };
 
+// "IP as flag" layout: hide the IP text in the row (keeping its width so
+// the date stays in place) and show the country flag over it.
+PushInsights.prototype.maskIp = function(row, ip, flag) {
+  var existing = row.querySelector('.jj-ip');
+  if (existing && existing.textContent === ip) {
+    if (existing.getAttribute('data-flag') !== flag) existing.setAttribute('data-flag', flag);
+    return;
+  }
+  var walker = document.createTreeWalker(row, NodeFilter.SHOW_TEXT, null, false);
+  var node;
+  while ((node = walker.nextNode())) {
+    var idx = node.nodeValue.indexOf(ip);
+    if (idx < 0) continue;
+    var ipNode = node.splitText(idx);
+    ipNode.splitText(ip.length);
+    var span = document.createElement('span');
+    span.className = 'jj-ip';
+    span.setAttribute('data-flag', flag);
+    ipNode.parentNode.insertBefore(span, ipNode);
+    span.appendChild(ipNode);
+    return;
+  }
+};
+
 PushInsights.prototype.resetArticle = function() {
   this.articleKey = '';
   this.pendingAuthor = '';
@@ -201,8 +225,10 @@ PushInsights.prototype.annotate = function() {
 
     if (p.ip) {
       var cc = this.geo.lookup(p.ip);
+      var asFlag = view.ipAsFlag && view.ipAsFlag();
+      if (asFlag) this.maskIp(p.row, p.ip, cc ? PushInsights.flagEmoji(cc) : '');
       if (cc) {
-        parts.push(this.countryLabel(cc));
+        if (!asFlag) parts.push(this.countryLabel(cc));
         if (cc !== this.homeCountry) {
           level = 'foreign';  // country shown in orange
         }

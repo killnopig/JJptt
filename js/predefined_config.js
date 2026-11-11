@@ -43,7 +43,7 @@ var DEFAULT_PREFS = {
   blacklistedTitleKeywords : '',
 
   enablePushInsights : true,
-  labelLayout : 0,
+  labelLayout : 2,
   enableReader : true,
   readerLowResImages : true,
   readerImageMaxPercent : 40,
@@ -67,7 +67,7 @@ var PREF_OPTIONS = {
   mouseWheelFunction2 : [ 'options_none', 'options_upDown' , 'options_pageUpDown', 'options_threadLastNext' ],
   mouseWheelFunction3 : [ 'options_none', 'options_upDown' , 'options_pageUpDown', 'options_threadLastNext' ],
   countryDisplay : [ 'options_countryText', 'options_countryFlag', 'options_countryBoth' ],
-  labelLayout : [ 'options_labelLayoutFull', 'options_labelLayoutCompact' ],
+  labelLayout : [ 'options_labelLayoutFull', 'options_labelLayoutCompact', 'options_labelLayoutIpFlag' ],
 };
 
 // DUMP_TYPE

@@ -1287,6 +1287,12 @@ TermView.prototype = {
   // left, country / hints the spare width on the right in a smaller font.
   // Setting labelLayout: 0 = terminal full size (labels use spare space),
   // 1 = compact reserved (slightly smaller font, labels always visible).
+  // labelLayout 2: push IPs replaced by the country flag
+  ipAsFlag: function() {
+    var pref = this.bbscore && this.bbscore.pref;
+    return !!(pref && pref.values && parseInt(pref.values.labelLayout, 10) === 2 && this.insightsActive());
+  },
+
   compactLabels: function() {
     var pref = this.bbscore && this.bbscore.pref;
     return !!(pref && pref.values && parseInt(pref.values.labelLayout, 10) === 1);

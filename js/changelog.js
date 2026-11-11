@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.11.0',
+    date: '2026-11-11',
+    changes: [
+      '「推文標籤排版」新增「隱藏 IP，改顯示國旗」並設為預設：推文的 IP 不顯示，原位置改顯示國旗（終端機與閱讀模式）'
+    ]
+  },
+  {
     version: '1.10.2',
     date: '2026-11-11',
     changes: [

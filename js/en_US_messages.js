@@ -387,6 +387,9 @@ locale.en_US = {
   "options_readerImageMaxPercent": {
     "message": "Reader image max height (% of the view, 10-100)"
   },
+  "options_labelLayoutIpFlag": {
+    "message": "Hide IPs, show flags in their place (full-size text)"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },

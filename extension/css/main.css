@@ -1132,3 +1132,16 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
   box-shadow: 0 6px 24px rgba(0,0,0,.7);
   pointer-events: none;
 }
+
+/* "IP as flag": IP text kept for width/copying but hidden, flag drawn over it */
+#mainContainer .jj-ip { position: relative; color: transparent !important; }
+#mainContainer .jj-ip::before {
+  content: attr(data-flag);
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #fff;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
