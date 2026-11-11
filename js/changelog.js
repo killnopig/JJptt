@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.22.1',
+    date: '2026-11-12',
+    changes: [
+      '「最新的在上面」的文章列表：按 End（⤓，Mac 是 fn + →）直接移到最新文章，不再被「END 啟用推文即時更新」搶走'
+    ]
+  },
+  {
     version: '1.22.0',
     date: '2026-11-12',
     changes: [

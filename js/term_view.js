@@ -709,7 +709,9 @@ TermView.prototype = {
         else conn.send('\x1b[6~');
         break;
       case 35: //End
-        if ((this.bbscore.buf.pageState == 2 || this.bbscore.buf.pageState == 3) &&
+        if (this.listReversed()) {  // newest-first list: End = newest article
+          this.jumpNewest();
+        } else if ((this.bbscore.buf.pageState == 2 || this.bbscore.buf.pageState == 3) &&
             this.bbscore.endTurnsOnLiveUpdate) {
           this.bbscore.onLiveHelperEnableClicked(false);
         } else {
@@ -1148,6 +1150,22 @@ TermView.prototype = {
   // with PTT's ↑/↓ and the window moves with it, so the cursor stays on the
   // same screen row (from the newest at the top, space lands on the article
   // a page older, at the top).
+  // Newest-first list: move the cursor to the newest article with ↓ steps
+  // (PTT's own "jump to last" keys do not always work here) and show the
+  // top of the list.
+  jumpNewest: function() {
+    var map = this.listMap, st = this.revState, conn = this.conn;
+    if (!map || !st || !conn) return;
+    if (!map.selNum) {  // on a pinned post: one step down reaches the newest
+      conn.send('\x1b[B');
+      return;
+    }
+    var steps = Math.min(map.maxNum - map.selNum, 3000);
+    if (steps <= 0) return;
+    st.pageTarget = { num: map.selNum + steps, via: 0, ws: 0, t: Date.now() };
+    conn.send(new Array(steps + 1).join('\x1b[B'));
+  },
+
   pageReversed: function(dir) {
     var map = this.listMap, st = this.revState, conn = this.conn;
     if (!map || !st || !conn) return;
@@ -1251,7 +1269,7 @@ TermView.prototype = {
     // the cursor keeps its place on screen, until the cursor gets there
     var pt = st.pageTarget;
     if (pt) {
-      if (Date.now() - pt.t > 4000) st.pageTarget = null;
+      if (Date.now() - pt.t > 8000) st.pageTarget = null;
       else {
         st.ws = pt.ws;
         if (pt.via && curNum === pt.via) {
