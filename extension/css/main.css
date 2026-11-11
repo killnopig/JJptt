@@ -1103,3 +1103,19 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 .jjt-root .jjt-head-fg { position: absolute; top: 0; left: 0; right: 0; }
 .jjt-root .jjt-head-fg span { background-color: transparent !important; }
 #mainContainer > span.jj-hidden-row { visibility: hidden; }
+
+#jjTabsDialog {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3100;
+  background: #fff;
+  color: #222;
+  border-radius: 8px;
+  padding: 18px 22px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.6);
+  font-size: 16px;
+  max-width: 90vw;
+}
+#jjTabsDialog .jj-dialog-buttons { margin-top: 14px; display: flex; gap: 10px; justify-content: flex-end; }

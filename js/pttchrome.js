@@ -645,6 +645,66 @@ pttchrome.App.prototype.doRemoveWatchUserId = function(userid) {
   this.pushInsights.annotate();
 };
 
+// Opened from the toolbar icon while other JJptt tabs are open: offer to
+// close them (they would also hold duplicate PTT logins).
+pttchrome.App.prototype.checkOtherTabs = function() {
+  if (getQueryVariable('opened') !== 'icon') return;
+  try {
+    history.replaceState(null, '', location.pathname);  // don't ask again on reload
+  } catch (e) {
+  }
+  if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.getContexts || !chrome.tabs) return;
+  var self = this;
+  chrome.tabs.getCurrent(function(current) {
+    var myId = current ? current.id : -1;
+    chrome.runtime.getContexts({ contextTypes: ['TAB'] }, function(contexts) {
+      var ids = (contexts || []).filter(function(c) {
+        return c.tabId !== myId && c.tabId >= 0 && /\/app\.html/.test(c.documentUrl || '');
+      }).map(function(c) { return c.tabId; });
+      ids = ids.filter(function(id, i) { return ids.indexOf(id) === i; });
+      if (ids.length) self.askCloseTabs(ids);
+    });
+  });
+};
+
+pttchrome.App.prototype.askCloseTabs = function(ids) {
+  var self = this;
+  var box = document.createElement('div');
+  box.id = 'jjTabsDialog';
+  var msg = document.createElement('div');
+  msg.className = 'jj-dialog-text';
+  msg.textContent = i18n('tabs_question').replace('%s', ids.length);
+  var close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'btn btn-primary';
+  close.textContent = i18n('tabs_close');
+  var keep = document.createElement('button');
+  keep.type = 'button';
+  keep.className = 'btn btn-default';
+  keep.textContent = i18n('tabs_keep');
+  var btns = document.createElement('div');
+  btns.className = 'jj-dialog-buttons';
+  btns.appendChild(close);
+  btns.appendChild(keep);
+  box.appendChild(msg);
+  box.appendChild(btns);
+  document.body.appendChild(box);
+  this.modalShown = true;
+  var done = function() {
+    box.parentNode.removeChild(box);
+    self.modalShown = false;
+    self.setInputAreaFocus();
+  };
+  close.addEventListener('click', function() {
+    chrome.tabs.remove(ids, function() {
+      self.showToast(i18n('tabs_closed').replace('%s', ids.length));
+    });
+    done();
+  });
+  keep.addEventListener('click', done);
+  close.focus();
+};
+
 // Tells the user once after JJptt was updated to a new version.
 pttchrome.App.prototype.announceUpdate = function() {
   var key = 'jjptt.lastSeenVersion';

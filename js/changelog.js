@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.9.1',
+    date: '2026-11-11',
+    changes: [
+      '點工具列圖示開新分頁時，若已有其他 JJptt 分頁，會詢問是否關閉之前的分頁'
+    ]
+  },
+  {
     version: '1.9.0',
     date: '2026-11-11',
     changes: [

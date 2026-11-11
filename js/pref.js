@@ -582,6 +582,7 @@ PttChromePref.prototype = {
         this.onInitializedCallback(this.app);
         if (this.app.driveSync) this.app.driveSync.startup();
         this.app.announceUpdate();
+        this.app.checkOtherTabs();
       }
     }
   },

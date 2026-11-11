@@ -342,6 +342,18 @@ locale.zh_TW = {
   "options_hidePinned": {
     "message": "文章列表隱藏 ★ 置底公告"
   },
+  "tabs_question": {
+    "message": "已經有 %s 個 JJptt 分頁開著。要關閉之前的分頁嗎？"
+  },
+  "tabs_close": {
+    "message": "關閉之前的分頁"
+  },
+  "tabs_keep": {
+    "message": "保留"
+  },
+  "tabs_closed": {
+    "message": "已關閉 %s 個之前的分頁"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },

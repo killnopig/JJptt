@@ -345,6 +345,18 @@ locale.en_US = {
   "options_hidePinned": {
     "message": "Hide ★ pinned posts in article lists"
   },
+  "tabs_question": {
+    "message": "%s JJptt tab(s) are already open. Close the earlier tabs?"
+  },
+  "tabs_close": {
+    "message": "Close earlier tabs"
+  },
+  "tabs_keep": {
+    "message": "Keep"
+  },
+  "tabs_closed": {
+    "message": "Closed %s earlier tab(s)"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },
