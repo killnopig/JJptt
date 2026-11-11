@@ -1,0 +1,7 @@
+name = "jjptt-relay"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+[vars]
+# Pages allowed to use this relay (comma separated).
+ALLOWED_ORIGINS = "https://killnopig.github.io,http://localhost:8000,http://127.0.0.1:8000"

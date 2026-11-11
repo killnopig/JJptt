@@ -1,7 +1,77 @@
+// JJptt: the original PttChrome relied on a Chrome App (now discontinued) to
+// open raw TCP sockets. This replacement keeps the same interface but talks
+// to a WebSocket-to-TCP relay (see worker/ in this repo) and handles storage
+// and clipboard in the page itself.
+
 if (typeof lib != 'undefined')
   throw new Error('Global "lib" object already exists.');
 
 var lib = {};
+
+// Set this to your deployed relay, e.g. 'wss://jjptt-relay.xxx.workers.dev'.
+// Can also be overridden with ?relay=wss://... in the page URL.
+lib.DEFAULT_RELAY_URL = '';
+lib.RELAY_STORAGE_KEY = 'jjptt.relayUrl';
+lib.PREFS_STORAGE_KEY = 'jjptt.storage';
+
+lib.normalizeRelayUrl = function(url) {
+  return url.trim().replace(/^https:\/\//, 'wss://').replace(/\/+$/, '');
+};
+
+lib.getRelayUrl = function() {
+  var fromQuery = getQueryVariable('relay');
+  if (fromQuery) {
+    fromQuery = lib.normalizeRelayUrl(decodeURIComponent(fromQuery));
+    lib.safeSetItem(lib.RELAY_STORAGE_KEY, fromQuery);
+    return fromQuery;
+  }
+  var stored = lib.safeGetItem(lib.RELAY_STORAGE_KEY);
+  if (stored) {
+    return stored;
+  }
+  if (lib.DEFAULT_RELAY_URL) {
+    return lib.DEFAULT_RELAY_URL;
+  }
+  var entered = window.prompt('請輸入 JJptt 轉接站網址（例如 wss://jjptt-relay.xxx.workers.dev）');
+  if (entered) {
+    entered = lib.normalizeRelayUrl(entered);
+    lib.safeSetItem(lib.RELAY_STORAGE_KEY, entered);
+    return entered;
+  }
+  return '';
+};
+
+lib.safeGetItem = function(key) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch (e) {
+    return null;
+  }
+};
+
+lib.safeSetItem = function(key, value) {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch (e) {
+  }
+};
+
+lib.binaryStringToBytes = function(str) {
+  var bytes = new Uint8Array(str.length);
+  for (var i = 0; i < str.length; ++i) {
+    bytes[i] = str.charCodeAt(i) & 0xff;
+  }
+  return bytes;
+};
+
+lib.bytesToBinaryString = function(bytes) {
+  var out = '';
+  var chunk = 8192;
+  for (var i = 0; i < bytes.length; i += chunk) {
+    out += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return out;
+};
 
 lib.AppConnection = function(spec) {
   // Callback functions.
@@ -9,125 +79,180 @@ lib.AppConnection = function(spec) {
     connect: spec.onConnect,        // Called when socket is connected.
     disconnect: spec.onDisconnect,  // Called when socket is disconnected.
     recv: spec.onReceive,           // Called when client receives data from server.
-    sent: spec.onSent,               // Called when client sends data to server.
+    sent: spec.onSent,              // Called when client sends data to server.
     paste: spec.onPasteDone,
     storage: spec.onStorageDone,
     font: spec.onSymFont
   };
 
   this.isConnected = false;
-  this.appId = 'hhnlfapopmaimdlldbknjdgekpgffmbo';
-  this.appPort = null;
-};
-
-lib.AppConnection.prototype.checkChromeApp = function(callback) {
-  var appId = this.appId;
+  this.socket = null;
+  this.pending = [];
+  // Other code calls appPort.postMessage(...) for storage, clipboard, etc.
   var self = this;
-  if (!chrome.runtime) {
-    self.showJumbo();
-    return;
-  }
-  chrome.runtime.sendMessage(appId, { action: 'status' }, function(response) {
-    if (!response) {
-      self.showJumbo();
-    } else {
-      callback();
-    }
-  });
-};
-
-lib.AppConnection.prototype.showJumbo = function() {
-  var self = this;
-  $('#getAppBtn').off();
-  $('#getAppBtn').click(function() {
-    if (typeof(chrome) == 'undefined') {
-      window.open('https://chrome.google.com/webstore/detail/pttchrome/'+self.appId, '_self');
-      return;
-    }
-    // turn it on when it works
-    chrome.webstore.install(undefined, function() {
-      // successfully installed
-      location.reload();
-    });
-    //window.open('https://chrome.google.com/webstore/detail/pttchrome/'+self.appId, '_self');
-  });
-  console.log('app is not running or installed');
-  $('#getAppBtn').text(i18n('getAppBtn'));
-  for (var i = 1; i < 5; ++i) {
-    $('#alreadyInstalledHint'+i).text(i18n('alreadyInstalledHint'+i));
-  }
-  $('#welcomeJumbo').show();
+  this.appPort = {
+    postMessage: function(msg) { self.handleMessage(msg); }
+  };
 };
 
 lib.AppConnection.prototype.connect = function(callback) {
+  this.isConnected = true;
+  setTimeout(callback, 0);
+};
+
+lib.AppConnection.prototype.handleMessage = function(msg) {
   var self = this;
-  this.checkChromeApp(function() {
-    //var tabid = document.getElementById('cmdHandler').getAttribute('mapcode');
-    //_this.so.connect(_this.host, _this.port, tabid);
-    self.appPort = chrome.runtime.connect(self.appId);
-    self.appPort.onMessage.addListener(function(msg) {
-      switch(msg.action) {
-        case "connected":
-          self.callbacks.connect();
-          break;
-        case "onReceive":
-          self.callbacks.recv(msg.data);
-          break;
-        case "disconnected":
-          self.callbacks.disconnect();
-          break;
-        case "onPasteDone":
-          self.callbacks.paste(msg.data);
-          break;
-        case "onStorageDone":
-          self.callbacks.storage(msg);
-          break;
-        case "onSymFont":
-          self.callbacks.font(msg);
-          break;
-        default:
-          break;
+  switch (msg.action) {
+    case 'storage':
+      this.handleStorage(msg);
+      break;
+    case 'copy':
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(msg.data).catch(function(e) {
+          console.log('copy failed', e);
+        });
       }
-    });
-    
-    self.appPort.onDisconnect.addListener(function(msg) {
-      self.callbacks.disconnect();
-    });
-    self.isConnected = true;
-    
-    callback();
-  });
+      break;
+    case 'paste':
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        navigator.clipboard.readText().then(function(text) {
+          if (text && self.callbacks.paste) {
+            self.callbacks.paste(text);
+          }
+        }).catch(function(e) {
+          console.log('paste failed', e);
+        });
+      }
+      break;
+    case 'newWindow':
+      window.open(window.location.pathname, '_blank');
+      break;
+    default:
+      // getSymFont etc. are not available without the Chrome App.
+      break;
+  }
+};
+
+lib.AppConnection.prototype.loadStoredItems = function() {
+  var raw = lib.safeGetItem(lib.PREFS_STORAGE_KEY);
+  if (!raw) {
+    return {};
+  }
+  try {
+    return JSON.parse(raw) || {};
+  } catch (e) {
+    return {};
+  }
+};
+
+lib.AppConnection.prototype.handleStorage = function(msg) {
+  var stored = this.loadStoredItems();
+  if (msg.type === 'get') {
+    var result = {};
+    var defaults = msg.defaults || {};
+    for (var key in defaults) {
+      var merged = {};
+      var def = defaults[key] || {};
+      var saved = stored[key] || {};
+      for (var k in def) merged[k] = def[k];
+      for (var s in saved) merged[s] = saved[s];
+      result[key] = merged;
+    }
+    if (this.callbacks.storage) {
+      this.callbacks.storage({ action: 'onStorageDone', data: result });
+    }
+  } else if (msg.type === 'set') {
+    var data = msg.data || {};
+    for (var group in data) {
+      stored[group] = stored[group] || {};
+      for (var name in data[group]) {
+        stored[group][name] = data[group][name];
+      }
+    }
+    lib.safeSetItem(lib.PREFS_STORAGE_KEY, JSON.stringify(stored));
+  } else if (msg.type === 'clear') {
+    try {
+      window.localStorage.removeItem(lib.PREFS_STORAGE_KEY);
+    } catch (e) {
+    }
+  }
 };
 
 lib.AppConnection.prototype.connectTcp = function(host, port, keepAlive) {
   if (!this.isConnected) {
     return;
   }
-  this.appPort.postMessage({
-    action: "connect",
-    host: host,
-    port: port,
-    keepAlive: keepAlive
-  });
+  this.closeSocket();
+
+  var self = this;
+  var relay = lib.getRelayUrl();
+  if (!relay) {
+    setTimeout(function() {
+      if (self.callbacks.disconnect) self.callbacks.disconnect();
+    }, 0);
+    return;
+  }
+
+  var url = relay + (relay.indexOf('?') < 0 ? '?' : '&') +
+    'host=' + encodeURIComponent(host) + '&port=' + encodeURIComponent(port);
+
+  var socket;
+  try {
+    socket = new WebSocket(url);
+  } catch (e) {
+    console.log('relay connect failed', e);
+    setTimeout(function() {
+      if (self.callbacks.disconnect) self.callbacks.disconnect();
+    }, 0);
+    return;
+  }
+  socket.binaryType = 'arraybuffer';
+  this.socket = socket;
+  this.pending = [];
+
+  socket.onopen = function() {
+    if (self.socket !== socket) return;
+    var queued = self.pending;
+    self.pending = [];
+    for (var i = 0; i < queued.length; ++i) {
+      socket.send(queued[i]);
+    }
+    if (self.callbacks.connect) self.callbacks.connect();
+  };
+  socket.onmessage = function(e) {
+    if (self.socket !== socket) return;
+    var str = (typeof e.data === 'string') ? e.data :
+      lib.bytesToBinaryString(new Uint8Array(e.data));
+    if (self.callbacks.recv) self.callbacks.recv(str);
+  };
+  socket.onclose = function() {
+    if (self.socket !== socket) return;  // closed on purpose
+    self.socket = null;
+    if (self.callbacks.disconnect) self.callbacks.disconnect();
+  };
 };
 
 lib.AppConnection.prototype.sendTcp = function(str) {
-  if (this.appPort === null) {
+  if (!this.isConnected || !this.socket) {
     return;
   }
-  if (!this.isConnected) {
-    return;
+  var bytes = lib.binaryStringToBytes(str);
+  if (this.socket.readyState === WebSocket.OPEN) {
+    this.socket.send(bytes);
+  } else if (this.socket.readyState === WebSocket.CONNECTING) {
+    this.pending.push(bytes);
   }
+};
 
-  // because ptt seems to reponse back slowly after large
-  // chunk of text is pasted, so better to split it up.
-  var chunk = 1000;
-  for (var i = 0; i < str.length; i += chunk) {
-    var chunkStr = str.substring(i, i+chunk);
-    this.appPort.postMessage({
-      action: 'send',
-      data: chunkStr
-    });
+lib.AppConnection.prototype.closeSocket = function() {
+  var socket = this.socket;
+  this.socket = null;
+  this.pending = [];
+  if (socket) {
+    try {
+      socket.close();
+    } catch (e) {
+    }
   }
 };
 
@@ -135,12 +260,6 @@ lib.AppConnection.prototype.disconnect = function() {
   if (!this.isConnected) {
     return;
   }
-  if (this.appPort) {
-    try {
-      this.appPort.postMessage({ action: 'disconnect' });
-    } catch (e) {
-    }
-  }
+  this.closeSocket();
   this.isConnected = false;
 };
-

@@ -1,22 +1,8 @@
-﻿$(document).ready(function() {
+$(document).ready(function() {
   var site = getQueryVariable('site');
   var from = getQueryVariable('from');
   var keepAlive = getQueryVariable('keepAlive');
   setupI18n();
-  if (typeof(chrome) == 'undefined') {
-    // don't seem to be using chrome, show msg
-    $('#getAppBtn').off();
-    $('#getAppBtn').click(function() {
-      window.open('https://chrome.google.com/webstore/detail/pttchrome/hhnlfapopmaimdlldbknjdgekpgffmbo', '_self');
-    });
-    console.log('app is not running or installed');
-    $('#getAppBtn').text(i18n('getAppBtn'));
-    for (var i = 1; i < 5; ++i) {
-      $('#alreadyInstalledHint'+i).text(i18n('alreadyInstalledHint'+i));
-    }
-    $('#welcomeJumbo').show();
-    return;
-  }
 
   pttchrome.app = new pttchrome.App(function(app) {
     app.setInputAreaFocus();
@@ -37,7 +23,13 @@
   */
 function handleGapiClientLoad() {
   $('#blacklist_driveLoading').css('display', '');
-  window.setTimeout(pttchrome.app.pref.gdrive.checkAuth.bind(pttchrome.app.pref.gdrive), 1);
+  window.setTimeout(function() {
+    try {
+      pttchrome.app.pref.gdrive.checkAuth();
+    } catch (e) {
+      console.log('Google Drive sync unavailable', e);
+    }
+  }, 1);
 }
 
 function setTimer(repeat, func, timelimit) {
@@ -59,11 +51,7 @@ function setTimer(repeat, func, timelimit) {
 }
 
 function openURI(uri, activate, postData) {
-  chrome.tabs.create({
-      url: uri,
-      selected: activate
-  }, function(tab) {
-  });
+  window.open(uri, '_blank');
 }
 function getQueryVariable(variable) {
   var query = window.location.search.substring(1);
