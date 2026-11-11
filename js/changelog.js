@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.23.4',
+    date: '2026-11-12',
+    changes: [
+      '設定：「觀察名單的標示字樣」移到觀察名單旁邊，跟啟用開關和名單放在一起'
+    ]
+  },
+  {
     version: '1.23.3',
     date: '2026-11-12',
     changes: [
