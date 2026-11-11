@@ -732,6 +732,12 @@ locale.en_US = {
   "options_readerHoverPreview": {
     "message": "Article view: show a large picture next to the mouse over image / YouTube links"
   },
+  "options_readerPrefetchAhead": {
+    "message": "Load more ahead: when reading in one direction, load twice as many ahead (up to 10) and fewer behind"
+  },
+  "options_readerListPrefetchDelay": {
+    "message": "Rest on a list row this long before loading it (ms, 0 = at once)"
+  },
   "options_readerImageMaxPercent": {
     "message": "Reader image max height (% of the view, 10-100)"
   },

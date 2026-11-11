@@ -54,6 +54,8 @@ var DEFAULT_PREFS = {
   readerImageMaxPercent : 60,
   readerPrefetchCount : 5,
   readerPrefetchImages : true,
+  readerPrefetchAhead : true,
+  readerListPrefetchDelay : 150,
   readerHoverPreview : true,
   colorRepeatPushers : true,
   factSameIp : true,

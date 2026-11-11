@@ -15,7 +15,23 @@ function PttReader(app) {
   this.loadingKey = '';
   this.article = null;
   this.cookieReady = null;
+  this.navDir = 0;  // last move between articles: -1 up the list, +1 down
+  PttReader.warmUp();
 }
+
+// Open the connections the article view needs before the first article,
+// so the first one does not wait for DNS / TLS.
+PttReader.warmUp = function() {
+  if (typeof document === 'undefined' || PttReader.warmed) return;
+  PttReader.warmed = true;
+  ['https://www.ptt.cc', 'https://i.imgur.com', 'https://i.ytimg.com', 'https://pbs.twimg.com'].forEach(function(origin) {
+    var l = document.createElement('link');
+    l.rel = 'preconnect';
+    l.href = origin;
+    l.crossOrigin = 'anonymous';
+    document.head.appendChild(l);
+  });
+};
 
 PttReader.WEB = 'https://www.ptt.cc';
 // back to the list, move up / down, open (what you would type in PTT)
@@ -262,10 +278,18 @@ PttReader.prototype.startPrefetch = function(board, author, title) {
   this.prefetch[key] = { promise: p, at: Date.now(), board: board.toLowerCase(), author: author.toLowerCase(),
                          title: PttReader.prefetchKey('', '', title).slice(2) };
   var keys = Object.keys(this.prefetch);
-  if (keys.length > 25) delete this.prefetch[keys[0]];
+  if (keys.length > 40) delete this.prefetch[keys[0]];
 };
 
-PttReader.PREFETCH_TTL = 180000;
+PttReader.PREFETCH_TTL = 600000;  // 10 minutes
+
+// Setting: how long the list cursor must rest on an article before it is
+// loaded (ms).
+PttReader.prototype.listPrefetchDelay = function() {
+  var pv = this.app.pref && this.app.pref.values;
+  var n = parseInt(pv ? pv.readerListPrefetchDelay : 150, 10);
+  return isNaN(n) ? 150 : Math.max(0, Math.min(3000, n));
+};
 
 // Setting: how many articles above / below to load ahead (0 = off).
 PttReader.prototype.prefetchCount = function() {
@@ -290,7 +314,7 @@ PttReader.prototype.schedulePrefetch = function() {
   clearTimeout(this.prefetchTimer);
   this.prefetchTimer = setTimeout(function() {
     self.startPrefetch(snap.board, cur.author, cur.title);
-  }, 400);
+  }, this.listPrefetchDelay());
 };
 
 // While reading: fetch the previous and next article of the list.
@@ -302,7 +326,18 @@ PttReader.prototype.prefetchNeighbours = function(h) {
   var self = this;
   var n = this.prefetchCount();
   var idx = [];
-  for (var d = 1; d <= n; ++d) idx.push(snap.index - d, snap.index + d);
+  var dir = this.navDir;
+  var pv = this.app.pref && this.app.pref.values;
+  if (n && dir && !(pv && pv.readerPrefetchAhead === false)) {
+    // reading in one direction: twice as many ahead, fewer behind
+    var ahead = Math.min(n * 2, 10), behind = Math.max(1, Math.ceil(n / 2));
+    for (var a = 1; a <= ahead; ++a) {
+      idx.push(snap.index + dir * a);
+      if (a <= behind) idx.push(snap.index - dir * a);
+    }
+  } else {
+    for (var d = 1; d <= n; ++d) idx.push(snap.index - d, snap.index + d);
+  }
   idx.forEach(function(i) {
     var row = snap.rows[i];
     if (row) self.startPrefetch(snap.board, row.author, row.title);
@@ -651,6 +686,8 @@ PttReader.prototype.closeAndSend = function(keys) {
   // keep the list position in step when moving to the previous / next one
   if (this.listSnap && keys === PttReader.KEYS_PREV) this.listSnap.index--;
   if (this.listSnap && keys === PttReader.KEYS_NEXT) this.listSnap.index++;
+  if (keys === PttReader.KEYS_PREV) this.navDir = -1;
+  if (keys === PttReader.KEYS_NEXT) this.navDir = 1;
   if (this.app.conn && this.app.conn.send) this.app.conn.send(keys);
 };
 
@@ -1486,7 +1523,14 @@ PttReader.prototype.renderPushes = function(article) {
     PushInsights.setRepeatColor(line, insights.repeatColor(repeatColors, id, countById[id]));
     var left = el('span', 'jjt-push-left');
     left.appendChild(el('span', p.tag === '推' ? 'q15 b0' : 'q9 b0', p.tag + ' '));
-    left.appendChild(el('span', 'q11 b0', p.id));
+    var who = insights.whoLevel ? insights.whoLevel(id) : '';
+    var idEl = el('span', 'q11 b0', p.id);
+    if (who) {
+      var w = el('span', 'jj-who jj-who-' + who, p.id);
+      idEl.textContent = '';
+      idEl.appendChild(w);
+    }
+    left.appendChild(idEl);
     var content = self.lineNode([{ text: ':' + p.content, st: { fg: 3, bg: 0, hl: false, href: '' } }]);
     var c = content.node;
     while (c.firstChild) left.appendChild(c.firstChild);

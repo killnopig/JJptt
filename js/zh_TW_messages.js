@@ -729,6 +729,12 @@ locale.zh_TW = {
   "options_readerHoverPreview": {
     "message": "閱讀模式：滑鼠移到圖片或 YouTube 網址上時，旁邊顯示大圖"
   },
+  "options_readerPrefetchAhead": {
+    "message": "往前進的方向多抓：一直往下（或往上）看時，前進方向抓兩倍篇數（最多 10 篇），回頭方向少抓"
+  },
+  "options_readerListPrefetchDelay": {
+    "message": "在文章列表停留多久就先抓那篇（毫秒，0 = 立刻）"
+  },
   "options_readerImageMaxPercent": {
     "message": "閱讀模式圖片最大高度（畫面的 %，10～100）"
   },

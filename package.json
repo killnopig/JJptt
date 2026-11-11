@@ -1,6 +1,6 @@
 {
   "name": "pttchrome",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "devDependencies": {
     "grunt": "1.0.1",
     "grunt-contrib-concat": "1.0.1",

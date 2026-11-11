@@ -186,6 +186,53 @@ PushInsights.setRepeatColor = function(row, color) {
   }
 };
 
+// Watchlist / custom list accounts get their own colour wherever their ID
+// shows: purple for the watchlist, cyan for the custom list.
+PushInsights.prototype.whoLevel = function(id) {
+  var pref = this.app.pref;
+  if (!pref || !id) return '';
+  id = String(id).toLowerCase();
+  if (pref.values.watchlistEnabled !== false && pref.watchlistedUserIds && id in pref.watchlistedUserIds) return 'watch';
+  if (pref.values.customListEnabled !== false && pref.notedUserIds && id in pref.notedUserIds) return 'note';
+  return '';
+};
+
+// Wrap the first occurrence of `id` in the row with a coloured span.
+PushInsights.markId = function(row, id, level) {
+  var old = row.querySelector('.jj-who');
+  if (old) {
+    if (old.getAttribute('data-who') === level && old.textContent.toLowerCase() === id) return;
+    var parent = old.parentNode;
+    parent.replaceChild(document.createTextNode(old.textContent), old);
+    parent.normalize();
+  }
+  if (!level || !id) return;
+  var walker = document.createTreeWalker(row, NodeFilter.SHOW_TEXT, null, false);
+  var node;
+  while ((node = walker.nextNode())) {
+    var i = node.nodeValue.toLowerCase().indexOf(id);
+    if (i < 0) continue;
+    var mid = node.splitText(i);
+    mid.splitText(id.length);
+    var span = document.createElement('span');
+    span.className = 'jj-who jj-who-' + level;
+    span.setAttribute('data-who', level);
+    mid.parentNode.insertBefore(span, mid);
+    span.appendChild(mid);
+    return;
+  }
+};
+
+// Article lists: colour the author's ID.
+PushInsights.prototype.markListRows = function(rows) {
+  for (var i = 0; i < rows.length; ++i) {
+    var row = rows[i];
+    if (row.getAttribute('type') !== 'bbsrow') continue;
+    var id = this.rowText(row).parseThreadForUserId() || '';
+    PushInsights.markId(row, id, this.whoLevel(id));
+  }
+};
+
 PushInsights.prototype.clearRow = function(row) {
   PushInsights.setRepeatColor(row, '');
   if (row.hasAttribute('data-jj') || row.hasAttribute('data-jj-floor')) {
@@ -212,6 +259,7 @@ PushInsights.prototype.annotate = function() {
   var rows = container.children;
   var i;
 
+  if (buf.pageState == 2) this.markListRows(rows);
   if (!this.enabled || buf.pageState != 3) {
     if (buf.pageState != 3) this.resetArticle();
     for (i = 0; i < rows.length; ++i) this.clearRow(rows[i]);
@@ -265,6 +313,7 @@ PushInsights.prototype.annotate = function() {
     var tags = [];
     var flagText = '';
 
+    PushInsights.markId(p.row, p.id, this.whoLevel(p.id));
     // count over every page of this article seen so far
     var seenCount = this.pushLinesById[p.id] ? Object.keys(this.pushLinesById[p.id]).length : 0;
     PushInsights.setRepeatColor(p.row, this.repeatColor(this.repeatColors, p.id, Math.max(seenCount, pushCountById[p.id])));

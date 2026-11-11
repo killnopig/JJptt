@@ -1364,3 +1364,7 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 #prefModal #opt_reset:hover { background: #fdecea; color: #a93226; }
 .jjt-root .jjt-fact-sum { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .jjt-root .jjt-fact-host { color: #ff5c5c; font-weight: bold; }
+
+/* watchlist (purple) / custom list (cyan) IDs, in lists and pushes */
+.jj-who-watch { color: #d58bff !important; font-weight: bold; }
+.jj-who-note { color: #4fd1e8 !important; font-weight: bold; }
