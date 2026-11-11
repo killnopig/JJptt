@@ -130,6 +130,12 @@ locale.en_US = {
   "update_reopen": {
     "message": "⚠ After Update now, JJptt closes and reopens by itself and reconnects to PTT. Send any post or push you are writing first."
   },
+  "update_sidebar": {
+    "message": "Update JJptt"
+  },
+  "update_current": {
+    "message": "Now v%s"
+  },
   "update_title": {
     "message": "Updates"
   },

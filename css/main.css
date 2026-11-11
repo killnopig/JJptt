@@ -1264,3 +1264,7 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 #tabContentBlacklist .jj-allswitch { margin: 0 0 8px; }
 #tabContentBlacklist .jj-allswitch .btn { margin-right: 6px; }
 #opt_blacklistMode select { width: 100% !important; max-width: 520px; }
+
+/* 更新 JJptt above 儲存並關閉 */
+#opt_update { width: 100%; }
+#opt_updateVersion { display: block; margin: 4px 0 12px; color: #777; text-align: center; }

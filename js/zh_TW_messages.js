@@ -130,6 +130,12 @@ locale.zh_TW = {
   "update_reopen": {
     "message": "⚠ 按「立即更新」後，JJptt 會自動關閉再重新開啟，PTT 會重新連線。正在寫的文章或推文請先送出再更新。"
   },
+  "update_sidebar": {
+    "message": "更新 JJptt"
+  },
+  "update_current": {
+    "message": "目前 v%s"
+  },
   "update_title": {
     "message": "檢查更新"
   },

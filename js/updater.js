@@ -129,6 +129,29 @@ JJUpdater.prototype.apply = function() {
   chrome.runtime.reload();
 };
 
+// From the settings sidebar: close the window (which saves the settings),
+// then update when GitHub has something newer.
+JJUpdater.prototype.updateFromSettings = function() {
+  var self = this;
+  $('#prefModal').modal('hide');
+  this.app.showToast(i18n('update_checking'), 2000);
+  setTimeout(function() {
+    Promise.all([
+      self.fetchVersion(chrome.runtime.getURL('manifest.json')),
+      self.fetchRemoteVersion()
+    ]).then(function(v) {
+      self.diskVersion = v[0];
+      self.remoteVersion = v[1];
+      var running = self.running();
+      if (JJUpdater.compare(v[0], running) > 0 || (v[1] && JJUpdater.compare(v[1], running) > 0)) {
+        self.updateNow();
+      } else {
+        self.refresh(true);
+      }
+    });
+  }, 400);
+};
+
 // One button: the JJptt native host (1.1.0+) runs "git pull" in the jjptt
 // folder, then the extension reloads itself.
 JJUpdater.HOST = 'com.jjptt.host';
@@ -287,5 +310,12 @@ JJUpdater.prototype.setupUi = function() {
     self.updateNow();
   });
   $('#update_status').text(this.status);
+  // sidebar button above 儲存並關閉: save (by closing), check, update
+  $('#opt_update').text(i18n('update_sidebar')).off().click(function(e) {
+    e.preventDefault();
+    self.updateFromSettings();
+  });
+  $('#opt_updateVersion').text(i18n('update_current').replace('%s', this.running()));
+  $('#opt_update, #opt_updateVersion').toggle(this.available());
   $('#update_row').toggle(this.available());
 };

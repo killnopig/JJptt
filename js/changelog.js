@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.23.2',
+    date: '2026-11-12',
+    changes: [
+      '設定左下角「儲存並關閉」上方加「更新 JJptt」按鈕（下面顯示目前版本）：按下去先儲存設定，有新版就自動下載並重新開啟，沒有就提示已是最新'
+    ]
+  },
+  {
     version: '1.23.1',
     date: '2026-11-12',
     changes: [
