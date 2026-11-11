@@ -51,7 +51,7 @@ Google 規定每個 App 要有自己的「用戶端 ID」。到 [Google Cloud Co
 4. 「用戶端」→「建立用戶端」→ 類型選「網頁應用程式」：
    - 已授權的 JavaScript 來源：`https://killnopig.github.io`
    - 已授權的重新導向 URI：`https://fdlnogjbmfefgnaidfoackkjnnkibnmm.chromiumapp.org/`（擴充功能用）
-5. 複製產生的「用戶端 ID」（`xxxx.apps.googleusercontent.com`），填進 `js/drive_sync.js` 的 `DriveSync.CLIENT_ID`，然後 `npm run build`
+5. 複製產生的「用戶端 ID」（`xxxx.apps.googleusercontent.com`），填進 `js/drive_sync.js` 的 `DriveSync.CLIENT_ID`，然後 `npm run build`（JJptt 已經填好了，自己 fork 的人才需要換成自己的）
 
 之後在 設定 → 黑名單 → 按「連結 Google 帳號」。
 

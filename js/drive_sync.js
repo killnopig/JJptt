@@ -14,7 +14,7 @@ function DriveSync(app) {
   this.tokenClient = null;
 }
 
-DriveSync.CLIENT_ID = '';
+DriveSync.CLIENT_ID = '673188871469-hk89m262pm6cqfv8bgra7jiuuhnqbtfj.apps.googleusercontent.com';
 DriveSync.SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 DriveSync.FILE_NAME = 'jjptt-settings.json';
 DriveSync.KEY_ENABLED = 'jjptt.drive.enabled';
