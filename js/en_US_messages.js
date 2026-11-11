@@ -337,7 +337,7 @@ locale.en_US = {
     "message": "Add %s to the watchlist. Note (optional):"
   },
   "drive_title": {
-    "message": "Google Drive sync (blacklist, watchlist and other settings, never passwords):"
+    "message": "Keep the blacklist, watchlist, custom list and other settings in your Google Drive (never the login), so all your computers stay the same."
   },
   "drive_connect": {
     "message": "Connect Google account"

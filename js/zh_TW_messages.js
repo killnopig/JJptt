@@ -334,7 +334,7 @@ locale.zh_TW = {
     "message": "把 %s 加入觀察名單。備註（可留空）："
   },
   "drive_title": {
-    "message": "Google Drive 同步（黑名單、觀察名單與其他設定，不含密碼）："
+    "message": "把黑名單、觀察名單、自訂名單和其他設定同步到你的 Google Drive（不含帳號密碼），多台電腦會自動保持一致。"
   },
   "drive_connect": {
     "message": "連結 Google 帳號"

@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.14.1',
+    date: '2026-11-11',
+    changes: [
+      '「同步與備份」分頁排版整理：每一區都是說明 → 按鈕 → 狀態，Google Drive 那區不再縮排、按鈕不再夾在句子中間'
+    ]
+  },
+  {
     version: '1.14.0',
     date: '2026-11-11',
     changes: [
