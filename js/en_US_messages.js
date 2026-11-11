@@ -216,6 +216,45 @@ locale.en_US = {
   "options_watchlistInstruction": {
     "message": "Watchlist: one user ID per line, optionally followed by a space and a note. Their pushes get flagged."
   },
+  "cmenu_askAi": {
+    "message": "Ask AI: is this true?"
+  },
+  "cmenu_askAiArticle": {
+    "message": "Ask AI: is this article true?"
+  },
+  "options_askAi": {
+    "message": "Ask AI whether it is true"
+  },
+  "options_aiService": {
+    "message": "AI to use (select text, right-click → Ask AI)"
+  },
+  "ai_chatgpt": {
+    "message": "ChatGPT"
+  },
+  "ai_claude": {
+    "message": "Claude"
+  },
+  "ai_perplexity": {
+    "message": "Perplexity"
+  },
+  "ai_grok": {
+    "message": "Grok"
+  },
+  "ai_copilot": {
+    "message": "Microsoft Copilot"
+  },
+  "ai_custom": {
+    "message": "Custom URL (below)"
+  },
+  "options_aiCustomUrl": {
+    "message": "Custom AI URL (%s = the question, e.g. https://example.com/chat?q=%s)"
+  },
+  "options_aiPrompt": {
+    "message": "Question to ask (%s = the selected text)"
+  },
+  "ai_noUrl": {
+    "message": "No custom AI URL yet: Settings → Extensions"
+  },
   "cmenu_addWatchUserId": {
     "message": "Add to watchlist"
   },

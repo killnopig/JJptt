@@ -516,13 +516,9 @@ PttReader.prototype.copyText = function(text) {
 PttReader.prototype.onContextMenu = function(e) {
   var self = this;
   var app = this.app;
-  // Selected text: keep the browser's own menu so 複製 works.
-  if (!window.getSelection().isCollapsed) {
-    e.stopPropagation();
-    return;
-  }
   e.preventDefault();
   e.stopPropagation();
+  var selText = window.getSelection().isCollapsed ? '' : window.getSelection().toString();
   if (!this.menu) {
     this.menu = PttReader.el('ul', 'dropdown-menu jjt-menu');
     document.body.appendChild(this.menu);
@@ -542,6 +538,16 @@ PttReader.prototype.onContextMenu = function(e) {
     li.appendChild(a);
     menu.appendChild(li);
   };
+  if (selText) {
+    add(i18n('cmenu_copy'), function() { self.copyText(selText.replace(/\u00a0/g, ' ')); });
+    add(i18n('cmenu_askAi'), function() { app.askAi(selText); });
+    menu.appendChild(PttReader.el('li', 'divider'));
+  } else if (this.article) {
+    var art = this.article;
+    add(i18n('cmenu_askAiArticle'), function() {
+      app.askAi((art.meta['標題'] || '') + '\n' + (art.url || '') + '\n\n' + String(art.text || '').split('\n※ 發信站')[0]);
+    });
+  }
   var link = e.target.closest && e.target.closest('a[href^="http"]');
   if (link) {
     var href = link.getAttribute('href');

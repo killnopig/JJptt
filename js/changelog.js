@@ -3,6 +3,15 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.13.0',
+    date: '2026-11-11',
+    changes: [
+      '新增「問 AI：這是不是事實？」：選取文字後按右鍵，會開新分頁到你選的 AI（ChatGPT、Claude、Perplexity、Grok、Copilot 或自訂網址），問題自動填好；閱讀模式沒選字時按右鍵可以問整篇文章',
+      '設定 → 額外功能：可以選 AI、填自訂網址、改要問的話',
+      '閱讀模式選取文字後的右鍵選單改成 JJptt 自己的（有「複製」和「問 AI」），Ctrl+C 一樣可以複製'
+    ]
+  },
+  {
     version: '1.12.1',
     date: '2026-11-11',
     changes: [

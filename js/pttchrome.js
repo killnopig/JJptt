@@ -657,6 +657,34 @@ pttchrome.App.prototype.doRemoveUserNote = function(userid) {
   this.pushInsights.annotate();
 };
 
+// Ask an AI chat site whether some text is true: opens the chosen site in a
+// new tab with the question filled in (no API key needed).
+pttchrome.App.AI_URLS = [
+  'https://chatgpt.com/?q=%s',
+  'https://claude.ai/new?q=%s',
+  'https://www.perplexity.ai/search?q=%s',
+  'https://grok.com/?q=%s',
+  'https://copilot.microsoft.com/?q=%s'
+];
+
+pttchrome.App.prototype.askAi = function(text) {
+  var values = this.pref.values || {};
+  text = String(text || '').replace(/\u00a0/g, ' ').trim();
+  if (!text) return;
+  if (text.length > 3000) text = text.slice(0, 3000) + '…';
+  var service = parseInt(values.aiService, 10) || 0;
+  var url = pttchrome.App.AI_URLS[service] || '';
+  if (service >= pttchrome.App.AI_URLS.length) url = String(values.aiCustomUrl || '').trim();
+  if (!url) {
+    this.showToast(i18n('ai_noUrl'), 4000);
+    return;
+  }
+  var prompt = String(values.aiPrompt || '').trim() || '%s';
+  prompt = prompt.indexOf('%s') >= 0 ? prompt.replace('%s', text) : prompt + '\n\n' + text;
+  var q = encodeURIComponent(prompt);
+  window.open(url.indexOf('%s') >= 0 ? url.replace('%s', q) : url + q, '_blank', 'noreferrer');
+};
+
 pttchrome.App.prototype.doRemoveWatchUserId = function(userid) {
   delete this.pref.watchlistedUserIds[userid];
   this.pref.setWatchlistStorage();
@@ -1896,6 +1924,7 @@ pttchrome.App.prototype.setupContextMenus = function() {
   }
 
   $('#cmenu_copy a').html(i18n('cmenu_copy')+'<span class="cmenuHotkey">Ctrl+C</span>');
+  $('#cmenu_askAi a').text(i18n('cmenu_askAi'));
   $('#cmenu_copyAnsi a').text(i18n('cmenu_copyAnsi'));
   $('#cmenu_paste a').html(i18n('cmenu_paste')+'<span class="cmenuHotkey">Ctrl+Shift+V</span>');
   $('#cmenu_selectAll a').html(i18n('cmenu_selectAll')+'<span class="cmenuHotkey">Ctrl+A</span>');
@@ -1917,6 +1946,9 @@ pttchrome.App.prototype.setupContextMenus = function() {
   var contextMenuItemOnClickHandler = {
     'cmenu_copy': function() { 
       self.doCopy(selectedText); 
+    },
+    'cmenu_askAi': function() {
+      self.askAi(selectedText);
     },
     'cmenu_copyAnsi': function() { 
       self.doCopyAnsi(); 

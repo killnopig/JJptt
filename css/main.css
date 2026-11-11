@@ -1190,3 +1190,6 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 .jjt-root .jjt-itag-watch { color: #d58bff; }
 #mainContainer > span[data-jj-ilevel="foreign"] .jj-ip::before,
 .jjt-root .jjt-itag-foreign { color: #ffa940; }
+
+/* Ask AI settings: room for the URL and the question */
+#opt_aiCustomUrl input, #opt_aiPrompt input { width: 100% !important; max-width: 520px; }

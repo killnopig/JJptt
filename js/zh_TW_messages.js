@@ -213,6 +213,45 @@ locale.zh_TW = {
   "options_watchlistInstruction": {
     "message": "觀察名單：每行一個使用者 ID，後面可以加空格和備註。推文會被標記。"
   },
+  "cmenu_askAi": {
+    "message": "問 AI：這是不是事實？"
+  },
+  "cmenu_askAiArticle": {
+    "message": "問 AI：這篇是不是事實？"
+  },
+  "options_askAi": {
+    "message": "問 AI 這是不是事實"
+  },
+  "options_aiService": {
+    "message": "用哪個 AI（選取文字後按右鍵 →「問 AI」）"
+  },
+  "ai_chatgpt": {
+    "message": "ChatGPT"
+  },
+  "ai_claude": {
+    "message": "Claude"
+  },
+  "ai_perplexity": {
+    "message": "Perplexity"
+  },
+  "ai_grok": {
+    "message": "Grok"
+  },
+  "ai_copilot": {
+    "message": "Microsoft Copilot"
+  },
+  "ai_custom": {
+    "message": "自訂網址（填在下面）"
+  },
+  "options_aiCustomUrl": {
+    "message": "自訂 AI 網址（用 %s 代表問題，例如 https://example.com/chat?q=%s）"
+  },
+  "options_aiPrompt": {
+    "message": "要問的話（%s 會換成選取的文字）"
+  },
+  "ai_noUrl": {
+    "message": "還沒設定自訂 AI 網址：設定 → 額外功能"
+  },
   "cmenu_addWatchUserId": {
     "message": "加入觀察名單"
   },
