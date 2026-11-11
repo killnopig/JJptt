@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.21.2',
+    date: '2026-11-12',
+    changes: [
+      '拿掉推文旁的「第幾/幾推」小字（推文多次的人已經用顏色標示）'
+    ]
+  },
+  {
     version: '1.21.1',
     date: '2026-11-12',
     changes: [

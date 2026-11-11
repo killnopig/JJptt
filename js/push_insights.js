@@ -13,7 +13,6 @@ function PushInsights(app) {
   this.app = app;
   this.enabled = true;
   this.homeCountry = 'TW';
-  this.manyPushThreshold = 8;
   this.geo = new JJGeoIP();
   this.resetArticle();
 }
@@ -311,10 +310,6 @@ PushInsights.prototype.annotate = function() {
       if (!level || level === 'foreign') level = 'note';
     }
 
-    var total = pushCountById[p.id];
-    if (total >= this.manyPushThreshold) {
-      parts.push('第' + p.nth + '/' + total + '推');  // 第k/n推
-    }
 
     var full = parts.concat(warn.length ? [(T.prefix ? T.prefix + ' ' : '') + warn.join(' ')] : []).join(' ');
     var label = this.fitLabel(full, parts, warn, T, view.rightSpaceCols);

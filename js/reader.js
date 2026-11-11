@@ -1369,7 +1369,6 @@ PttReader.prototype.renderPushes = function(article) {
       parts.push(pref.customListName() + (notes[id] ? ':' + notes[id] : ''));
       if (!level || level === 'foreign') level = 'note';
     }
-    if (countById[id] >= 8) parts.push('第' + nth[id] + '/' + countById[id] + '推');
     var full = parts.concat(hints.length ? [(T.prefix ? T.prefix + ' ' : '') + hints.join(' ')] : []).join(' ');
     var label = insights.fitLabel(full, parts, hints, T, self.rightSpaceCols);
 
