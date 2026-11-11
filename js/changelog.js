@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.25.8',
+    date: '2026-11-12',
+    changes: [
+      'README 加上示範畫面：閱讀模式、真.事實查核中心報告、設定頁、最新在上面的文章列表（內容都是虛構的）'
+    ]
+  },
+  {
     version: '1.25.7',
     date: '2026-11-12',
     changes: [
