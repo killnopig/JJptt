@@ -261,6 +261,9 @@ locale.en_US = {
   "toast_blacklisted": {
     "message": "Added %s to the blacklist"
   },
+  "toast_updated": {
+    "message": "JJptt updated to v%s. See right-click → Settings → About for what changed"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },
@@ -354,7 +357,7 @@ locale.en_US = {
     "message": "JJptt 1.0.0"
   },
   "about_new_title": {
-    "message": "What's new"
+    "message": "Release notes"
   },
   "about_new_content": {
     "message": [

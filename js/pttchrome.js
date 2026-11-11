@@ -644,7 +644,17 @@ pttchrome.App.prototype.doRemoveWatchUserId = function(userid) {
   this.pushInsights.annotate();
 };
 
-pttchrome.App.prototype.showToast = function(text) {
+// Tells the user once after JJptt was updated to a new version.
+pttchrome.App.prototype.announceUpdate = function() {
+  var key = 'jjptt.lastSeenVersion';
+  var seen = lib.safeGetItem(key);
+  lib.safeSetItem(key, JJPTT_VERSION);
+  if (seen && seen !== JJPTT_VERSION) {
+    this.showToast(i18n('toast_updated').replace('%s', JJPTT_VERSION), 8000);
+  }
+};
+
+pttchrome.App.prototype.showToast = function(text, duration) {
   var toast = document.getElementById('jjToast');
   if (!toast) return;
   toast.textContent = text;
@@ -652,7 +662,7 @@ pttchrome.App.prototype.showToast = function(text) {
   clearTimeout(this.toastTimer);
   this.toastTimer = setTimeout(function() {
     toast.classList.remove('show');
-  }, 2000);
+  }, duration || 2000);
 };
 
 pttchrome.App.prototype.doSettings = function() {

@@ -9,6 +9,6 @@
     "grunt-contrib-uglify": "2.3.0"
   },
   "scripts": {
-    "build": "grunt && node extension/build.js"
+    "build": "node tools/sync-version.js && grunt && node extension/build.js"
   }
 }

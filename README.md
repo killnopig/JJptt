@@ -86,6 +86,13 @@ npm run build
 
 `npm run build` 會打包網站，並把結果複製到 `extension/`。
 
+### 發佈新版本
+
+1. 在 `js/changelog.js` 最上面加一筆新版本（版本號、日期、改了什麼）
+2. `npm run build`：會自動把版本號寫進 `package.json`、`extension/manifest.json`，並更新 `CHANGELOG.md`
+
+使用者更新後第一次開啟會看到「已更新到 vX.Y.Z」，完整紀錄在 設定 → 關於，或看 [CHANGELOG.md](CHANGELOG.md)。
+
 本機小程式的原始碼在 `native-host/main.go`，改完用 `sh native-host/build.sh` 重新編譯所有平台的執行檔（需要 Go）。
 
 ## 資料來源

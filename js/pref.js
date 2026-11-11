@@ -366,7 +366,7 @@ PttChromePref.prototype = {
     var contents = [
         'github', 'issues',
         'forkedFrom', 'forkedBy', 'forkedLicense',
-        'version_title', 'version',
+        'version_title',
         'new_title'
       ];
     for (var i in contents) {
@@ -374,8 +374,18 @@ PttChromePref.prototype = {
       $('#about_'+content).text(i18n('about_'+content));
     }
 
-    var whatsNewListHtml = '<li>' + i18n('about_new_content').join('</li><li>') + '</li>';
-    $('#about_new').html(whatsNewListHtml);
+    var latest = JJPTT_CHANGELOG[0];
+    $('#about_version').text('JJptt ' + latest.version + '（' + latest.date + '）');
+
+    // Release history, newest first.
+    var list = $('#about_new').empty();
+    JJPTT_CHANGELOG.forEach(function(entry) {
+      $('<li style="list-style:none; margin:8px 0 2px -18px; font-weight:bold;"></li>')
+        .text('v' + entry.version + '（' + entry.date + '）').appendTo(list);
+      entry.changes.forEach(function(change) {
+        $('<li></li>').text(change).appendTo(list);
+      });
+    });
   },
 
   // Watchlist: one ID per line, optionally followed by a note.
@@ -566,6 +576,7 @@ PttChromePref.prototype = {
         this.initCallbackCalled = true;
         this.onInitializedCallback(this.app);
         if (this.app.driveSync) this.app.driveSync.startup();
+        this.app.announceUpdate();
       }
     }
   },

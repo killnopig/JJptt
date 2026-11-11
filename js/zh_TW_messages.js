@@ -258,6 +258,9 @@ locale.zh_TW = {
   "toast_blacklisted": {
     "message": "已把 %s 加入黑名單"
   },
+  "toast_updated": {
+    "message": "JJptt 已更新到 v%s，更新內容請看 右鍵 → 設定 → 關於"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },
@@ -351,7 +354,7 @@ locale.zh_TW = {
     "message": "JJptt 1.0.0"
   },
   "about_new_title": {
-    "message": "新功能"
+    "message": "更新紀錄"
   },
   "about_new_content": {
     "message": [

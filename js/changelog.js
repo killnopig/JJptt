@@ -1,0 +1,43 @@
+// JJptt release history, newest first. This is the single source of the
+// version number: `npm run build` copies it into package.json,
+// extension/manifest.json and CHANGELOG.md.
+var JJPTT_CHANGELOG = [
+  {
+    version: '1.2.0',
+    date: '2026-11-11',
+    changes: [
+      '加入版本號與更新紀錄；更新後第一次開啟會提示',
+      '推文樓層移到最左邊，一般（翻頁）模式也有樓層',
+      '畫面右邊保留標籤空間，視窗窄也看得到國籍與可疑標記；滑鼠移到推文上顯示完整標籤',
+      '修正推文按右鍵無法加入黑名單；加入時會自動啟用黑名單並提示',
+      '黑名單功能預設開啟',
+      '密碼欄加入顯示／隱藏按鈕',
+      '設定視窗加入「儲存並關閉」按鈕，儲存後顯示「設定已儲存」',
+      '關於頁面標示 Fork 自 PttChrome（原作者 Chuck Yang）',
+      '修正網站版在 Safari、Firefox 無法用 SSH 連線'
+    ]
+  },
+  {
+    version: '1.1.0',
+    date: '2026-11-11',
+    changes: [
+      '推文分析：樓層、IP 國籍、同 IP 多帳號、與作者同 IP 等可疑標記',
+      '觀察名單（推文上按右鍵加入，可寫備註）',
+      '黑名單可完全隱藏，並支援標題關鍵字',
+      '好讀模式自動顯示更多種圖片網址，imgur 動圖會播放',
+      'Google Drive 自動同步設定（不含密碼）',
+      '好讀模式預設開啟'
+    ]
+  },
+  {
+    version: '1.0.0',
+    date: '2026-11-11',
+    changes: [
+      '從 PttChrome fork，改名 JJptt',
+      '擴充功能版：透過本機程式直接連線 ptt.cc，不需要已停用的 Chrome App',
+      '網站版：透過 Cloudflare 轉接站連線，並限制連線頻率防止濫用'
+    ]
+  }
+];
+
+var JJPTT_VERSION = JJPTT_CHANGELOG[0].version;
