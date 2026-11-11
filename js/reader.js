@@ -264,12 +264,101 @@ PttReader.prototype.ensureOverlay = function() {
   o.tabIndex = -1;
   o.innerHTML = '<div class="jjt-scroll"><div class="jjt-page"></div></div><div class="jjt-status"></div>';
   document.body.appendChild(o);
-  o.addEventListener('keydown', function(e) { self.onKeyDown(e); });
+  // Keys are taken at the document level while the view is open, so they
+  // keep working wherever focus went (clicked image, link, ...).
+  document.addEventListener('keydown', function(e) {
+    if (!self.isOpen()) return;
+    if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if ($('#prefModal').is(':visible')) return;
+    self.onKeyDown(e);
+  }, true);
+  o.addEventListener('click', function(e) {
+    self.hideMenu();
+    // clicking an image opens the original, like links in the terminal
+    var img = e.target.closest && e.target.closest('.jjr-img');
+    if (img && img.tagName === 'IMG') window.open(img.currentSrc || img.src, '_blank', 'noreferrer');
+    if (!(e.target.closest && e.target.closest('a'))) o.focus();
+  });
+  o.addEventListener('contextmenu', function(e) { self.onContextMenu(e); });
   o.querySelector('.jjt-scroll').addEventListener('scroll', function() { self.updateStatus(); });
   // images change the page height as they load
   o.addEventListener('load', function() { self.updateStatus(); }, true);
   this.overlay = o;
   return o;
+};
+
+PttReader.prototype.isOpen = function() {
+  return !!(this.overlay && this.overlay.style.display !== 'none' && this.overlay.style.display !== '');
+};
+
+PttReader.prototype.hideMenu = function() {
+  if (this.menu) this.menu.style.display = 'none';
+};
+
+// Right-click: blacklist / watchlist the pusher, or go back / settings.
+PttReader.prototype.onContextMenu = function(e) {
+  var self = this;
+  var app = this.app;
+  e.preventDefault();
+  e.stopPropagation();
+  if (!window.getSelection().isCollapsed) {  // keep the browser menu for copying
+    return;
+  }
+  if (!this.menu) {
+    this.menu = PttReader.el('ul', 'dropdown-menu jjt-menu');
+    document.body.appendChild(this.menu);
+  }
+  var menu = this.menu;
+  menu.innerHTML = '';
+  var add = function(label, fn) {
+    var li = PttReader.el('li');
+    var a = PttReader.el('a', '', label);
+    a.href = '#';
+    a.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      self.hideMenu();
+      fn();
+    });
+    li.appendChild(a);
+    menu.appendChild(li);
+  };
+  var push = e.target.closest && e.target.closest('[data-user]');
+  if (push) {
+    var id = push.getAttribute('data-user');
+    var pref = app.pref;
+    if (id in pref.blacklistedUserIds) {
+      add(i18n('cmenu_removeBlacklistUserId') + " '" + id + "'", function() { app.doRemoveBlacklistUserId(id); self.rerender(); });
+    } else {
+      add(i18n('cmenu_addBlacklistUserId') + " '" + id + "'", function() { app.doAddBlacklistUserId(id); self.rerender(); });
+    }
+    if (id in pref.watchlistedUserIds) {
+      add(i18n('cmenu_removeWatchUserId') + " '" + id + "'", function() { app.doRemoveWatchUserId(id); self.rerender(); });
+    } else {
+      add(i18n('cmenu_addWatchUserId') + " '" + id + "'", function() { app.doAddWatchUserId(id); self.rerender(); });
+    }
+    menu.appendChild(PttReader.el('li', 'divider'));
+  }
+  add(i18n('reader_terminal'), function() { self.dismiss(); });
+  add(i18n('cmenu_settings'), function() { self.dismiss(); app.doSettings(); });
+  menu.style.display = 'block';
+  menu.style.position = 'fixed';
+  menu.style.zIndex = 3000;
+  var x = Math.min(e.clientX, window.innerWidth - menu.offsetWidth - 4);
+  var y = Math.min(e.clientY, window.innerHeight - menu.offsetHeight - 4);
+  menu.style.left = Math.max(0, x) + 'px';
+  menu.style.top = Math.max(0, y) + 'px';
+};
+
+// Redraw after blacklist / watchlist changes, keeping the scroll position.
+PttReader.prototype.rerender = function() {
+  if (!this.article || !this.isOpen()) return;
+  var scroller = this.overlay.querySelector('.jjt-scroll');
+  var top = scroller.scrollTop;
+  this.render(this.article, this.renderedHeader || {});
+  scroller.scrollTop = top;
+  this.updateStatus();
+  this.overlay.focus();
 };
 
 PttReader.prototype.show = function() {
@@ -281,6 +370,7 @@ PttReader.prototype.show = function() {
 
 PttReader.prototype.close = function() {
   if (!this.overlay) return;
+  this.hideMenu();
   this.overlay.style.display = 'none';
   this.app.modalShown = false;
   this.currentKey = '';
@@ -304,6 +394,14 @@ PttReader.prototype.onKeyDown = function(e) {
   var scroller = this.overlay.querySelector('.jjt-scroll');
   var line = this.lineHeight || 20;
   var page = Math.max(line, scroller.clientHeight - line * 2);
+  if (this.menu && this.menu.style.display === 'block') {
+    if (e.key === 'Escape') {
+      this.hideMenu();
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    return;
+  }
   switch (e.key) {
     case 'Escape':
       this.dismiss();
@@ -679,6 +777,7 @@ PttReader.prototype.headerNode = function(article, h) {
 };
 
 PttReader.prototype.render = function(article, h) {
+  this.renderedHeader = h;
   var el = PttReader.el;
   var view = this.app.view;
   var o = this.ensureOverlay();
@@ -841,6 +940,7 @@ PttReader.prototype.renderPushes = function(article) {
 
     // "推 userid: content          ip mm/dd hh:mm" in PTT colours
     var line = el('div', 'jjt-line jjt-push' + ((id in black) ? ' jjt-faded' : ''));
+    line.setAttribute('data-user', id);
     var left = el('span', 'jjt-push-left');
     left.appendChild(el('span', p.tag === '推' ? 'q15 b0' : 'q9 b0', p.tag + ' '));
     left.appendChild(el('span', 'q11 b0', p.id));

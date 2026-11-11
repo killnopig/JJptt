@@ -3,6 +3,15 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.7.5',
+    date: '2026-11-11',
+    changes: [
+      '修正：在閱讀模式點了圖片之後，← Esc 等按鍵失效、回不去終端機',
+      '閱讀模式點圖片會用新分頁開原圖',
+      '閱讀模式按右鍵：推文上可以加入／移除黑名單與觀察名單（畫面立即更新），也可以回到終端機或開設定'
+    ]
+  },
+  {
     version: '1.7.4',
     date: '2026-11-11',
     changes: [

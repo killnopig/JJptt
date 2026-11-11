@@ -1094,3 +1094,5 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
   transition: opacity .15s;
 }
 #jjLoading.show { opacity: 1; }
+.jjt-root .jjr-img { cursor: zoom-in; }
+.jjt-menu { font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', sans-serif; }
