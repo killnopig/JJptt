@@ -588,6 +588,33 @@ locale.en_US = {
   "options_factSubnetMin": {
     "message": "Accounts needed"
   },
+  "options_factCooccur": {
+    "message": "Co-occurrence: when B is within 3 floors of A in most articles where A pushes, tag A with 共伴:B"
+  },
+  "options_factCooccurRate": {
+    "message": "Co-occurrence rate (%)"
+  },
+  "options_factCooccurMin": {
+    "message": "Articles A must appear in before judging"
+  },
+  "options_factSquad": {
+    "message": "First-strike squad: accounts that push within 2 minutes of the same author's posts again and again"
+  },
+  "options_factSquadMin": {
+    "message": "Fast pushes on that author's articles needed (and more than half)"
+  },
+  "fact_historyNote": {
+    "message": "These two rules need several articles: JJptt keeps the order of pushers of articles you opened in the article view (and the ones loaded ahead), up to 400, on this computer only; nothing is uploaded or synced."
+  },
+  "fact_historyCount": {
+    "message": "%s articles so far"
+  },
+  "fact_historyClear": {
+    "message": "Clear collected data"
+  },
+  "fact_historyConfirm": {
+    "message": "Clear the collected push data? Co-occurrence and squads start over."
+  },
   "options_readerImageMaxPercent": {
     "message": "Reader image max height (% of the view, 10-100)"
   },

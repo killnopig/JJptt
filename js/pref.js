@@ -268,6 +268,9 @@ PttChromePref.prototype = {
     if (this.app.updater) {
       this.app.updater.setupUi();
     }
+    if (this.app.factCheck) {
+      this.app.factCheck.setupUi();
+    }
   },
 
   populateSettingsToUi: function() {

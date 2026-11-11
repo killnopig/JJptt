@@ -585,6 +585,33 @@ locale.zh_TW = {
   "options_factSubnetMin": {
     "message": "至少幾個帳號才標"
   },
+  "options_factCooccur": {
+    "message": "共伴效應：A 出現的文章裡，B 經常（見下面比例）也在 A 的前後 3 樓，就在 A 的推文標「共伴:B」"
+  },
+  "options_factCooccurRate": {
+    "message": "共伴比例門檻（%）"
+  },
+  "options_factCooccurMin": {
+    "message": "A 至少要在幾篇文章出現過才判斷"
+  },
+  "options_factSquad": {
+    "message": "首殺班底：同一位作者的文章，某帳號多次在發文 2 分鐘內推文，標「首殺班底」"
+  },
+  "options_factSquadMin": {
+    "message": "至少在幾篇該作者的文章秒推過（且超過一半）"
+  },
+  "fact_historyNote": {
+    "message": "以下兩條需要跨文章的資料：JJptt 會在這台電腦上記下你在閱讀模式看過（含預先讀取）的文章推文順序，最多 400 篇，不會上傳也不會同步。"
+  },
+  "fact_historyCount": {
+    "message": "目前已累積 %s 篇"
+  },
+  "fact_historyClear": {
+    "message": "清除累積資料"
+  },
+  "fact_historyConfirm": {
+    "message": "確定要清除累積的推文順序資料嗎？共伴效應和首殺班底會從頭累積。"
+  },
   "options_readerImageMaxPercent": {
     "message": "閱讀模式圖片最大高度（畫面的 %，10～100）"
   },

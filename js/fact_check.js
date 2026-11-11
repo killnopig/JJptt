@@ -332,6 +332,21 @@ FactCheck.prototype.historyTags = function(article, ids, add, report) {
   }
 };
 
+FactCheck.prototype.setupUi = function() {
+  var self = this;
+  var refresh = function() {
+    $('#fact_historyCount').text(i18n('fact_historyCount').replace('%s', self.history.count()));
+  };
+  $('#fact_historyNote').text(i18n('fact_historyNote'));
+  $('#fact_historyClear').text(i18n('fact_historyClear')).off().click(function(e) {
+    e.preventDefault();
+    if (!window.confirm(i18n('fact_historyConfirm'))) return;
+    self.history.clear();
+    refresh();
+  });
+  refresh();
+};
+
 function FactHistory() {
   this.data = null;
 }
