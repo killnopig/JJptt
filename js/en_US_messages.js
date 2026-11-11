@@ -324,6 +324,9 @@ locale.en_US = {
   "options_watchText": {
     "message": "Label for watchlist"
   },
+  "reader_allowPreview": {
+    "message": "Show link previews (needs permission to read sites)"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },

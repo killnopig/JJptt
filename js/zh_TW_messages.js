@@ -321,6 +321,9 @@ locale.zh_TW = {
   "options_watchText": {
     "message": "觀察名單的標示字樣"
   },
+  "reader_allowPreview": {
+    "message": "顯示網址預覽（需要允許讀取網站）"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },

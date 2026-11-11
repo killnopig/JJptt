@@ -921,8 +921,8 @@ span {
   padding: 14px 16px 18px;
 }
 #jjReader .jjr-title { font-size: 24px; line-height: 1.4; color: #fff; }
-#jjReader .jjr-info { margin-top: 8px; color: #dfe6f3; font-size: 15px; }
-#jjReader .jjr-info span { margin-right: 14px; }
+#jjReader .jjr-info { margin-top: 4px; color: #e6ecf6; font-size: 17px; }
+#jjReader .jjr-info-tag { color: #c5d3ea; margin-right: 10px; }
 #jjReader .jjr-body { font-size: 20px; line-height: 1.65; color: var(--jj-text-color, #e8e8e8); }
 #jjReader .jjr-line { white-space: pre-wrap; word-break: break-word; }
 #jjReader .jjr-gap { height: 0.8em; }
@@ -950,7 +950,6 @@ span {
 }
 #jjReader .jjr-yt { padding: 0; }
 #jjReader .jjr-card-thumb { display: block; width: 100%; padding: 0; background: #111; }
-#jjReader .jjr-yt .jjr-card-host { padding: 10px 14px; }
 #jjReader .jjr-card-host { color: #9aa0a6; font-size: 14px; }
 #jjReader .jjr-card-url { margin-top: 4px; font-size: 15px; word-break: break-all; }
 #jjReader .jjr-pushes { margin-top: 28px; border-top: 1px solid #333; padding-top: 14px; }
@@ -1012,3 +1011,29 @@ span {
   color: var(--jj-text-color, #c0c0c0);
 }
 input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
+
+/* reader link cards (phone-app style) */
+#jjReader .jjr-card { padding: 0; }
+#jjReader .jjr-card-text { padding: 12px 16px 14px; }
+#jjReader .jjr-card-thumb { display: block; width: 100%; max-height: 420px; object-fit: cover; }
+#jjReader .jjr-card-title { margin-top: 4px; font-size: 18px; font-weight: bold; line-height: 1.4; color: #f2f2f2; }
+#jjReader .jjr-card-desc {
+  margin-top: 4px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #a7abb1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+#jjReader .jjr-card-allow {
+  margin-top: 8px;
+  background: #3b5f99;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 13px;
+  padding: 4px 10px;
+  cursor: pointer;
+}

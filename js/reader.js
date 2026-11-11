@@ -366,20 +366,131 @@ PttReader.prototype.linkBlock = function(url) {
     thumb.loading = 'lazy';
     thumb.src = 'https://i.ytimg.com/vi/' + yt.split(/[?&]/)[0] + '/hqdefault.jpg';
     card.appendChild(thumb);
-    card.appendChild(el('div', 'jjr-card-host', 'YouTube'));
+    var ytText = el('div', 'jjr-card-text');
+    ytText.appendChild(el('div', 'jjr-card-host', 'YouTube'));
+    card.appendChild(ytText);
+    card.setAttribute('data-preview-url', url);
     wrap.appendChild(card);
   } else {
+    // Link card like phone apps: filled with the page's title, summary and
+    // image once previews are allowed (see loadPreviews).
     var host = '';
     try { host = new URL(url).hostname; } catch (e) {}
     var c = el('a', 'jjr-card');
     c.href = url;
     c.target = '_blank';
     c.rel = 'noreferrer';
-    c.appendChild(el('div', 'jjr-card-host', host));
-    c.appendChild(el('div', 'jjr-card-url', url));
-    wrap.replaceChild(c, a);
+    var text = el('div', 'jjr-card-text');
+    text.appendChild(el('div', 'jjr-card-host', host));
+    c.appendChild(text);
+    c.setAttribute('data-preview-url', url);
+    wrap.appendChild(c);
   }
   return wrap;
+};
+
+// ---- link previews ----------------------------------------------------------
+// Fetching arbitrary sites needs an optional permission that the user grants
+// once from a card ("顯示網址預覽").
+
+PttReader.PREVIEW_ORIGINS = ['http://*/*', 'https://*/*'];
+
+PttReader.prototype.previewPermission = function() {
+  return new Promise(function(resolve) {
+    if (!(chrome.permissions && chrome.permissions.contains)) {
+      resolve(false);
+      return;
+    }
+    chrome.permissions.contains({ origins: PttReader.PREVIEW_ORIGINS }, function(ok) { resolve(!!ok); });
+  });
+};
+
+PttReader.prototype.loadPreviews = function(root) {
+  var self = this;
+  var cards = root.querySelectorAll('[data-preview-url]');
+  if (!cards.length) return;
+  this.previewPermission().then(function(ok) {
+    for (var i = 0; i < cards.length; ++i) {
+      if (ok) self.fillCard(cards[i]);
+      else self.offerPreview(cards[i], root);
+    }
+  });
+};
+
+PttReader.prototype.offerPreview = function(card, root) {
+  var self = this;
+  if (card.querySelector('.jjr-card-allow')) return;
+  var btn = PttReader.el('button', 'jjr-card-allow', i18n('reader_allowPreview'));
+  btn.type = 'button';
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    chrome.permissions.request({ origins: PttReader.PREVIEW_ORIGINS }, function(granted) {
+      if (!granted) return;
+      var btns = root.querySelectorAll('.jjr-card-allow');
+      for (var i = 0; i < btns.length; ++i) btns[i].parentNode.removeChild(btns[i]);
+      self.loadPreviews(root);
+    });
+  });
+  card.querySelector('.jjr-card-text').appendChild(btn);
+};
+
+PttReader.prototype.fetchPreview = function(url) {
+  this.previewCache = this.previewCache || {};
+  if (this.previewCache[url]) return this.previewCache[url];
+  var p = fetch(url, { credentials: 'omit', redirect: 'follow' }).then(function(res) {
+    var type = res.headers.get('content-type') || '';
+    if (!res.ok || type.indexOf('html') < 0) return null;
+    return res.text().then(function(html) {
+      var doc = new DOMParser().parseFromString(html.slice(0, 400000), 'text/html');
+      var meta = function(names) {
+        for (var i = 0; i < names.length; ++i) {
+          var n = doc.querySelector('meta[property="' + names[i] + '"], meta[name="' + names[i] + '"]');
+          if (n && n.getAttribute('content')) return n.getAttribute('content').trim();
+        }
+        return '';
+      };
+      var title = meta(['og:title', 'twitter:title']) || (doc.title || '').trim();
+      var image = meta(['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src']);
+      if (image) {
+        try { image = new URL(image, res.url).href; } catch (e) { image = ''; }
+      }
+      return {
+        title: title,
+        desc: meta(['og:description', 'description', 'twitter:description']),
+        image: image,
+        site: meta(['og:site_name'])
+      };
+    });
+  }).catch(function() { return null; });
+  this.previewCache[url] = p;
+  return p;
+};
+
+PttReader.prototype.fillCard = function(card) {
+  var el = PttReader.el;
+  var url = card.getAttribute('data-preview-url');
+  var isYt = card.classList.contains('jjr-yt');
+  this.fetchPreview(url).then(function(info) {
+    if (!info || !(info.title || info.image)) return;
+    var text = card.querySelector('.jjr-card-text');
+    var allow = text.querySelector('.jjr-card-allow');
+    if (allow) allow.parentNode.removeChild(allow);
+    if (info.image && !isYt) {
+      var img = el('img', 'jjr-card-thumb');
+      img.loading = 'lazy';
+      img.referrerPolicy = 'no-referrer';
+      img.src = info.image;
+      img.addEventListener('error', function() {
+        if (img.parentNode) img.parentNode.removeChild(img);
+      });
+      card.insertBefore(img, card.firstChild);
+      card.classList.add('jjr-card-rich');
+    }
+    if (info.site) text.querySelector('.jjr-card-host').textContent = info.site;
+    if (info.title) text.appendChild(el('div', 'jjr-card-title', info.title));
+    if (info.desc && !isYt) text.appendChild(el('div', 'jjr-card-desc', info.desc));
+  });
 };
 
 PttReader.prototype.renderText = function(text, container) {
@@ -429,13 +540,18 @@ PttReader.prototype.render = function(article, h) {
   o.querySelector('.jjr-bar-title').textContent = (article.meta['標題'] || h.title) + '  ' + h.board;
   o.querySelector('.jjr-web').href = article.url;
 
+  // Header like phone apps: title, then 時間 / 作者 / 看板 lines.
   var head = el('div', 'jjr-head');
   head.appendChild(el('div', 'jjr-title', article.meta['標題'] || h.title));
-  var info = el('div', 'jjr-info');
-  info.appendChild(el('span', '', (article.meta['作者'] || h.author)));
-  info.appendChild(el('span', '', article.meta['看板'] || h.board));
-  info.appendChild(el('span', '', article.meta['時間'] || ''));
-  head.appendChild(info);
+  [['時間', article.meta['時間'] || ''],
+   ['作者', article.meta['作者'] || h.author],
+   ['看板', article.meta['看板'] || h.board]].forEach(function(pair) {
+    if (!pair[1]) return;
+    var line = el('div', 'jjr-info');
+    line.appendChild(el('span', 'jjr-info-tag', pair[0]));
+    line.appendChild(document.createTextNode(pair[1]));
+    head.appendChild(line);
+  });
   page.appendChild(head);
 
   var body = el('div', 'jjr-body');
@@ -444,6 +560,7 @@ PttReader.prototype.render = function(article, h) {
 
   page.appendChild(this.renderPushes(article));
   o.querySelector('.jjr-scroll').scrollTop = 0;
+  this.loadPreviews(page);
 };
 
 PttReader.prototype.renderPushes = function(article) {

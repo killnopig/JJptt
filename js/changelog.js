@@ -3,6 +3,15 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.6.0',
+    date: '2026-11-11',
+    changes: [
+      '閱讀模式的網址改成預覽卡片：顯示網站的大圖、標題與摘要（第一次需在卡片上按「顯示網址預覽」允許讀取網站）',
+      'YouTube 卡片顯示影片標題',
+      '閱讀模式標題區改成分行顯示「時間／作者／看板」'
+    ]
+  },
+  {
     version: '1.5.0',
     date: '2026-11-11',
     changes: [
