@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.11.7',
+    date: '2026-11-11',
+    changes: [
+      '網址預覽卡片的縮圖不再塞滿整個寬度：卡片最寬 560px，縮圖高度跟文章圖片一樣受「圖片最大高度」設定限制'
+    ]
+  },
+  {
     version: '1.11.6',
     date: '2026-11-11',
     changes: [
