@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.2.1',
+    date: '2026-11-11',
+    changes: [
+      '修正：PTT 改了文章底部狀態列的格式，導致認不出「正在看文章」——推文樓層、國籍、可疑標記、推文黑名單和好讀模式都因此失效'
+    ]
+  },
+  {
     version: '1.2.0',
     date: '2026-11-11',
     changes: [
