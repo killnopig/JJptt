@@ -3,6 +3,15 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.7.2',
+    date: '2026-11-11',
+    changes: [
+      '修正：文章載入時就往下翻頁，閱讀模式不會自動出現',
+      '設定名稱改為「文章內嵌圖片／閱讀模式」，方便找到',
+      '閱讀模式載入時，畫面上方顯示「閱讀模式載入中…」'
+    ]
+  },
+  {
     version: '1.7.1',
     date: '2026-11-11',
     changes: [

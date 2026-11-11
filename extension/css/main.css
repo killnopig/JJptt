@@ -1077,3 +1077,20 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 .jjt-root .jjt-status { flex: none; display: flex; white-space: pre; overflow: hidden; }
 .jjt-root .jjt-status-fill { flex: 1; }
 .jjt-root .jjt-push-media .jjr-img { max-height: 280px; margin: 2px 0 6px; }
+
+#jjLoading {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2900;
+  padding: 6px 16px;
+  border-radius: 6px;
+  background: rgba(59, 95, 153, .92);
+  color: #fff;
+  font-size: 14px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+}
+#jjLoading.show { opacity: 1; }

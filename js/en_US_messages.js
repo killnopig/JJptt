@@ -265,7 +265,7 @@ locale.en_US = {
     "message": "JJptt updated to v%s. See right-click → Settings → About for what changed"
   },
   "options_enableReader": {
-    "message": "Inline images (extension): articles keep the terminal look with images and link previews shown in the text"
+    "message": "Inline images / reader (extension): open articles automatically in the terminal look with images and link previews in the text"
   },
   "reader_back": {
     "message": "← Back to list"

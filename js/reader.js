@@ -98,6 +98,10 @@ PttReader.prototype.onTerminalUpdate = function() {
   if (this.app.buf.pageState != 3) {
     // left the article: allow it to open again next time
     this.dismissedKey = '';
+    if (this.loadingKey) {
+      this.loadingKey = '';
+      this.setLoading(false);
+    }
     if (this.overlay && this.overlay.style.display !== 'none') this.close();
     return;
   }
@@ -345,13 +349,18 @@ PttReader.prototype.openFor = function(h, key, manual) {
   this.loadingKey = key;
   var url = (this.lastHeader && this.lastHeader.key === key) ? this.lastUrl : '';
   var load = url ? this.fetchArticle(url) : this.findArticle(h);
-  if (manual) this.app.showToast(i18n('app_loading') || '…', 1500);
+  this.setLoading(true);
   load.then(function(article) {
+    if (self.loadingKey === key) self.setLoading(false);
     if (self.loadingKey !== key) return;  // moved on meanwhile
-    // Still reading the same article in the terminal? (manual opens may be
-    // on a later page where the header is not visible)
-    var now = self.headerFromTerminal();
-    if (!manual && (!now || now.board + '|' + now.author + '|' + now.title !== key)) return;
+    // Still reading the same article in the terminal? The header may have
+    // scrolled away if the user paged down while it was loading, so use the
+    // article tracked from the terminal rather than what is on screen.
+    if (!manual) {
+      self.trackTerminal();
+      var cur = self.lastHeader;
+      if (self.app.buf.pageState != 3 || !cur || cur.key !== key) return;
+    }
     self.loadingKey = '';
     self.currentKey = key;
     self.article = article;
@@ -359,12 +368,26 @@ PttReader.prototype.openFor = function(h, key, manual) {
     self.show();
   }).catch(function(e) {
     console.log('reader unavailable for this article:', e);
-    if (self.loadingKey === key) self.loadingKey = '';
+    if (self.loadingKey === key) {
+      self.loadingKey = '';
+      self.setLoading(false);
+    }
     self.dismissedKey = key;  // stay in the terminal for this one
     var msg = (e && e.message) || String(e);
     if (/Failed to fetch/i.test(msg)) msg = i18n('reader_err_network');
     self.app.showToast(i18n('reader_failed').replace('%s', msg), 5000);
   });
+};
+
+// "閱讀模式載入中…" at the top while the article is being fetched.
+PttReader.prototype.setLoading = function(on) {
+  var n = document.getElementById('jjLoading');
+  if (!n) {
+    n = PttReader.el('div', '', i18n('app_loading'));
+    n.id = 'jjLoading';
+    document.body.appendChild(n);
+  }
+  n.classList.toggle('show', !!on);
 };
 
 PttReader.el = function(tag, cls, text) {
