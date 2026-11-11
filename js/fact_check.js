@@ -283,20 +283,31 @@ FactCheck.prototype.analyze = function(article) {
   this.history.record(article, ids, this.lastFastIds || {});
   this.historyTags(article, ids, add, report);
 
-  // Phase 3: data-centre / VPN addresses
+  // Phase 3: data-centre / VPN addresses. Shown first: the report line goes
+  // to the top and the tag to the front of each push's tags.
   if (this.opt('factHosting') && typeof HostingIp !== 'undefined' && HostingIp.ready) {
-    var hosts = {};
+    var byProvider = {};
+    var hostRows = [];
     for (i = 0; i < n; ++i) {
       var h = pushes[i].ip ? HostingIp.lookup(pushes[i].ip) : '';
       if (!h) continue;
-      add(i, '機房:' + h, 'warn');
-      hosts[ids[i]] = h;
+      hostRows.push([i, h]);
+      (byProvider[h] = byProvider[h] || {})[ids[i]] = true;
     }
-    var hn = Object.keys(hosts).length;
-    if (hn) {
-      report.push('機房／VPN IP：' + hn + ' 個帳號（' + Object.keys(hosts).slice(0, 5).map(function(k) {
-        return k + '=' + hosts[k];
-      }).join('、') + (hn > 5 ? '…' : '') + '）');
+    hostRows.forEach(function(r) {
+      var same = Object.keys(byProvider[r[1]]).length >= 2;
+      tags[r[0]].unshift({ t: (same ? '同機房:' : '機房:') + r[1], lvl: 'warn' });
+    });
+    var provs = Object.keys(byProvider).sort(function(x, y) {
+      return Object.keys(byProvider[y]).length - Object.keys(byProvider[x]).length;
+    });
+    if (provs.length) {
+      var shared = provs.filter(function(pv) { return Object.keys(byProvider[pv]).length >= 2; });
+      var parts = provs.map(function(pv) {
+        var accs = Object.keys(byProvider[pv]);
+        return pv + ' ' + accs.length + ' 個帳號（' + accs.slice(0, 5).join('、') + (accs.length > 5 ? '…' : '') + '）';
+      });
+      report.unshift((shared.length ? '同機房：' : '機房／VPN IP：') + parts.join('；'));
     }
   }
 

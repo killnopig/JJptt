@@ -556,7 +556,7 @@ locale.zh_TW = {
     "message": "推文至少幾則才顯示報告框"
   },
   "options_factHosting": {
-    "message": "機房／VPN IP：推文 IP 來自雲端機房或 VPN 業者（AWS、Google Cloud、DigitalOcean、M247 等 34 家），標「機房:業者名」"
+    "message": "機房／VPN IP（優先顯示）：推文 IP 來自雲端機房或 VPN 業者（AWS、Google Cloud、DigitalOcean、M247 等 34 家）標「機房:業者」；兩個以上帳號來自同一家標「同機房:業者」，報告第一行列出"
   },
   "options_factReportExpanded": {
     "message": "報告框預設展開（不勾選則只顯示一行，點一下展開）"

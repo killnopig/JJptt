@@ -559,7 +559,7 @@ locale.en_US = {
     "message": "Pushes needed before the report box is shown"
   },
   "options_factHosting": {
-    "message": "Data-centre / VPN IPs: pushes from cloud, hosting or VPN providers (AWS, Google Cloud, DigitalOcean, M247 and others), tagged with the provider"
+    "message": "Data-centre / VPN IPs (shown first): pushes from cloud, hosting or VPN providers are tagged with the provider; two or more accounts from the same provider are tagged 同機房 and listed first in the report"
   },
   "options_factReportExpanded": {
     "message": "Show the report expanded (otherwise one line; click to expand)"

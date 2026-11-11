@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.21.4',
+    date: '2026-11-12',
+    changes: [
+      '真.事實查核中心：機房／VPN IP 改成優先顯示——報告第一行、推文標籤最前面；兩個以上帳號來自同一家機房標「同機房:業者」'
+    ]
+  },
+  {
     version: '1.21.3',
     date: '2026-11-12',
     changes: [
