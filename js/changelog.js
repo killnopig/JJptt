@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.23.1',
+    date: '2026-11-12',
+    changes: [
+      '修正：「全部開啟／全部關閉」不再改動「報告框預設展開」（那是顯示方式，不是偵測規則；預設仍是收起只顯示一行）'
+    ]
+  },
+  {
     version: '1.23.0',
     date: '2026-11-12',
     changes: [
