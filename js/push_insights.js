@@ -52,7 +52,7 @@ PushInsights.prototype.countryLabel = function(cc) {
 
 PushInsights.prototype.hintTexts = function() {
   return {
-    prefix: this.pref('suspectPrefix', '⚠'),
+    prefix: this.pref('showSuspectPrefix', true) === false ? '' : this.pref('suspectPrefix', '⚠'),
     sameIp: this.pref('suspectSameIpText', '同IP'),
     authorIp: this.pref('suspectAuthorIpText', '與作者同IP'),
     watch: this.pref('watchText', '觀察')

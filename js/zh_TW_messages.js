@@ -474,6 +474,9 @@ locale.zh_TW = {
   "options_countryBoth": {
     "message": "國旗＋文字"
   },
+  "options_showSuspectPrefix": {
+    "message": "可疑標示前面加上前綴符號（例如 ⚠）"
+  },
   "options_suspectPrefix": {
     "message": "可疑標記前綴"
   },

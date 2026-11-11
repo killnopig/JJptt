@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.23.6',
+    date: '2026-11-12',
+    changes: [
+      '可疑標記前綴（⚠）加上勾選開關，取消勾選就不顯示'
+    ]
+  },
+  {
     version: '1.23.5',
     date: '2026-11-12',
     changes: [

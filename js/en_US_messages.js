@@ -477,6 +477,9 @@ locale.en_US = {
   "options_countryBoth": {
     "message": "Flag + text"
   },
+  "options_showSuspectPrefix": {
+    "message": "Put a prefix sign (e.g. ⚠) before hints"
+  },
   "options_suspectPrefix": {
     "message": "Hint prefix"
   },

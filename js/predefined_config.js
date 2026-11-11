@@ -81,6 +81,7 @@ var DEFAULT_PREFS = {
   textColor : '#f7f7f7',
   floorColor : '#ffea00',
   countryDisplay : 1,
+  showSuspectPrefix : true,
   suspectPrefix : '⚠',
   suspectSameIpText : '多',
   suspectAuthorIpText : '作',
