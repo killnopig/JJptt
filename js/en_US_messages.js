@@ -237,6 +237,9 @@ locale.en_US = {
   "options_openInPackagedApp": {
     "message": "Launch PttChrome in packaged app."
   },
+  "options_noCloseQuery": {
+    "message": "Close the tab without asking"
+  },
   "options_closeQuery": {
     "message": "Ask before closing tab."
   },

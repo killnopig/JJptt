@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.25.4',
+    date: '2026-11-12',
+    changes: [
+      '設定 → 排版：「介面」移到「推文顯示」下面',
+      '「關閉分頁時先詢問」改成「關閉分頁時不詢問」並預設打勾（原本有勾「先詢問」的會自動轉成不勾）'
+    ]
+  },
+  {
     version: '1.25.3',
     date: '2026-11-12',
     changes: [

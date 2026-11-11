@@ -1289,7 +1289,10 @@ pttchrome.App.prototype.onPrefChange = function(pref, name) {
       this.copyOnSelect = pref.get(name);
       break;
     case 'closeQuery':
-      this.alertBeforeUnload = pref.get(name);
+      break;  // follows noCloseQuery
+    case 'noCloseQuery':
+      this.alertBeforeUnload = !pref.get(name);
+      pref.values.closeQuery = this.alertBeforeUnload;
       break;
     case 'endTurnsOnLiveUpdate':
       this.endTurnsOnLiveUpdate = pref.get(name);

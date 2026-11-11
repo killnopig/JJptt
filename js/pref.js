@@ -704,6 +704,9 @@ PttChromePref.prototype = {
       if (v.enableBlacklist === false) this.values.blacklistMode = 2;
       else if (v.hideBlacklisted === true) this.values.blacklistMode = 1;
     }
+    if (msg.data && msg.data.values && msg.data.values.closeQuery === true && this.values.noCloseQuery !== false) {
+      this.values.noCloseQuery = false;  // was "ask before closing"
+    }
     if (msg.data && msg.data.values && msg.data.values.factReportExpanded === true &&
         this.values.factReportCollapsed !== false) {
       this.values.factReportCollapsed = false;  // was "expanded by default"

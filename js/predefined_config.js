@@ -4,6 +4,7 @@ var DEFAULT_PREFS = {
 
   // general
   closeQuery            : false,
+  noCloseQuery          : true,
   //dbcsDetect    : false,
   openInPackagedApp     : false,
   enablePicPreview      : true,

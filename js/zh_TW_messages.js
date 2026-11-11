@@ -237,6 +237,9 @@ locale.zh_TW = {
   "options_openInPackagedApp": {
     "message": "'批' 圖示會在獨立視窗開啟 PttChrome"
   },
+  "options_noCloseQuery": {
+    "message": "關閉分頁時不詢問"
+  },
   "options_closeQuery": {
     "message": "關閉分頁時先詢問"
   },
