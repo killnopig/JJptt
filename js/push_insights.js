@@ -109,6 +109,10 @@ PushInsights.prototype.resetArticle = function() {
   this.pushStartLine = 0;
   this.urlLineSeen = false;
   this.nonPushLines = {};
+  // repeat pushers: id -> { line: true } over all pages seen, and the
+  // colour each one got (kept for the whole article)
+  this.pushLinesById = {};
+  this.repeatColors = {};
 };
 
 // Article line number shown on each screen row in normal mode, using the
@@ -148,7 +152,43 @@ PushInsights.prototype.rowText = function(row) {
   return row.textContent.replace(/ /g, ' ');
 };
 
+// Users with several pushes in one article: each gets its own colour so
+// their pushes stand out from each other.
+PushInsights.REPEAT_COLORS = ['#ff5c5c', '#4dabf7', '#51cf66', '#ff922b', '#cc5de8', '#22b8cf',
+                              '#f06595', '#94d82d', '#748ffc', '#20c997', '#fab005', '#e8590c'];
+
+PushInsights.prototype.repeatMin = function() {
+  var v = this.app.pref && this.app.pref.values;
+  if (!v || v.colorRepeatPushers === false) return 0;
+  var n = parseInt(v.repeatPusherMin, 10);
+  return isNaN(n) ? 2 : Math.max(2, Math.min(20, n));
+};
+
+// colour for this id (assigned in order of appearance), '' if not a repeat pusher
+PushInsights.prototype.repeatColor = function(map, id, count) {
+  var min = this.repeatMin();
+  if (!min || count < min) return '';
+  if (!(id in map)) {
+    var n = Object.keys(map).length;
+    map[id] = PushInsights.REPEAT_COLORS[n % PushInsights.REPEAT_COLORS.length];
+  }
+  return map[id];
+};
+
+PushInsights.setRepeatColor = function(row, color) {
+  if (color) {
+    if (row.getAttribute('data-jj-rp') !== color) {
+      row.setAttribute('data-jj-rp', color);
+      row.style.setProperty('--jj-rp', color);
+    }
+  } else if (row.hasAttribute('data-jj-rp')) {
+    row.removeAttribute('data-jj-rp');
+    row.style.removeProperty('--jj-rp');
+  }
+};
+
 PushInsights.prototype.clearRow = function(row) {
+  PushInsights.setRepeatColor(row, '');
   if (row.hasAttribute('data-jj') || row.hasAttribute('data-jj-floor')) {
     row.removeAttribute('data-jj');
     row.removeAttribute('data-jj-floor');
@@ -206,6 +246,7 @@ PushInsights.prototype.annotate = function() {
     var id = m[2].toLowerCase();
     var ip = m[4] || '';
     pushCountById[id] = (pushCountById[id] || 0) + 1;
+    if (line !== null) (this.pushLinesById[id] = this.pushLinesById[id] || {})[line] = true;
     pushes.push({ row: row, id: id, ip: ip, nth: pushCountById[id], line: line });
     if (ip) {
       (this.idsByIp[ip] = this.idsByIp[ip] || {})[id] = true;
@@ -224,6 +265,10 @@ PushInsights.prototype.annotate = function() {
     var warn = [];
     var tags = [];
     var flagText = '';
+
+    // count over every page of this article seen so far
+    var seenCount = this.pushLinesById[p.id] ? Object.keys(this.pushLinesById[p.id]).length : 0;
+    PushInsights.setRepeatColor(p.row, this.repeatColor(this.repeatColors, p.id, Math.max(seenCount, pushCountById[p.id])));
 
     var floor = easyReading ? i + 1 : this.floorOf(p.line);
     var floorText = floor > 0 ? floor + '樓' : '';  // shown at the left

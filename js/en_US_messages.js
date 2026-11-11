@@ -534,6 +534,12 @@ locale.en_US = {
   "options_readerPrefetchCount": {
     "message": "Articles above / below to load ahead in the reader (0 = off, up to 5)"
   },
+  "options_colorRepeatPushers": {
+    "message": "Colour users who push several times in one article (a different colour per user)"
+  },
+  "options_repeatPusherMin": {
+    "message": "Pushes needed before colouring (at least 2)"
+  },
   "options_readerImageMaxPercent": {
     "message": "Reader image max height (% of the view, 10-100)"
   },

@@ -1243,6 +1243,7 @@ PttReader.prototype.renderPushes = function(article) {
 
   var result = [];
   var nth = {};
+  var repeatColors = {};
   article.pushes.forEach(function(p, i) {
     var id = p.id.toLowerCase();
     nth[id] = (nth[id] || 0) + 1;
@@ -1294,6 +1295,7 @@ PttReader.prototype.renderPushes = function(article) {
     // "推 userid: content          ip mm/dd hh:mm" in PTT colours
     var line = el('div', 'jjt-line jjt-push' + (blackListed ? ' jjt-faded' : ''));
     line.setAttribute('data-user', id);
+    PushInsights.setRepeatColor(line, insights.repeatColor(repeatColors, id, countById[id]));
     var left = el('span', 'jjt-push-left');
     left.appendChild(el('span', p.tag === '推' ? 'q15 b0' : 'q9 b0', p.tag + ' '));
     left.appendChild(el('span', 'q11 b0', p.id));

@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.17.0',
+    date: '2026-11-12',
+    changes: [
+      '抓網軍新規則：同一篇文章推文 2 則以上的人，ID 和推文內容變色，每個人不同顏色，一眼看出哪幾則是同一個人（終端機跨頁累計、閱讀模式算整篇；同一篇顏色固定）',
+      '設定 → 排版 →「推文分析與顏色」可以開關，也可以改成幾則以上才變色'
+    ]
+  },
+  {
     version: '1.16.0',
     date: '2026-11-12',
     changes: [

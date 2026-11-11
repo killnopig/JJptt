@@ -1231,3 +1231,9 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 #tabContentExtensions #opt_aiService select,
 #tabContentExtensions #opt_aiCustomUrl input,
 #tabContentExtensions #opt_aiPrompt input { width: 100%; max-width: 520px; }
+
+/* repeat pushers: id and push text in the user's own colour */
+#mainContainer > span[data-jj-rp] .q11,
+#mainContainer > span[data-jj-rp] .q3,
+.jjt-root .jjt-push[data-jj-rp] .q11,
+.jjt-root .jjt-push[data-jj-rp] .q3 { color: var(--jj-rp) !important; }

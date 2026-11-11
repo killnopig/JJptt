@@ -531,6 +531,12 @@ locale.zh_TW = {
   "options_readerPrefetchCount": {
     "message": "閱讀模式預先讀取上下幾篇（0 = 不預先讀取，最多 5）"
   },
+  "options_colorRepeatPushers": {
+    "message": "同一篇文章推文多次的人，ID 和推文內容變色（每個人不同顏色，方便看出是同一人）"
+  },
+  "options_repeatPusherMin": {
+    "message": "推文幾則以上才變色（最少 2）"
+  },
   "options_readerImageMaxPercent": {
     "message": "閱讀模式圖片最大高度（畫面的 %，10～100）"
   },

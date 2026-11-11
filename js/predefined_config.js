@@ -48,6 +48,8 @@ var DEFAULT_PREFS = {
   readerLowResImages : true,
   readerImageMaxPercent : 60,
   readerPrefetchCount : 5,
+  colorRepeatPushers : true,
+  repeatPusherMin : 2,
   textColor : '#f7f7f7',
   floorColor : '#ffea00',
   countryDisplay : 1,
