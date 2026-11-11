@@ -89,7 +89,7 @@ locale.en_US = {
     "message": "List and article view"
   },
   "options_syncBackup": {
-    "message": "Sync & backup"
+    "message": "Sync, backup & updates"
   },
   "backup_title": {
     "message": "Backup file"
@@ -127,11 +127,14 @@ locale.en_US = {
   "update_failedRun": {
     "message": "Automatic update failed."
   },
+  "update_reopen": {
+    "message": "⚠ After Update now, JJptt closes and reopens by itself and reconnects to PTT. Send any post or push you are writing first."
+  },
   "update_title": {
     "message": "Updates"
   },
   "update_help": {
-    "message": "JJptt checks GitHub for a new version every time it opens.\nWhen there is one: double-click update-jjptt.command (update-jjptt.bat on Windows) in the jjptt folder; an \"Apply update\" button appears when the download is done."
+    "message": "JJptt checks GitHub for a new version every time it opens. Update now downloads it, then JJptt closes and reopens.\nIf the button does not work: double-click update-jjptt.command (update-jjptt.bat on Windows) in the jjptt folder; then click Apply update, which also reopens JJptt."
   },
   "update_check": {
     "message": "Check now"
@@ -166,11 +169,20 @@ locale.en_US = {
   "ext_askAiNote": {
     "message": "Select text, right-click → Ask AI to open the AI below in a new tab with the question filled in; in the article view you can ask about the whole article."
   },
-  "options_autologin": {
+  "options_factLists": {
+    "message": "Lists"
+  },
+  "options_factDetect": {
+    "message": "Automatic detection"
+  },
+  "options_autologinBox": {
     "message": "Auto login"
   },
+  "options_autologin": {
+    "message": "Auto login & more"
+  },
   "options_blacklist": {
-    "message": "Blacklist"
+    "message": "Fact check center"
   },
   "options_extensions": {
     "message": "Extensions"
@@ -301,7 +313,7 @@ locale.en_US = {
     "message": "Ask AI: is this article true?"
   },
   "options_askAi": {
-    "message": "Ask AI whether it is true"
+    "message": "Ask AI to check"
   },
   "options_aiService": {
     "message": "AI to use"
@@ -439,7 +451,7 @@ locale.en_US = {
     "message": "cannot reach www.ptt.cc"
   },
   "options_insightsHeading": {
-    "message": "Push insights & colours"
+    "message": "Push display"
   },
   "options_textColor": {
     "message": "Text colour (terminal and reader body)"

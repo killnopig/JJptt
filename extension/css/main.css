@@ -1223,17 +1223,24 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 
 /* 額外功能: sections line up, grey description, inputs one width */
 .jj-note { color: #555; margin: 0 0 10px; }
-#tabContentExtensions .list-group-item-text > div { margin-left: 0; }
-#tabContentExtensions .list-group { margin-bottom: 22px; }
-#tabContentExtensions #ext_quickSearchList { max-width: 520px; margin-bottom: 0; }
+#tabContentAutologin .list-group { margin-bottom: 22px; }
+#ext_quickSearchList { max-width: 520px; margin-bottom: 0; }
 #ext_quickSearchList .qSearchItemName { width: 30%; }
 #ext_quickSearchList .qSearchItemQuery { width: calc(70% - 40px); }
-#tabContentExtensions #opt_aiService select,
-#tabContentExtensions #opt_aiCustomUrl input,
-#tabContentExtensions #opt_aiPrompt input { width: 100%; max-width: 520px; }
+#opt_aiService select,
+#opt_aiCustomUrl input,
+#opt_aiPrompt input { width: 100% !important; max-width: 520px; }
 
 /* repeat pushers: id and push text in the user's own colour */
 #mainContainer > span[data-jj-rp] .q11,
 #mainContainer > span[data-jj-rp] .q3,
 .jjt-root .jjt-push[data-jj-rp] .q11,
 .jjt-root .jjt-push[data-jj-rp] .q3 { color: var(--jj-rp) !important; }
+
+/* 真.事實查核中心: three sections, aligned like the other tabs */
+#tabContentBlacklist .list-group-item-text > div { margin-left: 0; }
+#tabContentBlacklist .list-group { margin-bottom: 24px; }
+#tabContentBlacklist textarea { max-width: 520px; }
+#tabContentBlacklist #opt_blacklistedUsers { height: 120px !important; min-height: 0; }
+
+.jj-reopen { color: #c0392b; font-weight: bold; margin: 0 0 8px; }

@@ -276,6 +276,7 @@ JJUpdater.prototype.setupUi = function() {
     self.importSettings(this.files && this.files[0]);
   });
   $('#update_title').text(i18n('update_title'));
+  $('#update_reopen').text(i18n('update_reopen'));
   $('#update_help').text(i18n('update_help'));
   $('#update_check').text(i18n('update_check')).off().click(function(e) {
     e.preventDefault();

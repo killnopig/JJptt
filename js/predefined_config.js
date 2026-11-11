@@ -1,5 +1,5 @@
-var PREFS_CATEGORIES = ['mouseBrowsing', 'appearance', 'listLayout', 'askAi'];
-var PREFS_NAV = ['general', 'layout', 'mouseBrowsing', 'autologin', 'blacklist', 'syncBackup', 'extensions', 'about'];
+var PREFS_CATEGORIES = ['mouseBrowsing', 'appearance', 'listLayout', 'askAi', 'factLists', 'factDetect', 'autologinBox'];
+var PREFS_NAV = ['general', 'layout', 'mouseBrowsing', 'autologin', 'blacklist', 'syncBackup', 'about'];
 var DEFAULT_PREFS = {
 
   // general

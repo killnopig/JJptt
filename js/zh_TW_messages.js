@@ -89,7 +89,7 @@ locale.zh_TW = {
     "message": "文章列表與閱讀模式"
   },
   "options_syncBackup": {
-    "message": "同步與備份"
+    "message": "同步、備份與更新"
   },
   "backup_title": {
     "message": "備份成檔案"
@@ -127,11 +127,14 @@ locale.zh_TW = {
   "update_failedRun": {
     "message": "自動更新失敗。"
   },
+  "update_reopen": {
+    "message": "⚠ 按「立即更新」後，JJptt 會自動關閉再重新開啟，PTT 會重新連線。正在寫的文章或推文請先送出再更新。"
+  },
   "update_title": {
     "message": "檢查更新"
   },
   "update_help": {
-    "message": "JJptt 每次開啟時會自動檢查 GitHub 上有沒有新版本，有的話按「立即更新」就會自動下載並重新開啟。\n如果按鈕不能用：雙擊 jjptt 資料夾裡的 update-jjptt.command（Windows 用 update-jjptt.bat），下載完成後畫面上會出現「套用更新」按鈕。"
+    "message": "JJptt 每次開啟時會自動檢查 GitHub 上有沒有新版本。按「立即更新」會自動下載，下載完 JJptt 會自己關閉再重新開啟。\n如果按鈕不能用：雙擊 jjptt 資料夾裡的 update-jjptt.command（Windows 用 update-jjptt.bat），下載完成後畫面上會出現「套用更新」按鈕，按下去一樣會重新開啟。"
   },
   "update_check": {
     "message": "立即檢查"
@@ -166,11 +169,20 @@ locale.zh_TW = {
   "ext_askAiNote": {
     "message": "選取文字後按右鍵 →「問 AI：這是不是事實？」，會開新分頁到下面選的 AI 並自動填好問題；閱讀模式沒選字時可以問整篇。"
   },
-  "options_autologin": {
+  "options_factLists": {
+    "message": "名單"
+  },
+  "options_factDetect": {
+    "message": "自動偵測"
+  },
+  "options_autologinBox": {
     "message": "自動登入"
   },
+  "options_autologin": {
+    "message": "自動登入與其他"
+  },
   "options_blacklist": {
-    "message": "黑名單"
+    "message": "真.事實查核中心"
   },
   "options_extensions": {
     "message": "額外功能"
@@ -298,7 +310,7 @@ locale.zh_TW = {
     "message": "問 AI：這篇是不是事實？"
   },
   "options_askAi": {
-    "message": "問 AI 這是不是事實"
+    "message": "問 AI 查證"
   },
   "options_aiService": {
     "message": "用哪個 AI"
@@ -436,7 +448,7 @@ locale.zh_TW = {
     "message": "連不到 www.ptt.cc"
   },
   "options_insightsHeading": {
-    "message": "推文分析與顏色"
+    "message": "推文顯示"
   },
   "options_textColor": {
     "message": "一般文字顏色（終端機與閱讀模式內文）"

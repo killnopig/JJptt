@@ -102,7 +102,6 @@
               <li><a id="optNav_autologin" href="#tabContentAutologin" name="autologin" data-toggle="pill">Auto login</a></li>
               <li><a id="optNav_blacklist" href="#tabContentBlacklist" name="blacklist" data-toggle="pill">Blacklist</a></li>
               <li><a id="optNav_syncBackup" href="#tabContentSyncBackup" name="syncBackup" data-toggle="pill">Sync</a></li>
-              <li><a id="optNav_extensions" href="#tabContentExtensions" name="extensions" data-toggle="pill">Extensions</a></li>
               <li><a id="optNav_about" href="#tabContentAbout" name="about" data-toggle="pill">About</a></li>
             </ul>
 
@@ -128,8 +127,6 @@
                       <div id="opt_enablePicPreview" class="checkbox">
                       </div>
                       <div id="opt_enableNotifications" class="checkbox">
-                      </div>
-                      <div id="opt_enablePushInsights" class="checkbox">
                       </div>
                       <div id="opt_pushFilterDefault" class="form-group">
                       </div>
@@ -183,14 +180,8 @@
                     <div class="list-group-item-text">
                       <div id="opt_textColor" class="form-group"></div>
                       <div id="opt_floorColor" class="form-group"></div>
-                      <div id="opt_colorRepeatPushers" class="checkbox"></div>
-                      <div id="opt_repeatPusherMin" class="form-group"></div>
                       <div id="opt_countryDisplay" class="form-group"></div>
                       <div id="opt_labelLayout" class="form-group"></div>
-                      <div id="opt_suspectPrefix" class="form-group"></div>
-                      <div id="opt_suspectSameIpText" class="form-group"></div>
-                      <div id="opt_suspectAuthorIpText" class="form-group"></div>
-                      <div id="opt_watchText" class="form-group"></div>
                     </div>
                   </div>
                 </div>
@@ -225,7 +216,7 @@
                 <div class="group">
                   <small id="opt_autologinWarning" style="color:red;"></small>
                   <div class="list-group">
-                    <h4 id="opt_autologin" class="list-group-item-heading" style="margin-bottom:10px;"></h4>
+                    <h4 id="opt_autologinBox" class="list-group-item-heading" style="margin-bottom:10px;"></h4>
                     <div class="list-group-item-text">
                       <div id="login_username" class="form-group"></div>
                       <div id="login_password" class="form-group"></div>
@@ -241,29 +232,58 @@
                       </label>
                     </div>
                   </div>
+                  <div class="list-group">
+                    <h4 id="ext_quickSearch" class="list-group-item-heading"></h4>
+                    <div class="list-group-item-text">
+                      <p id="ext_quickSearchNote" class="jj-note"></p>
+                      <ul id="ext_quickSearchList" class="form-group" style="padding:0px">
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div class="tab-pane" id="tabContentBlacklist">
-                <div id="opt_enableBlacklist" class="checkbox">
+                <div class="group">
+                  <div class="list-group">
+                    <h4 id="opt_factLists" class="list-group-item-heading"></h4>
+                    <div class="list-group-item-text">
+                      <div id="opt_enableBlacklist" class="checkbox"></div>
+                      <div id="opt_hideBlacklisted" class="checkbox"></div>
+                      <div id="opt_blacklistedTitleKeywords" class="form-group"></div>
+                      <span id="opt_blacklistInstruction"></span>
+                      <textarea id="opt_blacklistedUsers" class="form-control"></textarea>
+                      <div id="opt_watchlistInstruction" style="margin-top:15px"></div>
+                      <textarea id="opt_watchlistedUsers" class="form-control" style="height:120px"></textarea>
+                      <div id="opt_customListName" class="form-group" style="margin-top:15px"></div>
+                      <div id="opt_notesInstruction"></div>
+                      <textarea id="opt_notedUsers" class="form-control" style="height:120px"></textarea>
+                    </div>
+                  </div>
+                  <div class="list-group">
+                    <h4 id="opt_factDetect" class="list-group-item-heading"></h4>
+                    <div class="list-group-item-text">
+                      <div id="opt_enablePushInsights" class="checkbox"></div>
+                      <div id="opt_autoBlacklistSameUrl" class="checkbox"></div>
+                      <div id="opt_tempBlacklist" style="margin:4px 0 10px 20px; color:#555"></div>
+                      <div id="opt_colorRepeatPushers" class="checkbox"></div>
+                      <div id="opt_repeatPusherMin" class="form-group"></div>
+                      <div id="opt_suspectPrefix" class="form-group"></div>
+                      <div id="opt_suspectSameIpText" class="form-group"></div>
+                      <div id="opt_suspectAuthorIpText" class="form-group"></div>
+                      <div id="opt_watchText" class="form-group"></div>
+                    </div>
+                  </div>
+                  <div class="list-group">
+                    <h4 id="opt_askAi" class="list-group-item-heading"></h4>
+                    <div class="list-group-item-text">
+                      <p id="ext_askAiNote" class="jj-note"></p>
+                      <div id="opt_aiService" class="form-group"></div>
+                      <div id="opt_aiCustomUrl" class="form-group"></div>
+                      <div id="opt_aiPrompt" class="form-group"></div>
+                    </div>
+                  </div>
                 </div>
-                <div id="opt_hideBlacklisted" class="checkbox">
-                </div>
-                <div id="opt_autoBlacklistSameUrl" class="checkbox">
-                </div>
-                <div id="opt_tempBlacklist" style="margin:4px 0 10px 20px; color:#555"></div>
-                <div id="opt_blacklistedTitleKeywords" class="form-group">
-                </div>
-
-                <span id="opt_blacklistInstruction"></span>
-                <!-- blacklist item start -->
-                <textarea id="opt_blacklistedUsers" class="form-control"></textarea>
-                <!-- blacklist item end -->
-                <div id="opt_watchlistInstruction" style="margin-top:15px"></div>
-                <textarea id="opt_watchlistedUsers" class="form-control" style="height:120px"></textarea>
-                <div id="opt_customListName" class="form-group" style="margin-top:15px"></div>
-                <div id="opt_notesInstruction"></div>
-                <textarea id="opt_notedUsers" class="form-control" style="height:120px"></textarea>
               </div>
 
               <div class="tab-pane" id="tabContentSyncBackup">
@@ -292,32 +312,11 @@
                   <div class="list-group" id="update_row">
                     <h4 id="update_title" class="list-group-item-heading"></h4>
                     <div class="list-group-item-text">
+                      <p id="update_reopen" class="jj-reopen"></p>
                       <p id="update_help" style="color:#555; white-space:pre-line"></p>
                       <a id="update_now" class="btn btn-primary"></a>
                       <a id="update_check" class="btn btn-default"></a>
                       <span id="update_status" style="margin-left:8px"></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="tab-pane" id="tabContentExtensions">
-                <div class="group">
-                  <div class="list-group">
-                    <h4 id="ext_quickSearch" class="list-group-item-heading"></h4>
-                    <div class="list-group-item-text">
-                      <p id="ext_quickSearchNote" class="jj-note"></p>
-                      <ul id="ext_quickSearchList" class="form-group" style="padding:0px">
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="list-group">
-                    <h4 id="opt_askAi" class="list-group-item-heading"></h4>
-                    <div class="list-group-item-text">
-                      <p id="ext_askAiNote" class="jj-note"></p>
-                      <div id="opt_aiService" class="form-group"></div>
-                      <div id="opt_aiCustomUrl" class="form-group"></div>
-                      <div id="opt_aiPrompt" class="form-group"></div>
                     </div>
                   </div>
                 </div>
