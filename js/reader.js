@@ -261,14 +261,23 @@ PttReader.prototype.startPrefetch = function(board, author, title) {
   this.prefetch[key] = { promise: p, at: Date.now(), board: board.toLowerCase(), author: author.toLowerCase(),
                          title: PttReader.prefetchKey('', '', title).slice(2) };
   var keys = Object.keys(this.prefetch);
-  if (keys.length > 15) delete this.prefetch[keys[0]];
+  if (keys.length > 25) delete this.prefetch[keys[0]];
 };
 
 PttReader.PREFETCH_TTL = 180000;
 
+// Setting: how many articles above / below to load ahead (0 = off).
+PttReader.prototype.prefetchCount = function() {
+  var pref = this.app.pref;
+  var n = parseInt(pref && pref.values ? pref.values.readerPrefetchCount : 1, 10);
+  if (isNaN(n)) n = 1;
+  return Math.max(0, Math.min(5, n));
+};
+
 // In the list: fetch the article under the cursor once it rests there.
 PttReader.prototype.schedulePrefetch = function() {
   var self = this;
+  if (!this.prefetchCount()) return;
   if (this.app.buf.pageState != 2 || !this.lastBoard) return;
   this.snapshotList();
   var snap = this.listSnap;
@@ -290,7 +299,10 @@ PttReader.prototype.prefetchNeighbours = function(h) {
   var cur = snap.rows[snap.index];
   if (!cur || cur.author.toLowerCase() !== String(h.author).toLowerCase()) return;
   var self = this;
-  [snap.index - 1, snap.index + 1].forEach(function(i) {
+  var n = this.prefetchCount();
+  var idx = [];
+  for (var d = 1; d <= n; ++d) idx.push(snap.index - d, snap.index + d);
+  idx.forEach(function(i) {
     var row = snap.rows[i];
     if (row) self.startPrefetch(snap.board, row.author, row.title);
   });

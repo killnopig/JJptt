@@ -3,6 +3,15 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.12.1',
+    date: '2026-11-11',
+    changes: [
+      '新增設定「閱讀模式預先讀取上下幾篇」（一般分頁，預設 1，0 = 不預先讀取，最多 5）',
+      '設定裡的「滑鼠瀏覽」移到左邊自成一個分頁',
+      '設定左邊的分頁點了之後不再出現黑色框框，目前所在的分頁改用粗體加藍色線標示'
+    ]
+  },
+  {
     version: '1.12.0',
     date: '2026-11-11',
     changes: [

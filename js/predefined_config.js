@@ -1,5 +1,5 @@
 var PREFS_CATEGORIES = ['mouseBrowsing', 'appearance', 'listLayout'];
-var PREFS_NAV = ['general', 'layout', 'autologin', 'blacklist', 'extensions', 'about'];
+var PREFS_NAV = ['general', 'layout', 'mouseBrowsing', 'autologin', 'blacklist', 'extensions', 'about'];
 var DEFAULT_PREFS = {
 
   // general
@@ -47,6 +47,7 @@ var DEFAULT_PREFS = {
   enableReader : true,
   readerLowResImages : true,
   readerImageMaxPercent : 40,
+  readerPrefetchCount : 1,
   textColor : '#c0c0c0',
   floorColor : '#8a8a8a',
   countryDisplay : 0,

@@ -411,6 +411,9 @@ locale.zh_TW = {
   "options_pushFilterDefault": {
     "message": "按 Z 搜尋推文數時自動填入（0 = 不填）"
   },
+  "options_readerPrefetchCount": {
+    "message": "閱讀模式預先讀取上下幾篇（0 = 不預先讀取，最多 5）"
+  },
   "options_readerImageMaxPercent": {
     "message": "閱讀模式圖片最大高度（畫面的 %，10～100）"
   },

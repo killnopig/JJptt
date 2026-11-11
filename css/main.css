@@ -402,6 +402,19 @@
   background: none;
 }
 
+/* no focus box after clicking a tab; the current tab is bold with a bar */
+#modalNav .nav > li > a:focus,
+#modalNav .nav > li > a:active {
+  outline: none;
+  box-shadow: none;
+}
+#modalNav .nav > li > a:focus-visible {
+  outline: 2px solid #337ab7;
+  outline-offset: 2px;
+}
+#modalNav .nav-pills > li > a { border-left: 3px solid transparent; padding-left: 8px !important; margin-left: -11px; }
+#modalNav .nav-pills > li.active > a { border-left-color: #337ab7; }
+
 #modalNav .nav-pills > li.active > a,
 #modalNav .nav-pills > li.active > a:hover,
 #modalNav .nav-pills > li.active > a:focus {
