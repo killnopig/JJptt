@@ -32,7 +32,7 @@ var DEFAULT_PREFS = {
   bbsMargin         : 0,
 
   // blacklist
-  enableBlacklist : false,
+  enableBlacklist : true,
   blacklistedUserIds  : '{}',
   hideBlacklisted : false,
   blacklistedTitleKeywords : '',

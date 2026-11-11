@@ -258,6 +258,9 @@ locale.en_US = {
   "options_saved": {
     "message": "✓ Settings saved"
   },
+  "toast_blacklisted": {
+    "message": "Added %s to the blacklist"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },

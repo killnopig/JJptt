@@ -601,6 +601,13 @@ pttchrome.App.prototype.setAutoPushthreadUpdate = function(seconds) {
 };
 
 pttchrome.App.prototype.doAddBlacklistUserId = function(userid) {
+  if (!this.pref.enableBlacklist) {
+    // Adding someone means the user wants the blacklist on.
+    this.pref.enableBlacklist = true;
+    this.pref.values.enableBlacklist = true;
+    this.pref.setStorage({ values: { enableBlacklist: true } });
+    $('#opt_enableBlacklist input').prop('checked', true);
+  }
   this.pref.blacklistedUserIds[userid] = true;
   this.pref.setBlacklistValue();
   this.pref.setBlacklistStorage();
@@ -609,6 +616,7 @@ pttchrome.App.prototype.doAddBlacklistUserId = function(userid) {
   } else {
     this.view.redraw(true);
   }
+  this.showToast(i18n('toast_blacklisted').replace('%s', userid));
 };
 
 pttchrome.App.prototype.doRemoveBlacklistUserId = function(userid) {
@@ -1553,10 +1561,9 @@ pttchrome.App.prototype.setupContextMenus = function() {
 
     // for getting push thread user id
     contextOnUserId = null;
-    if (self.pref.enableBlacklist || self.pushInsights.enabled) {
-      var srow = target.attr('srow');
-      if (srow === undefined || srow === null)
-        srow = target.parent().attr('srow');
+    if (target.length) {
+      // the clicked text can be nested several spans deep inside the row
+      var srow = target.closest('[srow]').attr('srow');
       srow = parseInt(srow);
       if (!isNaN(srow)) {
         var rowText = '';
@@ -1623,7 +1630,7 @@ pttchrome.App.prototype.setupContextMenus = function() {
       $('#cmenu_removeWatchUserId').hide();
     }
 
-    if (contextOnUserId && self.pref.enableBlacklist) {
+    if (contextOnUserId) {
       if (contextOnUserId in self.pref.blacklistedUserIds) {
         $('#cmenuRemoveBlacklistUserIdContent').text("'"+contextOnUserId+"'");
         $('#cmenu_addBlacklistUserId').hide();

@@ -82,10 +82,19 @@ PushInsights.prototype.rowText = function(row) {
 };
 
 PushInsights.prototype.clearRow = function(row) {
-  if (row.hasAttribute('data-jj')) {
+  if (row.hasAttribute('data-jj') || row.hasAttribute('data-jj-floor')) {
     row.removeAttribute('data-jj');
+    row.removeAttribute('data-jj-floor');
     row.removeAttribute('data-jj-level');
     row.removeAttribute('title');
+  }
+};
+
+PushInsights.prototype.setAttr = function(row, name, value) {
+  if (value) {
+    if (row.getAttribute(name) !== value) row.setAttribute(name, value);
+  } else if (row.hasAttribute(name)) {
+    row.removeAttribute(name);
   }
 };
 
@@ -147,7 +156,7 @@ PushInsights.prototype.annotate = function() {
     var warn = [];
 
     var floor = easyReading ? i + 1 : this.floorOf(p.line);
-    if (floor > 0) parts.push(floor + '樓');  // 樓
+    var floorText = floor > 0 ? floor + '樓' : '';  // shown at the left
 
     if (p.ip) {
       var cc = this.geo.lookup(p.ip);
@@ -182,16 +191,11 @@ PushInsights.prototype.annotate = function() {
     }
 
     var label = parts.concat(warn.length ? ['⚠ ' + warn.join(' ')] : []).join(' ');
-    if (label) {
-      if (p.row.getAttribute('data-jj') !== label) {
-        p.row.setAttribute('data-jj', label);
-        p.row.setAttribute('title', label);  // full text on hover if clipped
-      }
-      if (level) p.row.setAttribute('data-jj-level', level);
-      else p.row.removeAttribute('data-jj-level');
-    } else {
-      this.clearRow(p.row);
-    }
+    this.setAttr(p.row, 'data-jj-floor', floorText);
+    this.setAttr(p.row, 'data-jj', label);
+    this.setAttr(p.row, 'data-jj-level', label ? level : '');
+    // full text on hover in case the label is clipped
+    this.setAttr(p.row, 'title', [floorText, label].filter(Boolean).join(' '));
   }
 };
 

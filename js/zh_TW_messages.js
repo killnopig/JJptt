@@ -255,6 +255,9 @@ locale.zh_TW = {
   "options_saved": {
     "message": "✓ 設定已儲存"
   },
+  "toast_blacklisted": {
+    "message": "已把 %s 加入黑名單"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },

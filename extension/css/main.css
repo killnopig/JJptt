@@ -784,8 +784,23 @@ span {
 }
 
 /* JJptt push insights: labels drawn to the right of push rows */
-#mainContainer > span[data-jj] {
+#mainContainer > span[data-jj],
+#mainContainer > span[data-jj-floor] {
   position: relative;
+}
+#mainContainer > span[data-jj-floor]::before {
+  content: attr(data-jj-floor);
+  position: absolute;
+  top: 0;
+  right: 100%;
+  padding-right: 0.5em;
+  font-size: 0.6em;
+  line-height: 1.6667;
+  color: #8a8a8a;
+  white-space: pre;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 #mainContainer > span[data-jj]::after {
   content: attr(data-jj);

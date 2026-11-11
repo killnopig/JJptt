@@ -847,14 +847,18 @@ TermView.prototype = {
     this.chh = ch;
     var fontSize = this.chh + 'px';
     var mainWidth = this.chw*this.buf.cols+10;
-    // JJptt: leave room on the right for push insight labels when there is
-    // spare width (labels are positioned at --jj-label-left).
-    var insights = this.bbscore && this.bbscore.pushInsights;
-    if (insights && insights.enabled && !this.fontFitWindowWidth) {
+    // JJptt: room on the left for floor numbers and on the right for push
+    // insight labels (positioned at --jj-label-left).
+    var leftGutter = this.chw * this.leftGutterCols();
+    mainWidth += leftGutter;
+    if (this.insightsActive()) {
       var spare = innerBounds.width - mainWidth;
       mainWidth += Math.max(0, Math.min(spare, this.chw * 40));
     }
     this.mainDisplay.style.setProperty('--jj-label-left', (this.chw*this.buf.cols) + 'px');
+    this.mainContainer.style.paddingLeft = leftGutter ? leftGutter + 'px' : '';
+    this.lastRowDiv.style.paddingLeft = leftGutter ? leftGutter + 'px' : '';
+    this.replyRowDiv.style.paddingLeft = leftGutter ? leftGutter + 'px' : '';
     mainWidth = mainWidth + 'px';
     this.mainDisplay.style.fontSize = fontSize;
     this.mainDisplay.style.lineHeight = fontSize;
@@ -1064,10 +1068,17 @@ TermView.prototype = {
     return (this.useEasyReadingMode && this.buf.pageState == 3) ? 'display:none' : 'visibility:hidden';
   },
 
-  // Columns kept free on the right for push insight labels.
-  labelGutterCols: function() {
+  // Columns kept free for push insight labels: floor numbers on the left,
+  // country and hints on the right.
+  insightsActive: function() {
     var insights = this.bbscore && this.bbscore.pushInsights;
-    return (insights && insights.enabled && !this.fontFitWindowWidth) ? 10 : 0;
+    return !!(insights && insights.enabled && !this.fontFitWindowWidth);
+  },
+  leftGutterCols: function() {
+    return this.insightsActive() ? 5 : 0;
+  },
+  labelGutterCols: function() {
+    return this.insightsActive() ? 10 + this.leftGutterCols() : 0;
   },
 
   onWindowResizeForInsights: function() {
