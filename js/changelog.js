@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.11.9',
+    date: '2026-11-11',
+    changes: [
+      '閱讀模式的圖片縮圖一律靠左'
+    ]
+  },
+  {
     version: '1.11.8',
     date: '2026-11-11',
     changes: [

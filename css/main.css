@@ -1072,7 +1072,7 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 .jjt-root .jjt-line[data-jj-level="watch"]::after { color: #d58bff; }
 .jjt-root .jjt-line[data-jj-level="warn"]::after { color: #ff5c5c; }
 .jjt-root .jjr-media { margin: 4px 0 10px; }
-#jjReader.jjt-root .jjr-img { margin: 4px auto 0; max-height: calc(var(--jj-box-h, 70vh) * var(--jj-img-frac, 0.4)); }
+#jjReader.jjt-root .jjr-img { margin: 4px 0 0; max-height: calc(var(--jj-box-h, 70vh) * var(--jj-img-frac, 0.4)); }
 .jjt-root .jjr-card { max-width: min(100%, 560px); }
 #jjReader.jjt-root .jjr-card-thumb { max-height: calc(var(--jj-box-h, 70vh) * var(--jj-img-frac, 0.4)); object-fit: cover; }
 .jjt-root .jjt-status { flex: none; display: flex; white-space: pre; overflow-x: clip; overflow-y: visible; }
