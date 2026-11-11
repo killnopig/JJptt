@@ -561,8 +561,8 @@ locale.en_US = {
   "options_factHosting": {
     "message": "Data-centre / VPN IPs (shown first): pushes from cloud, hosting or VPN providers are tagged with the provider; two or more accounts from the same provider are tagged 同機房 and listed first in the report"
   },
-  "options_factReportExpanded": {
-    "message": "Show the report expanded (otherwise one line; click to expand)"
+  "options_factReportCollapsed": {
+    "message": "Show the report collapsed (one line; click to expand)"
   },
   "options_factSameIp": {
     "message": "Same IP: tag different accounts pushing from one IP"

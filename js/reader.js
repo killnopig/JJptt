@@ -1164,7 +1164,7 @@ PttReader.prototype.factReportNode = function(article) {
   if ((article.pushes || []).length < minPushes) return null;
   var lines = this.factReport || [];
   var box = el('div', 'jjt-fact');
-  var expanded = !!(pref && pref.values && pref.values.factReportExpanded);
+  var expanded = !!(pref && pref.values && pref.values.factReportCollapsed === false);
   if (!expanded) box.classList.add('jjt-fact-closed');
   var head = el('div', 'jjt-fact-head');
   head.appendChild(el('span', 'jjt-fact-title', '真.事實查核中心'));

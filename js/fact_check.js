@@ -420,9 +420,7 @@ FactCheck.prototype.setupUi = function() {
   $('#fact_historyNote').text(i18n('fact_historyNote'));
   // one click for every rule in 自動偵測 (saved with the other settings)
   var setAll = function(on) {
-    // rules only: how the report box looks is not a rule
-    $('#opt_factDetect').next('.list-group-item-text').find('.checkbox').not('#opt_factReportExpanded')
-      .find('input[type=checkbox]').prop('checked', on);
+    $('#opt_factDetect').next('.list-group-item-text').find('.checkbox input[type=checkbox]').prop('checked', on);
   };
   $('#fact_allOn').text(i18n('fact_allOn')).off().click(function(e) { e.preventDefault(); setAll(true); });
   $('#fact_allOff').text(i18n('fact_allOff')).off().click(function(e) { e.preventDefault(); setAll(false); });

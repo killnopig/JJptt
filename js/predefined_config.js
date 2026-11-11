@@ -56,7 +56,7 @@ var DEFAULT_PREFS = {
   factAuthorIp : true,
   factReport : true,
   factReportMinPushes : 10,
-  factReportExpanded : false,
+  factReportCollapsed : true,
   factFastPush : true,
   factFastMinutes : 2,
   factBurst : true,

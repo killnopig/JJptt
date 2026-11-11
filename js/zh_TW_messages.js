@@ -558,8 +558,8 @@ locale.zh_TW = {
   "options_factHosting": {
     "message": "機房／VPN IP（優先顯示）：推文 IP 來自雲端機房或 VPN 業者（AWS、Google Cloud、DigitalOcean、M247 等 34 家）標「機房:業者」；兩個以上帳號來自同一家標「同機房:業者」，報告第一行列出"
   },
-  "options_factReportExpanded": {
-    "message": "報告框預設展開（不勾選則只顯示一行，點一下展開）"
+  "options_factReportCollapsed": {
+    "message": "報告框預設收起（只顯示一行，點一下展開）"
   },
   "options_factSameIp": {
     "message": "同 IP 多帳號：不同帳號用同一個 IP 推文時標示"
