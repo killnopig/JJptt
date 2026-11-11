@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.8.2',
+    date: '2026-11-11',
+    changes: [
+      '修正：閱讀模式標題列與狀態列的中文字上下緣被裁切或被下一行底色蓋住（Mac 沒有細明體時較明顯）'
+    ]
+  },
+  {
     version: '1.8.1',
     date: '2026-11-11',
     changes: [

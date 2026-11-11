@@ -902,6 +902,11 @@ PttReader.prototype.lineNode = function(segs) {
 PttReader.prototype.headerNode = function(article, h) {
   var el = PttReader.el;
   var frag = document.createDocumentFragment();
+  // Two layers: all row backgrounds first, then all text on top, so a row's
+  // background can't cover the edges of tall glyphs in the row above.
+  var head = el('div', 'jjt-head');
+  var bg = el('div', 'jjt-head-bg');
+  var fg = el('div', 'jjt-head-fg');
   var row = function(tag, value, tag2, value2) {
     var d = el('div', 'jjt-line jjt-hrow');
     d.appendChild(el('span', 'q4 b7 jjt-htag', ' ' + tag + ' '));
@@ -910,11 +915,15 @@ PttReader.prototype.headerNode = function(article, h) {
       d.appendChild(el('span', 'q4 b7 jjt-htag', ' ' + tag2 + ' '));
       d.appendChild(el('span', 'q7 b4 jjt-hval2', ' ' + value2 + ' '));
     }
-    frag.appendChild(d);
+    bg.appendChild(d);
+    fg.appendChild(d.cloneNode(true));
   };
   row('作者', article.meta['作者'] || h.author, '看板', article.meta['看板'] || h.board);
   row('標題', article.meta['標題'] || h.title);
   row('時間', article.meta['時間'] || '');
+  head.appendChild(bg);
+  head.appendChild(fg);
+  frag.appendChild(head);
   var sep = el('div', 'jjt-line');
   sep.appendChild(el('span', 'q6 b0', new Array(41).join('─')));
   frag.appendChild(sep);

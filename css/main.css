@@ -1049,8 +1049,8 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 .jjt-root .jjt-line { position: relative; white-space: pre-wrap; word-break: break-all; min-height: 1em; }
 .jjt-root .jjt-line span, .jjt-root .jjt-line a { font-family: inherit; }
 .jjt-root .q7 { color: var(--jj-text-color, #c0c0c0); }
-.jjt-root .jjt-hrow { display: flex; white-space: pre; overflow: hidden; }
-.jjt-root .jjt-hval { flex: 1; overflow: hidden; }
+.jjt-root .jjt-hrow { display: flex; white-space: pre; overflow-x: clip; overflow-y: visible; }
+.jjt-root .jjt-hval { flex: 1; min-width: 0; overflow-x: clip; overflow-y: visible; }
 .jjt-root .jjt-link { text-decoration: underline; cursor: pointer; }
 .jjt-root .jjt-push { display: flex; }
 .jjt-root .jjt-push-left { flex: 1; min-width: 0; }
@@ -1074,7 +1074,7 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 .jjt-root .jjr-media { margin: 4px 0 10px; }
 .jjt-root .jjr-img { margin: 4px auto 0; max-height: 70vh; }
 .jjt-root .jjr-card { max-width: 100%; }
-.jjt-root .jjt-status { flex: none; display: flex; white-space: pre; overflow: hidden; }
+.jjt-root .jjt-status { flex: none; display: flex; white-space: pre; overflow-x: clip; overflow-y: visible; }
 .jjt-root .jjt-status-fill { flex: 1; }
 .jjt-root .jjt-push-media .jjr-img { max-height: 280px; margin: 2px 0 6px; }
 
@@ -1096,3 +1096,9 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 #jjLoading.show { opacity: 1; }
 .jjt-root .jjr-img { cursor: zoom-in; }
 .jjt-menu { font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', sans-serif; }
+
+/* reader header: background layer under a text layer */
+.jjt-root .jjt-head { position: relative; }
+.jjt-root .jjt-head-bg span { color: transparent !important; }
+.jjt-root .jjt-head-fg { position: absolute; top: 0; left: 0; right: 0; }
+.jjt-root .jjt-head-fg span { background-color: transparent !important; }
