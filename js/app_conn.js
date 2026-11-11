@@ -1,7 +1,10 @@
 // JJptt: the original PttChrome relied on a Chrome App (now discontinued) to
-// open raw TCP sockets. This replacement keeps the same interface but talks
-// to a WebSocket-to-TCP relay (see worker/ in this repo) and handles storage
-// and clipboard in the page itself.
+// open raw TCP sockets. This replacement keeps the same interface and picks a
+// transport:
+//  - inside the JJptt extension: the local native messaging host
+//    (see native-host/), which connects to PTT directly;
+//  - on the website: a WebSocket-to-TCP relay (see worker/).
+// Storage and clipboard are handled in the page itself.
 
 if (typeof lib != 'undefined')
   throw new Error('Global "lib" object already exists.');
@@ -13,6 +16,12 @@ var lib = {};
 lib.DEFAULT_RELAY_URL = '';
 lib.RELAY_STORAGE_KEY = 'jjptt.relayUrl';
 lib.PREFS_STORAGE_KEY = 'jjptt.storage';
+lib.NATIVE_HOST_NAME = 'com.jjptt.host';
+
+lib.isExtension = function() {
+  return typeof chrome !== 'undefined' && !!chrome.runtime &&
+    typeof chrome.runtime.connectNative === 'function';
+};
 
 lib.normalizeRelayUrl = function(url) {
   return url.trim().replace(/^https:\/\//, 'wss://').replace(/\/+$/, '');
@@ -87,6 +96,7 @@ lib.AppConnection = function(spec) {
 
   this.isConnected = false;
   this.socket = null;
+  this.nativePort = null;
   this.pending = [];
   // Other code calls appPort.postMessage(...) for storage, clipboard, etc.
   var self = this;
@@ -184,6 +194,11 @@ lib.AppConnection.prototype.connectTcp = function(host, port, keepAlive) {
   }
   this.closeSocket();
 
+  if (lib.isExtension()) {
+    this.connectNative(host, port);
+    return;
+  }
+
   var self = this;
   var relay = lib.getRelayUrl();
   if (!relay) {
@@ -232,8 +247,76 @@ lib.AppConnection.prototype.connectTcp = function(host, port, keepAlive) {
   };
 };
 
+lib.AppConnection.prototype.connectNative = function(host, port) {
+  var self = this;
+  var nativePort;
+  try {
+    nativePort = chrome.runtime.connectNative(lib.NATIVE_HOST_NAME);
+  } catch (e) {
+    console.log('native host connect failed', e);
+    setTimeout(function() {
+      if (self.callbacks.disconnect) self.callbacks.disconnect();
+    }, 0);
+    return;
+  }
+  this.nativePort = nativePort;
+  var opened = false;
+  var hostError = '';
+
+  nativePort.onMessage.addListener(function(msg) {
+    if (self.nativePort !== nativePort) return;
+    switch (msg.type) {
+      case 'connected':
+        opened = true;
+        if (self.callbacks.connect) self.callbacks.connect();
+        break;
+      case 'data':
+        if (self.callbacks.recv) self.callbacks.recv(atob(msg.data));
+        break;
+      case 'error':
+        hostError = msg.message || '';
+        console.log('native host error', hostError);
+        break;
+      default:
+        break;
+    }
+  });
+  nativePort.onDisconnect.addListener(function() {
+    var err = chrome.runtime.lastError;
+    if (self.nativePort !== nativePort) return;  // closed on purpose
+    self.nativePort = null;
+    if (!opened && !hostError) {
+      console.log('native host unavailable', err && err.message);
+      lib.showNativeHostMissing();
+    }
+    if (self.callbacks.disconnect) self.callbacks.disconnect();
+  });
+
+  nativePort.postMessage({ type: 'connect', host: host, port: port });
+};
+
+lib.showNativeHostMissing = function() {
+  if (lib.nativeHostWarned) return;
+  lib.nativeHostWarned = true;
+  window.alert('找不到 JJptt 本機程式。\n\n' +
+    '請先執行 native-host 資料夾裡的安裝腳本（Mac/Linux：install.sh，Windows：install.bat），' +
+    '然後完全關閉並重新打開瀏覽器。');
+};
+
 lib.AppConnection.prototype.sendTcp = function(str) {
-  if (!this.isConnected || !this.socket) {
+  if (!this.isConnected) {
+    return;
+  }
+  if (this.nativePort) {
+    // because ptt seems to respond slowly after a large chunk of text is
+    // pasted, split it up like the original Chrome App did.
+    var chunk = 1000;
+    for (var i = 0; i < str.length; i += chunk) {
+      this.nativePort.postMessage({ type: 'send', data: btoa(str.substring(i, i + chunk)) });
+    }
+    return;
+  }
+  if (!this.socket) {
     return;
   }
   var bytes = lib.binaryStringToBytes(str);
@@ -245,6 +328,14 @@ lib.AppConnection.prototype.sendTcp = function(str) {
 };
 
 lib.AppConnection.prototype.closeSocket = function() {
+  var nativePort = this.nativePort;
+  this.nativePort = null;
+  if (nativePort) {
+    try {
+      nativePort.disconnect();
+    } catch (e) {
+    }
+  }
   var socket = this.socket;
   this.socket = null;
   this.pending = [];
