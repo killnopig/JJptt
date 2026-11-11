@@ -5,3 +5,9 @@ compatibility_date = "2024-09-23"
 [vars]
 # Pages allowed to use this relay (comma separated).
 ALLOWED_ORIGINS = "https://killnopig.github.io,http://localhost:8000,http://127.0.0.1:8000"
+
+# New connections allowed per visitor IP. period must be 10 or 60 (seconds).
+[[ratelimits]]
+name = "CONNECT_LIMITER"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }

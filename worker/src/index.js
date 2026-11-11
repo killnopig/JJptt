@@ -5,6 +5,23 @@ import { connect } from 'cloudflare:sockets';
 const ALLOWED_HOSTS = new Set(['ptt.cc', 'ptt2.cc']);
 const ALLOWED_PORTS = new Set([22, 23, 443, 3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010]);
 
+// Upload budget per connection (browser -> PTT). Typing and pasting a long
+// post fit easily; sustained floods get the connection closed.
+const UPLOAD_BYTES_PER_SEC = 16 * 1024;
+const UPLOAD_BURST_BYTES = 256 * 1024;
+
+function createUploadBudget() {
+  let tokens = UPLOAD_BURST_BYTES;
+  let last = Date.now();
+  return (bytes) => {
+    const now = Date.now();
+    tokens = Math.min(UPLOAD_BURST_BYTES, tokens + ((now - last) / 1000) * UPLOAD_BYTES_PER_SEC);
+    last = now;
+    tokens -= bytes;
+    return tokens >= 0;
+  };
+}
+
 export default {
   async fetch(request, env) {
     if (request.headers.get('Upgrade') !== 'websocket') {
@@ -22,6 +39,14 @@ export default {
     const port = parseInt(params.get('port') || '22', 10);
     if (!ALLOWED_HOSTS.has(host) || !ALLOWED_PORTS.has(port)) {
       return new Response('Target not allowed', { status: 403 });
+    }
+
+    if (env.CONNECT_LIMITER) {
+      const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+      const { success } = await env.CONNECT_LIMITER.limit({ key: ip });
+      if (!success) {
+        return new Response('Too many connections, try again later', { status: 429 });
+      }
     }
 
     const [client, server] = Object.values(new WebSocketPair());
@@ -44,10 +69,15 @@ export default {
       try { socket.close(); } catch (e) {}
     };
 
+    const withinBudget = createUploadBudget();
     server.addEventListener('message', (event) => {
       const data = typeof event.data === 'string'
         ? new TextEncoder().encode(event.data)
         : new Uint8Array(event.data);
+      if (!withinBudget(data.byteLength)) {
+        closeAll(1008, 'upload rate exceeded');
+        return;
+      }
       writer.write(data).catch(() => closeAll(1011, 'write failed'));
     });
     server.addEventListener('close', () => closeAll(1000, 'client closed'));

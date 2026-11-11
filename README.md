@@ -16,6 +16,11 @@ npx wrangler deploy
 
 允許使用轉接站的網頁網址設在 `worker/wrangler.toml` 的 `ALLOWED_ORIGINS`。
 
+### 防濫用限制
+
+- 每個 IP 每分鐘最多建立 10 條新連線（`wrangler.toml` 的 `[[ratelimits]]`）
+- 每條連線的上傳速度上限：平時 16 KB/秒，可瞬間衝到 256 KB，打字和貼長文都夠用，灌水式的大量資料會被斷線（`worker/src/index.js` 開頭的 `UPLOAD_*`）
+
 ## 開發
 
 `dev.html` 直接載入 `js/` 底下的原始碼；`index.html` 用的是打包後的 `js/pttchrome.min.js`，改完原始碼要重新打包：
