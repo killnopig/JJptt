@@ -242,7 +242,7 @@ PttReader.prototype.fetchArticle = function(url) {
     var body = main.cloneNode(true);
     var drop = body.querySelectorAll('.article-metaline, .article-metaline-right, .push, .richcontent');
     for (var k = 0; k < drop.length; ++k) drop[k].parentNode.removeChild(drop[k]);
-    return { url: url, meta: meta, text: body.textContent, pushes: pushes };
+    return { url: url, meta: meta, text: body.textContent, body: body, pushes: pushes };
   });
 };
 
@@ -253,22 +253,14 @@ PttReader.prototype.ensureOverlay = function() {
   var self = this;
   var o = document.createElement('div');
   o.id = 'jjReader';
+  o.className = 'jjr-root jjt-root';
   o.tabIndex = -1;
-  o.innerHTML =
-    '<div class="jjr-bar">' +
-      '<button class="jjr-back" type="button"></button>' +
-      '<div class="jjr-bar-title"></div>' +
-      '<a class="jjr-web" target="_blank" rel="noreferrer"></a>' +
-      '<button class="jjr-close" type="button"></button>' +
-    '</div>' +
-    '<div class="jjr-scroll"><div class="jjr-page"></div></div>';
+  o.innerHTML = '<div class="jjt-scroll"><div class="jjt-page"></div></div><div class="jjt-status"></div>';
   document.body.appendChild(o);
-  o.querySelector('.jjr-back').textContent = i18n('reader_back');
-  o.querySelector('.jjr-close').textContent = i18n('reader_terminal');
-  o.querySelector('.jjr-web').textContent = i18n('reader_openWeb');
-  o.querySelector('.jjr-back').addEventListener('click', function() { self.closeAndSend('\x1b[D'); });
-  o.querySelector('.jjr-close').addEventListener('click', function() { self.dismiss(); });
   o.addEventListener('keydown', function(e) { self.onKeyDown(e); });
+  o.querySelector('.jjt-scroll').addEventListener('scroll', function() { self.updateStatus(); });
+  // images change the page height as they load
+  o.addEventListener('load', function() { self.updateStatus(); }, true);
   this.overlay = o;
   return o;
 };
@@ -299,9 +291,12 @@ PttReader.prototype.closeAndSend = function(keys) {
   if (this.app.conn && this.app.conn.send) this.app.conn.send(keys);
 };
 
+// Keys behave like reading in the terminal; anything else goes to PTT.
 PttReader.prototype.onKeyDown = function(e) {
-  var scroller = this.overlay.querySelector('.jjr-scroll');
-  var page = scroller.clientHeight * 0.9;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;  // browser shortcuts (copy...)
+  var scroller = this.overlay.querySelector('.jjt-scroll');
+  var line = this.lineHeight || 20;
+  var page = Math.max(line, scroller.clientHeight - line * 2);
   switch (e.key) {
     case 'Escape':
       this.dismiss();
@@ -310,31 +305,35 @@ PttReader.prototype.onKeyDown = function(e) {
     case 'q':
       this.closeAndSend('\x1b[D');
       break;
-    case 'X':
-    case 'y':
-    case '%':
-      this.closeAndSend(e.key);
+    case 'ArrowDown':
+    case 'Enter':
+      scroller.scrollTop += line;
+      break;
+    case 'ArrowUp':
+      scroller.scrollTop -= line;
       break;
     case ' ':
     case 'PageDown':
+    case 'ArrowRight':
       scroller.scrollTop += page;
       break;
     case 'PageUp':
+    case 'b':
       scroller.scrollTop -= page;
-      break;
-    case 'ArrowDown':
-      scroller.scrollTop += 60;
-      break;
-    case 'ArrowUp':
-      scroller.scrollTop -= 60;
       break;
     case 'Home':
       scroller.scrollTop = 0;
       break;
     case 'End':
+    case '$':
       scroller.scrollTop = scroller.scrollHeight;
       break;
     default:
+      if (e.key.length === 1) {
+        // X push, y reply, ] next article ... handled by PTT itself
+        this.closeAndSend(e.key);
+        break;
+      }
       return;
   }
   e.preventDefault();
@@ -544,85 +543,172 @@ PttReader.prototype.fillCard = function(card) {
   });
 };
 
-PttReader.prototype.renderText = function(text, container) {
+// ---- terminal-look rendering ----------------------------------------------
+// The article is drawn like the terminal (same font, size, 80-column width,
+// PTT colours) with images and link cards inserted below lines with URLs.
+
+// PTT web colour classes (f0-f7, b0-b7, hl) -> terminal classes (q0-q15, b0-b7).
+PttReader.colorState = function(node, parent) {
+  var st = { fg: parent.fg, bg: parent.bg, hl: parent.hl, href: parent.href };
+  var cls = (node.getAttribute && node.getAttribute('class')) || '';
+  cls.split(/\s+/).forEach(function(c) {
+    var m = /^f(\d)$/.exec(c);
+    if (m) st.fg = +m[1];
+    m = /^b(\d)$/.exec(c);
+    if (m) st.bg = +m[1];
+    if (c === 'hl') st.hl = true;
+  });
+  if (node.tagName === 'A' && node.getAttribute('href')) st.href = node.getAttribute('href');
+  return st;
+};
+
+// Splits a DOM subtree into lines of coloured segments.
+PttReader.toLines = function(root) {
+  var lines = [[]];
+  var walk = function(node, st) {
+    if (node.nodeType === 3) {
+      var parts = node.nodeValue.split('\n');
+      for (var i = 0; i < parts.length; ++i) {
+        if (i > 0) lines.push([]);
+        if (parts[i]) lines[lines.length - 1].push({ text: parts[i], st: st });
+      }
+      return;
+    }
+    if (node.nodeType !== 1) return;
+    var next = PttReader.colorState(node, st);
+    for (var c = node.firstChild; c; c = c.nextSibling) walk(c, next);
+  };
+  walk(root, { fg: 7, bg: 0, hl: false, href: '' });
+  return lines;
+};
+
+PttReader.segClass = function(st) {
+  return 'q' + (st.fg + (st.hl ? 8 : 0)) + ' b' + st.bg;
+};
+
+PttReader.prototype.lineNode = function(segs) {
   var el = PttReader.el;
-  var lines = text.replace(/\r/g, '').split('\n');
-  var para = null;
+  var div = el('div', 'jjt-line');
+  var urls = [];
   var urlRe = /https?:\/\/[^\s<>"'，。）)]+/g;
-  for (var i = 0; i < lines.length; ++i) {
-    var line = lines[i];
-    var trimmed = line.trim();
-    var onlyUrl = /^https?:\/\/\S+$/.test(trimmed);
-    if (onlyUrl) {
-      para = null;
-      container.appendChild(this.linkBlock(trimmed));
-      continue;
-    }
-    if (!trimmed) {
-      para = null;
-      container.appendChild(el('div', 'jjr-gap'));
-      continue;
-    }
-    var cls = 'jjr-line';
-    if (/^[:：]\s?/.test(trimmed) || /^※ 引述/.test(trimmed)) cls += ' jjr-quote';
-    else if (/^※ /.test(trimmed) || /^--$/.test(trimmed)) cls += ' jjr-sys';
-    var div = el('div', cls);
-    var last = 0, m;
-    var found = [];
-    urlRe.lastIndex = 0;
-    while ((m = urlRe.exec(line))) {
-      div.appendChild(document.createTextNode(line.slice(last, m.index)));
-      var a = el('a', 'jjr-link', m[0]);
-      a.href = m[0];
+  segs.forEach(function(seg) {
+    var cls = PttReader.segClass(seg.st);
+    if (seg.st.href) {
+      var a = el('a', 'jjt-link ' + cls, seg.text);
+      a.href = seg.st.href;
       a.target = '_blank';
       a.rel = 'noreferrer';
       div.appendChild(a);
+      if (/^https?:/.test(seg.st.href)) urls.push(seg.st.href);
+      return;
+    }
+    var last = 0, m;
+    urlRe.lastIndex = 0;
+    while ((m = urlRe.exec(seg.text))) {
+      if (m.index > last) div.appendChild(el('span', cls, seg.text.slice(last, m.index)));
+      var link = el('a', 'jjt-link ' + cls, m[0]);
+      link.href = m[0];
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      div.appendChild(link);
+      urls.push(m[0]);
       last = m.index + m[0].length;
-      found.push(m[0]);
     }
-    div.appendChild(document.createTextNode(line.slice(last)));
-    container.appendChild(div);
-    // "https://i.imgur.com/x.jpeg 今天換毛巾": show the image / card below
-    // the line, except inside quotes and signature lines.
-    if (found.length && !/jjr-quote|jjr-sys/.test(cls)) {
-      for (var f = 0; f < found.length; ++f) container.appendChild(this.linkBlock(found[f], true));
+    if (last < seg.text.length) div.appendChild(el('span', cls, seg.text.slice(last)));
+  });
+  if (!segs.length) div.appendChild(document.createTextNode(' '));
+  return { node: div, urls: urls };
+};
+
+PttReader.prototype.headerNode = function(article, h) {
+  var el = PttReader.el;
+  var frag = document.createDocumentFragment();
+  var row = function(tag, value, tag2, value2) {
+    var d = el('div', 'jjt-line jjt-hrow');
+    d.appendChild(el('span', 'q4 b7 jjt-htag', ' ' + tag + ' '));
+    d.appendChild(el('span', 'q7 b4 jjt-hval', ' ' + value));
+    if (tag2) {
+      d.appendChild(el('span', 'q4 b7 jjt-htag', ' ' + tag2 + ' '));
+      d.appendChild(el('span', 'q7 b4 jjt-hval2', ' ' + value2 + ' '));
     }
-  }
+    frag.appendChild(d);
+  };
+  row('作者', article.meta['作者'] || h.author, '看板', article.meta['看板'] || h.board);
+  row('標題', article.meta['標題'] || h.title);
+  row('時間', article.meta['時間'] || '');
+  var sep = el('div', 'jjt-line');
+  sep.appendChild(el('span', 'q6 b0', new Array(41).join('─')));
+  frag.appendChild(sep);
+  return frag;
 };
 
 PttReader.prototype.render = function(article, h) {
   var el = PttReader.el;
+  var view = this.app.view;
   var o = this.ensureOverlay();
-  var page = o.querySelector('.jjr-page');
+  var page = o.querySelector('.jjt-page');
   page.innerHTML = '';
-  o.querySelector('.jjr-bar-title').textContent = (article.meta['標題'] || h.title) + '  ' + h.board;
-  o.querySelector('.jjr-web').href = article.url;
 
-  // Header like phone apps: title, then 時間 / 作者 / 看板 lines.
-  var head = el('div', 'jjr-head');
-  head.appendChild(el('div', 'jjr-title', article.meta['標題'] || h.title));
-  [['時間', article.meta['時間'] || ''],
-   ['作者', article.meta['作者'] || h.author],
-   ['看板', article.meta['看板'] || h.board]].forEach(function(pair) {
-    if (!pair[1]) return;
-    var line = el('div', 'jjr-info');
-    line.appendChild(el('span', 'jjr-info-tag', pair[0]));
-    line.appendChild(document.createTextNode(pair[1]));
-    head.appendChild(line);
-  });
-  page.appendChild(head);
+  // Match the terminal's font, size and position.
+  var chw = view.chw || 10, chh = view.chh || 20;
+  this.lineHeight = chh;
+  var rect = view.mainDisplay.getBoundingClientRect();
+  var gutter = chw * (view.leftGutterCols ? view.leftGutterCols() : 0);
+  page.style.fontFamily = getComputedStyle(view.mainDisplay).fontFamily;
+  page.style.fontSize = chh + 'px';
+  page.style.lineHeight = chh + 'px';
+  page.style.width = (chw * 80) + 'px';
+  page.style.marginLeft = Math.max(0, rect.left + gutter) + 'px';
+  page.style.paddingTop = Math.max(0, rect.top) + 'px';
+  page.style.setProperty('--jj-cols-w', (chw * 80) + 'px');
 
-  var body = el('div', 'jjr-body');
-  this.renderText(article.text, body);
-  page.appendChild(body);
+  page.appendChild(this.headerNode(article, h));
 
+  var lines = PttReader.toLines(article.body);
+  // drop the trailing empty line left by the removed pushes
+  while (lines.length && !lines[lines.length - 1].length) lines.pop();
+  for (var i = 0; i < lines.length; ++i) {
+    var r = this.lineNode(lines[i]);
+    page.appendChild(r.node);
+    var text = r.node.textContent.trim();
+    var quoted = /^[:：]/.test(text) || /^※/.test(text);
+    if (!quoted) {
+      for (var u = 0; u < r.urls.length; ++u) page.appendChild(this.linkBlock(r.urls[u], true));
+    }
+  }
   page.appendChild(this.renderPushes(article));
-  o.querySelector('.jjr-scroll').scrollTop = 0;
+  o.querySelector('.jjt-scroll').scrollTop = 0;
+  this.updateStatus();
   this.loadPreviews(page);
+};
+
+PttReader.prototype.updateStatus = function() {
+  if (!this.overlay) return;
+  var s = this.overlay.querySelector('.jjt-scroll');
+  var max = s.scrollHeight - s.clientHeight;
+  var pct = max > 0 ? Math.round(s.scrollTop / max * 100) : 100;
+  var bar = this.overlay.querySelector('.jjt-status');
+  bar.innerHTML = '';
+  var el = PttReader.el;
+  var page = this.overlay.querySelector('.jjt-page');
+  bar.style.fontFamily = page.style.fontFamily;
+  bar.style.fontSize = page.style.fontSize;
+  bar.style.lineHeight = page.style.lineHeight;
+  bar.style.width = page.style.width;
+  bar.style.marginLeft = page.style.marginLeft;
+  bar.appendChild(el('span', 'q15 b4', '  瀏覽 (' + pct + '%) '));
+  bar.appendChild(el('span', 'q0 b7 jjt-status-fill', ''));
+  var keys = [['(y)', '回應'], ['(X)', '推文'], ['(←)', '離開'], ['(Esc)', '終端機']];
+  keys.forEach(function(k) {
+    bar.appendChild(el('span', 'q1 b7', k[0]));
+    bar.appendChild(el('span', 'q0 b7', k[1]));
+  });
+  bar.appendChild(el('span', 'q0 b7', ' '));
 };
 
 PttReader.prototype.renderPushes = function(article) {
   var el = PttReader.el;
+  var self = this;
   var pref = this.app.pref;
   var insights = this.app.pushInsights;
   var geo = insights.geo;
@@ -641,29 +727,20 @@ PttReader.prototype.renderPushes = function(article) {
     if (p.ip) (idsByIp[p.ip] = idsByIp[p.ip] || {})[id] = true;
   });
 
-  var wrap = el('div', 'jjr-pushes');
-  var counts = { push: 0, boo: 0, arrow: 0 };
-  var list = el('div', 'jjr-push-list');
+  var wrap = document.createDocumentFragment();
   var nth = {};
   article.pushes.forEach(function(p, i) {
     var id = p.id.toLowerCase();
     nth[id] = (nth[id] || 0) + 1;
-    if (p.tag === '推') counts.push++;
-    else if (p.tag === '噓') counts.boo++;
-    else counts.arrow++;
+    if ((id in black) && hide) return;
 
-    var row = el('div', 'jjr-push');
-    if (id in black) {
-      if (hide) return;
-      row.className += ' jjr-faded';
-    }
     var hints = [];
     var level = '';
-    var country = '';
+    var parts = [];
     if (p.ip && geo.ready) {
       var cc = geo.lookup(p.ip);
       if (cc) {
-        country = insights.countryLabel(cc);
+        parts.push(insights.countryLabel(cc));
         if (cc !== 'TW') level = 'foreign';
       }
     }
@@ -682,45 +759,30 @@ PttReader.prototype.renderPushes = function(article) {
       hints.push(T.watch + (watch[id] ? ':' + watch[id] : ''));
       if (level !== 'warn') level = 'watch';
     }
-    if (countById[id] >= 8) hints.push('第' + nth[id] + '/' + countById[id] + '推');
+    if (countById[id] >= 8) parts.push('第' + nth[id] + '/' + countById[id] + '推');
+    var label = parts.concat(hints.length ? [(T.prefix ? T.prefix + ' ' : '') + hints.join(' ')] : []).join(' ');
 
-    var top = el('div', 'jjr-push-top');
-    top.appendChild(el('span', 'jjr-floor', (i + 1) + '樓'));
-    top.appendChild(el('span', 'jjr-tag jjr-tag-' + (p.tag === '推' ? 'push' : p.tag === '噓' ? 'boo' : 'arrow'), p.tag));
-    top.appendChild(el('span', 'jjr-id', p.id));
-    if (country) top.appendChild(el('span', 'jjr-country' + (level === 'foreign' ? ' jjr-foreign' : ''), country));
-    top.appendChild(el('span', 'jjr-time', p.time));
-    row.appendChild(top);
-    var content = el('div', 'jjr-push-content');
-    var urlRe = /https?:\/\/[^\s]+/g, last = 0, m;
-    while ((m = urlRe.exec(p.content))) {
-      content.appendChild(document.createTextNode(p.content.slice(last, m.index)));
-      var a = el('a', 'jjr-link', m[0]);
-      a.href = m[0];
-      a.target = '_blank';
-      a.rel = 'noreferrer';
-      content.appendChild(a);
-      last = m.index + m[0].length;
-    }
-    content.appendChild(document.createTextNode(p.content.slice(last)));
-    row.appendChild(content);
-    // small previews for image links in pushes
-    (p.content.match(/https?:\/\/\S+/g) || []).forEach(function(u) {
-      var src = PttReader.imageSrc(u);
-      if (!src) return;
-      var im = el('img', 'jjr-push-img');
-      im.loading = 'lazy';
-      im.referrerPolicy = 'no-referrer';
-      im.src = src;
-      im.addEventListener('error', function() { im.style.display = 'none'; });
-      row.appendChild(im);
+    // "推 userid: content          ip mm/dd hh:mm" in PTT colours
+    var line = el('div', 'jjt-line jjt-push' + ((id in black) ? ' jjt-faded' : ''));
+    var left = el('span', 'jjt-push-left');
+    left.appendChild(el('span', p.tag === '推' ? 'q15 b0' : 'q9 b0', p.tag + ' '));
+    left.appendChild(el('span', 'q11 b0', p.id));
+    var content = self.lineNode([{ text: ':' + p.content, st: { fg: 3, bg: 0, hl: false, href: '' } }]);
+    var c = content.node;
+    while (c.firstChild) left.appendChild(c.firstChild);
+    line.appendChild(left);
+    line.appendChild(el('span', 'q7 b0 jjt-push-right', ' ' + [p.ip, p.time].filter(Boolean).join(' ')));
+    line.setAttribute('data-jj-floor', (i + 1) + '樓');
+    if (label) line.setAttribute('data-jj', label);
+    if (level) line.setAttribute('data-jj-level', level);
+    wrap.appendChild(line);
+    // images posted in pushes
+    content.urls.forEach(function(u) {
+      if (!PttReader.imageSrc(u)) return;
+      var media = self.linkBlock(u, true);
+      media.className += ' jjt-push-media';
+      wrap.appendChild(media);
     });
-    if (hints.length) row.appendChild(el('div', 'jjr-hint jjr-' + (level || 'info'), (T.prefix ? T.prefix + ' ' : '') + hints.join(' ')));
-    list.appendChild(row);
   });
-
-  wrap.appendChild(el('div', 'jjr-push-summary',
-    '推 ' + counts.push + '　噓 ' + counts.boo + '　→ ' + counts.arrow));
-  wrap.appendChild(list);
   return wrap;
 };

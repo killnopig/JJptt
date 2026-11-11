@@ -1037,3 +1037,43 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
   padding: 4px 10px;
   cursor: pointer;
 }
+
+/* JJptt article view in terminal look (images inline) */
+#jjReader.jjt-root {
+  flex-direction: column;
+  background: #000;
+  color: var(--jj-text-color, #c0c0c0);
+}
+.jjt-root .jjt-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
+.jjt-root .jjt-page { padding-bottom: 3em; box-sizing: content-box; }
+.jjt-root .jjt-line { position: relative; white-space: pre-wrap; word-break: break-all; min-height: 1em; }
+.jjt-root .jjt-line span, .jjt-root .jjt-line a { font-family: inherit; }
+.jjt-root .q7 { color: var(--jj-text-color, #c0c0c0); }
+.jjt-root .jjt-hrow { display: flex; white-space: pre; overflow: hidden; }
+.jjt-root .jjt-hval { flex: 1; overflow: hidden; }
+.jjt-root .jjt-link { text-decoration: underline; cursor: pointer; }
+.jjt-root .jjt-push { display: flex; }
+.jjt-root .jjt-push-left { flex: 1; min-width: 0; }
+.jjt-root .jjt-push-right { flex: none; white-space: pre; }
+.jjt-root .jjt-faded { opacity: 0.2; }
+.jjt-root .jjt-line[data-jj-floor]::before {
+  content: attr(data-jj-floor);
+  position: absolute; top: 0; right: 100%;
+  padding-right: 0.5em; font-size: 0.6em; line-height: 1.6667;
+  color: var(--jj-floor-color, #8a8a8a); white-space: pre; pointer-events: none; user-select: none;
+}
+.jjt-root .jjt-line[data-jj]::after {
+  content: attr(data-jj);
+  position: absolute; top: 0; left: 100%;
+  padding-left: 0.6em; font-size: 0.6em; line-height: 1.6667;
+  color: #8a8a8a; white-space: pre; pointer-events: none; user-select: none;
+}
+.jjt-root .jjt-line[data-jj-level="foreign"]::after { color: #ffa940; }
+.jjt-root .jjt-line[data-jj-level="watch"]::after { color: #d58bff; }
+.jjt-root .jjt-line[data-jj-level="warn"]::after { color: #ff5c5c; }
+.jjt-root .jjr-media { margin: 4px 0 10px; }
+.jjt-root .jjr-img { margin: 4px auto 0; max-height: 70vh; }
+.jjt-root .jjr-card { max-width: 100%; }
+.jjt-root .jjt-status { flex: none; display: flex; white-space: pre; overflow: hidden; }
+.jjt-root .jjt-status-fill { flex: 1; }
+.jjt-root .jjt-push-media .jjr-img { max-height: 280px; margin: 2px 0 6px; }

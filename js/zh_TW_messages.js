@@ -262,7 +262,7 @@ locale.zh_TW = {
     "message": "JJptt 已更新到 v%s，更新內容請看 右鍵 → 設定 → 關於"
   },
   "options_enableReader": {
-    "message": "閱讀模式（擴充功能版）：打開文章時用大字排版顯示，圖片、連結卡片、推文樓層與國籍"
+    "message": "文章內嵌圖片（擴充功能版）：打開文章時保持終端機外觀，圖片與網址預覽直接顯示在內文中"
   },
   "reader_back": {
     "message": "← 回列表"

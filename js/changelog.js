@@ -3,6 +3,15 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.7.0',
+    date: '2026-11-11',
+    changes: [
+      '文章不再切換成另一種閱讀畫面：保持終端機外觀（同字型、字級、80 字寬、PTT 原本顏色），圖片與網址預覽直接夾在內文中',
+      '推文維持 PTT 樣式，左邊樓層、右邊國籍與可疑標記；底部顯示 PTT 樣式的狀態列',
+      '按鍵比照終端機：↑↓ 一行、空白／PageDown／→ 下一頁、← 回列表；X、y、] 等其他按鍵直接交給 PTT'
+    ]
+  },
+  {
     version: '1.6.2',
     date: '2026-11-11',
     changes: [
