@@ -21,6 +21,9 @@ function PushInsights(app) {
 // "推 userid: content     [1.2.3.4] 11/11 12:34"
 PushInsights.PUSH_RE = /^([推噓→]) (\w+) *:(.*?)\s+(?:((?:\d{1,3}\.){3}\d{1,3})\s+)?(\d{1,2}\/\d{1,2})(?: \d{1,2}:\d{2})?\s*$/;
 PushInsights.AUTHOR_RE = /^\s*作者\s+(\w+)/;  // 作者
+PushInsights.TITLE_RE = /^\s*標題\s+(.*?)\s*$/;  // 標題
+PushInsights.URL_LINE_RE = /^※ 文章網址:/;
+PushInsights.SITE_LINE_RE = /^※ 發信站:/;
 PushInsights.AUTHOR_IP_RES = [
   /※ 發信站: .*來自: ((?:\d{1,3}\.){3}\d{1,3})/,   // ※ 發信站: ... 來自: ip
   /※ 編輯: (\w+) \(((?:\d{1,3}\.){3}\d{1,3})/,              // ※ 編輯: id (ip
@@ -28,10 +31,43 @@ PushInsights.AUTHOR_IP_RES = [
 ];
 
 PushInsights.prototype.resetArticle = function() {
+  this.articleKey = '';
+  this.pendingAuthor = '';
   this.authorId = '';
   this.authorIps = {};
   this.idsByIp = {};    // ip -> { id: true }
   this.ipsById = {};    // id -> { ip: true }
+  // Normal (paged) mode floor numbers: pushes start on the line after
+  // "※ 文章網址"; lines in the push area that are not pushes are skipped.
+  this.pushStartLine = 0;
+  this.urlLineSeen = false;
+  this.nonPushLines = {};
+};
+
+// Article line number shown on each screen row in normal mode, using the
+// status row ("目前顯示: 第 28~50 行"). Returns null when unknown.
+PushInsights.prototype.lineMapper = function() {
+  var status = this.app.buf.getRowText(23, 0, this.app.buf.cols).parseStatusRow();
+  if (!status) return null;
+  var start = status.rowIndexStart, end = status.rowIndexEnd;
+  if (end - start + 1 >= 23) {
+    // Full screen: map from the bottom so wrapped lines above don't matter.
+    return function(row) { return row <= 22 ? end - (22 - row) : null; };
+  }
+  return function(row) {
+    var n = start + row;
+    return (row <= 22 && n <= end) ? n : null;
+  };
+};
+
+PushInsights.prototype.floorOf = function(line) {
+  if (!this.pushStartLine || line === null || line < this.pushStartLine) return 0;
+  var skipped = 0;
+  for (var k in this.nonPushLines) {
+    var n = +k;
+    if (n >= this.pushStartLine && n < line) skipped++;
+  }
+  return line - this.pushStartLine + 1 - skipped;
 };
 
 PushInsights.prototype.setEnabled = function(enabled) {
@@ -49,6 +85,7 @@ PushInsights.prototype.clearRow = function(row) {
   if (row.hasAttribute('data-jj')) {
     row.removeAttribute('data-jj');
     row.removeAttribute('data-jj-level');
+    row.removeAttribute('title');
   }
 };
 
@@ -74,6 +111,7 @@ PushInsights.prototype.annotate = function() {
   }
 
   var easyReading = view.useEasyReadingMode && buf.startedEasyReading;
+  var lineOf = easyReading ? null : this.lineMapper();
   var pushes = [];
   var pushCountById = {};
 
@@ -81,16 +119,18 @@ PushInsights.prototype.annotate = function() {
     var row = rows[i];
     if (row.getAttribute('type') !== 'bbsrow') continue;
     var text = this.rowText(row);
+    var line = lineOf ? lineOf(i) : null;
     var m = PushInsights.PUSH_RE.exec(text);
     if (!m) {
       this.clearRow(row);
-      this.scanArticleRow(text);
+      this.scanArticleRow(text, line);
       continue;
     }
+    if (line !== null) delete this.nonPushLines[line];
     var id = m[2].toLowerCase();
     var ip = m[4] || '';
     pushCountById[id] = (pushCountById[id] || 0) + 1;
-    pushes.push({ row: row, id: id, ip: ip, nth: pushCountById[id] });
+    pushes.push({ row: row, id: id, ip: ip, nth: pushCountById[id], line: line });
     if (ip) {
       (this.idsByIp[ip] = this.idsByIp[ip] || {})[id] = true;
       (this.ipsById[id] = this.ipsById[id] || {})[ip] = true;
@@ -106,7 +146,8 @@ PushInsights.prototype.annotate = function() {
     var level = '';
     var warn = [];
 
-    if (easyReading) parts.push((i + 1) + '樓');  // 樓
+    var floor = easyReading ? i + 1 : this.floorOf(p.line);
+    if (floor > 0) parts.push(floor + '樓');  // 樓
 
     if (p.ip) {
       var cc = this.geo.lookup(p.ip);
@@ -142,7 +183,10 @@ PushInsights.prototype.annotate = function() {
 
     var label = parts.concat(warn.length ? ['⚠ ' + warn.join(' ')] : []).join(' ');
     if (label) {
-      if (p.row.getAttribute('data-jj') !== label) p.row.setAttribute('data-jj', label);
+      if (p.row.getAttribute('data-jj') !== label) {
+        p.row.setAttribute('data-jj', label);
+        p.row.setAttribute('title', label);  // full text on hover if clipped
+      }
       if (level) p.row.setAttribute('data-jj-level', level);
       else p.row.removeAttribute('data-jj-level');
     } else {
@@ -160,15 +204,33 @@ PushInsights.prototype.otherIdsOnIp = function(ip, id) {
   return others;
 };
 
-PushInsights.prototype.scanArticleRow = function(text) {
+PushInsights.prototype.scanArticleRow = function(text, line) {
   var m = PushInsights.AUTHOR_RE.exec(text);
   if (m) {
-    var author = m[1].toLowerCase();
-    if (author !== this.authorId) {
+    this.pendingAuthor = m[1].toLowerCase();
+    return;
+  }
+  m = PushInsights.TITLE_RE.exec(text);
+  if (m && this.pendingAuthor) {
+    // A new article (author + title) starts a fresh analysis.
+    var key = this.pendingAuthor + '|' + m[1];
+    if (key !== this.articleKey) {
+      var author = this.pendingAuthor;
       this.resetArticle();
+      this.articleKey = key;
       this.authorId = author;
     }
     return;
+  }
+  if (line !== null && line !== undefined) {
+    if (PushInsights.URL_LINE_RE.test(text)) {
+      this.pushStartLine = line + 1;
+      this.urlLineSeen = true;
+    } else if (PushInsights.SITE_LINE_RE.test(text) && !this.urlLineSeen) {
+      this.pushStartLine = line + 1;
+    } else if (this.pushStartLine && line >= this.pushStartLine) {
+      this.nonPushLines[line] = true;
+    }
   }
   for (var k = 0; k < PushInsights.AUTHOR_IP_RES.length; ++k) {
     var r = PushInsights.AUTHOR_IP_RES[k].exec(text);

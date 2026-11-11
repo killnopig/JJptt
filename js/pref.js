@@ -364,8 +364,8 @@ PttChromePref.prototype = {
 
   setupAboutPage: function() {
     var contents = [
-        'review', 'feedback', 'fbpage',
-        'promote',
+        'github', 'issues',
+        'forkedFrom', 'forkedBy', 'forkedLicense',
         'version_title', 'version',
         'new_title'
       ];

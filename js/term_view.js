@@ -1064,6 +1064,12 @@ TermView.prototype = {
     return (this.useEasyReadingMode && this.buf.pageState == 3) ? 'display:none' : 'visibility:hidden';
   },
 
+  // Columns kept free on the right for push insight labels.
+  labelGutterCols: function() {
+    var insights = this.bbscore && this.bbscore.pushInsights;
+    return (insights && insights.enabled && !this.fontFitWindowWidth) ? 10 : 0;
+  },
+
   onWindowResizeForInsights: function() {
     if (this.bbscore && this.innerBounds) this.bbscore.onWindowResize();
   },
@@ -1089,7 +1095,7 @@ TermView.prototype = {
         nowchh = i*2;
         nowchw = i;
         o_h = (nowchh) * 24;
-        o_w = nowchw * 80;
+        o_w = nowchw * (80 + this.labelGutterCols());
       } while (o_h <= height && o_w <= width);
       --i;
       nowchh = i*2;

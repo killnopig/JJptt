@@ -317,6 +317,21 @@ locale.en_US = {
   },
 
   // about page
+  "about_github": {
+    "message": "GitHub"
+  },
+  "about_issues": {
+    "message": "Report a problem"
+  },
+  "about_forkedFrom": {
+    "message": "Forked from "
+  },
+  "about_forkedBy": {
+    "message": " (original author "
+  },
+  "about_forkedLicense": {
+    "message": "), modified and distributed under GPL-2.0."
+  },
   "about_review": {
     "message": "Review app"
   },
@@ -333,31 +348,20 @@ locale.en_US = {
     "message": "Version"
   },
   "about_version": {
-    "message": "webapp15 8/27/2024"
+    "message": "JJptt 1.0.0"
   },
   "about_new_title": {
     "message": "What's new"
   },
   "about_new_content": {
     "message": [
-      'Allow setting keepAlive from url, append ?keepAlive=[SECONDS] to the URL',
-      'Added SSH connection to PTT, append ?ssh=true to the URL',
-      'Limited easy reading mode to ptt.cc only',
-      'Added features to load/backup blacklist with Google Drive',
-      'Suggest to try port 443 when disconnected',
-      'Settings to answer duplicated connection query in autologin settings',
-      'Added Live Article Helper in context menu to auto refresh pushthread, or use Alt + r',
-      'Switching easy reading mode in settings no longer require a restart',
-      'Disabled hammerjs that caused mouse related issue on old Chrome verisons',
-      'Fixing bug with spacebar when in chinese input mode and easy reading mode',
-      'Fixing ssh connection problem with kex',
-      'Added option to ask before closing',
-      'Added setting to send right arrow key to left mouse button',
-      'Added option to turn on live update with END',
-      'Middle mouse button click has new option to do paste',
-      'Added option to enable copy on select',
-      'Added Quick Search in settings and context menu (thanks to abccbaandy)',
-      'Always use SSH to connect to ptt.cc'
+      "Connects through a local helper (extension) or a Cloudflare relay (website) instead of the retired Chrome App",
+      "Push insights: floor numbers, IP country, shared-IP and same-IP-as-author hints",
+      "Watchlist with notes (right-click a push)",
+      "Blacklist can hide completely and match title keywords",
+      "Easy reading shows more image links and plays imgur animations",
+      "Automatic Google Drive sync of settings (never passwords)",
+      "Show/hide password toggle and a save confirmation"
     ]
   },
 

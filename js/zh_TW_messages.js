@@ -314,6 +314,21 @@ locale.zh_TW = {
   },
 
   // about page
+  "about_github": {
+    "message": "GitHub"
+  },
+  "about_issues": {
+    "message": "回報問題"
+  },
+  "about_forkedFrom": {
+    "message": "Fork 自 "
+  },
+  "about_forkedBy": {
+    "message": "（原作者 "
+  },
+  "about_forkedLicense": {
+    "message": "），依 GPL-2.0 授權修改與散布。"
+  },
   "about_review": {
     "message": "給評分"
   },
@@ -330,31 +345,20 @@ locale.zh_TW = {
     "message": "版本"
   },
   "about_version": {
-    "message": "webapp15 8/27/2024"
+    "message": "JJptt 1.0.0"
   },
   "about_new_title": {
     "message": "新功能"
   },
   "about_new_content": {
     "message": [
-      '網址設定 keepAlive 參數, 只要在網址後面加上 ?keepAlive=[幾秒]',
-      '加入了 SSH 連到 PTT 的功能, 只要在網址後面加上 ?ssh=true',
-      '好讀模式只限於 ptt.cc 上使用',
-      '黑名單可用 Google Drive 來讀取或備份',
-      '斷線提示用 443 端口連線',
-      '自動登入設定頁面可設定是否自動刪除其他重複連線',
-      '右鍵選單新增 Live 文小幫手來自動更新推文, 也可用 Alt + r 來啟動',
-      '設定中切換好讀模式不用再重新整理即可切換',
-      '暫時停用 hammerjs 避免在舊的 Chrome 造成滑鼠圈選的問題',
-      '修正中文輸入法時好讀模式的空白鍵的問題',
-      '修正 ssh 連線 kex 的問題',
-      '加入了關閉分頁先詢問的選項',
-      '加入了滑鼠左鍵送出右方向鍵的選項',
-      '加入了 END 啟用即時更新的選項',
-      '滑鼠中鍵可以設定執行貼上功能',
-      '加入了選取自動複製文字的選項',
-      '新增了快速搜尋的功能 (感謝abccbaandy)',
-      '只使用 SSH 連到 ptt.cc'
+      "改用本機程式（擴充功能版）或 Cloudflare 轉接站（網站版）連線，不再需要已停用的 Chrome App",
+      "推文分析：樓層、IP 國籍、同 IP 多帳號與作者同 IP 等可疑標記",
+      "觀察名單（右鍵加入，可寫備註）",
+      "黑名單可完全隱藏，並支援標題關鍵字",
+      "好讀模式自動顯示更多種圖片網址，imgur 動圖會播放",
+      "Google Drive 自動同步設定（不含密碼）",
+      "密碼欄可切換顯示，設定儲存時會提示"
     ]
   },
 
