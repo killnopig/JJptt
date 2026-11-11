@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.6.1',
+    date: '2026-11-11',
+    changes: [
+      '閱讀模式：網址後面接著文字的行（例如「https://i.imgur.com/xxx.jpeg 今天換毛巾」）也會顯示圖片或預覽卡片'
+    ]
+  },
+  {
     version: '1.6.0',
     date: '2026-11-11',
     changes: [

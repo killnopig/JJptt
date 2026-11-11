@@ -333,14 +333,16 @@ PttReader.imageSrc = function(url) {
   return '';
 };
 
-PttReader.prototype.linkBlock = function(url) {
+// Link line plus its media (image, video, YouTube or link card). With
+// mediaOnly the link text itself is left out (it is already in the text).
+PttReader.prototype.linkBlock = function(url, mediaOnly) {
   var el = PttReader.el;
   var wrap = el('div', 'jjr-media');
   var a = el('a', 'jjr-link', url);
   a.href = url;
   a.target = '_blank';
   a.rel = 'noreferrer';
-  wrap.appendChild(a);
+  if (!mediaOnly) wrap.appendChild(a);
 
   var img = PttReader.imageSrc(url);
   var yt = url.parseYoutubeUrl ? url.parseYoutubeUrl() : null;
@@ -517,6 +519,7 @@ PttReader.prototype.renderText = function(text, container) {
     else if (/^※ /.test(trimmed) || /^--$/.test(trimmed)) cls += ' jjr-sys';
     var div = el('div', cls);
     var last = 0, m;
+    var found = [];
     urlRe.lastIndex = 0;
     while ((m = urlRe.exec(line))) {
       div.appendChild(document.createTextNode(line.slice(last, m.index)));
@@ -526,9 +529,15 @@ PttReader.prototype.renderText = function(text, container) {
       a.rel = 'noreferrer';
       div.appendChild(a);
       last = m.index + m[0].length;
+      found.push(m[0]);
     }
     div.appendChild(document.createTextNode(line.slice(last)));
     container.appendChild(div);
+    // "https://i.imgur.com/x.jpeg 今天換毛巾": show the image / card below
+    // the line, except inside quotes and signature lines.
+    if (found.length && !/jjr-quote|jjr-sys/.test(cls)) {
+      for (var f = 0; f < found.length; ++f) container.appendChild(this.linkBlock(found[f], true));
+    }
   }
 };
 
