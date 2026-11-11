@@ -119,7 +119,7 @@ locale.zh_TW = {
     "message": "正在下載新版 JJptt…"
   },
   "update_restarting": {
-    "message": "下載完成，JJptt 馬上重新開啟…"
+    "message": "下載完成，JJptt 馬上關閉並重新開啟…"
   },
   "update_needHost": {
     "message": "自動更新需要新版的本機程式：請在 jjptt/native-host 資料夾重新執行一次安裝（Mac：sh install.sh）。"
@@ -140,7 +140,7 @@ locale.zh_TW = {
     "message": "檢查中…"
   },
   "update_available": {
-    "message": "JJptt 有新版本 v%s。"
+    "message": "JJptt 有新版本 v%s。按「立即更新」會自動下載，完成後 JJptt 會自己關閉再重新開啟。"
   },
   "update_howto": {
     "message": "也可以雙擊 jjptt 資料夾裡的 update-jjptt.command 下載，完成後這裡會出現「套用更新」按鈕。"
@@ -149,7 +149,7 @@ locale.zh_TW = {
     "message": "新版本 v%s 已經下載好了。"
   },
   "update_apply": {
-    "message": "套用更新（重新開啟 JJptt）"
+    "message": "套用更新（JJptt 會關閉再重新開啟）"
   },
   "update_latest": {
     "message": "已經是最新版本 v%s"

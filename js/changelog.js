@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.15.2',
+    date: '2026-11-11',
+    changes: [
+      '更新提示先說清楚：按「立即更新」下載完成後，JJptt 會自己關閉再重新開啟'
+    ]
+  },
+  {
     version: '1.15.1',
     date: '2026-11-11',
     changes: [

@@ -119,7 +119,7 @@ locale.en_US = {
     "message": "Downloading the new JJptt…"
   },
   "update_restarting": {
-    "message": "Done, reopening JJptt…"
+    "message": "Done, JJptt closes and reopens now…"
   },
   "update_needHost": {
     "message": "One-click update needs the new native host: run the installer in jjptt/native-host once more (Mac: sh install.sh)."
@@ -140,7 +140,7 @@ locale.en_US = {
     "message": "Checking…"
   },
   "update_available": {
-    "message": "JJptt v%s is available."
+    "message": "JJptt v%s is available. Update now downloads it; JJptt then closes and reopens by itself."
   },
   "update_howto": {
     "message": "Double-click update-jjptt.command in the jjptt folder to download it; an \"Apply update\" button appears here when it is done."
@@ -149,7 +149,7 @@ locale.en_US = {
     "message": "JJptt v%s has been downloaded."
   },
   "update_apply": {
-    "message": "Apply update (reopens JJptt)"
+    "message": "Apply update (JJptt closes and reopens)"
   },
   "update_latest": {
     "message": "Up to date (v%s)"
