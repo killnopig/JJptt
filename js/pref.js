@@ -203,6 +203,7 @@ PttChromePref.prototype = {
         .toggleClass('glyphicon-eye-open', !show)
         .toggleClass('glyphicon-eye-close', show);
     });
+    if (this.setupDependentFields) this.setupDependentFields();
   },
 
   setupSettingsUi: function() {
@@ -271,6 +272,36 @@ PttChromePref.prototype = {
     if (this.app.factCheck) {
       this.app.factCheck.setupUi();
     }
+    this.setupDependentFields();
+  },
+
+  // Grey out settings that only matter when another one is on.
+  setupDependentFields: function() {
+    var rules = [
+      // [switch, true when the switch turns them off, dependent fields]
+      ['#opt_noMouseBrowsing', true, ['#opt_mouseBrowsingHighlight', '#opt_mouseBrowsingHighlightColor']],
+      ['#opt_mouseBrowsingHighlight', false, ['#opt_mouseBrowsingHighlightColor']]
+    ];
+    var apply = function() {
+      var off = {};
+      rules.forEach(function(r) {
+        var on = $(r[0] + ' input').prop('checked');
+        var disabled = off[r[0]] || (r[1] ? on : !on);
+        r[2].forEach(function(sel) {
+          if (disabled) off[sel] = true;
+        });
+      });
+      rules.forEach(function(r) {
+        r[2].forEach(function(sel) {
+          $(sel).toggleClass('jj-disabled', !!off[sel]);
+          $(sel).find('input, select').prop('disabled', !!off[sel]);
+        });
+      });
+    };
+    rules.forEach(function(r) {
+      $(r[0] + ' input').off('change.dep').on('change.dep', apply);
+    });
+    apply();
   },
 
   populateSettingsToUi: function() {
@@ -438,7 +469,7 @@ PttChromePref.prototype = {
     var contents = [
         'github', 'issues',
         'forkedFrom', 'forkedBy', 'forkedLicense',
-        'version_title', 'source_title',
+        'version_title', 'source_title', 'traffic_title',
         'new_title'
       ];
     for (var i in contents) {
@@ -456,6 +487,8 @@ PttChromePref.prototype = {
         li.append(document.createTextNode('：' + pt[1]));
       });
       $('<p class="jj-pitch-foot"></p>').text(JJPTT_PITCH.footer).appendTo(pitch);
+      var traffic = $('#about_traffic').empty();
+      (JJPTT_PITCH.traffic || []).forEach(function(line) { $('<li></li>').text(line).appendTo(traffic); });
     }
 
     var latest = JJPTT_CHANGELOG[0];
@@ -703,6 +736,9 @@ PttChromePref.prototype = {
       var v = msg.data.values;
       if (v.enableBlacklist === false) this.values.blacklistMode = 2;
       else if (v.hideBlacklisted === true) this.values.blacklistMode = 1;
+    }
+    if (msg.data && msg.data.values && msg.data.values.useMouseBrowsing === true && this.values.noMouseBrowsing !== false) {
+      this.values.noMouseBrowsing = false;  // was "use mouse browsing"
     }
     if (msg.data && msg.data.values && msg.data.values.closeQuery === true && this.values.noCloseQuery !== false) {
       this.values.noCloseQuery = false;  // was "ask before closing"

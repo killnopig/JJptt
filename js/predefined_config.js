@@ -19,6 +19,7 @@ var DEFAULT_PREFS = {
 
   // mouse browsing
   useMouseBrowsing            : false,
+  noMouseBrowsing             : true,
   mouseBrowsingHighlight      : true,
   mouseBrowsingHighlightColor : 2,
   mouseLeftFunction           : 0,

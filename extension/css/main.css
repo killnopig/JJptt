@@ -1348,3 +1348,5 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 #prefModal .modal-body #ext_quickSearchList div.qSearchItemName { width: 30% !important; float: left; }
 #prefModal .modal-body #ext_quickSearchList input.qSearchItemQuery,
 #prefModal .modal-body #ext_quickSearchList div.qSearchItemQuery { width: calc(70% - 40px) !important; float: left; margin-left: 5px; }
+
+#prefModal .modal-body .jj-disabled { opacity: 0.4; }

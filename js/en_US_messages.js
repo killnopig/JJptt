@@ -291,6 +291,9 @@ locale.en_US = {
   "options_mouseBrowsing": {
     "message": "Mouse browsing"
   },
+  "options_noMouseBrowsing": {
+    "message": "Mouse browsing off by default (the highlight settings then do nothing)"
+  },
   "options_useMouseBrowsing": {
     "message": "Mouse browsing on start"
   },
@@ -832,6 +835,9 @@ locale.en_US = {
   },
   "about_promote": {
     "message": "If you like this app, also take a look at "
+  },
+  "about_traffic_title": {
+    "message": "Data usage"
   },
   "about_source_title": {
     "message": "Source and licence"

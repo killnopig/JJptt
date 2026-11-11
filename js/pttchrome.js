@@ -1240,6 +1240,10 @@ pttchrome.App.prototype.onPrefChange = function(pref, name) {
     //var CiStr = Components.interfaces.nsISupportsString;
     //dumpLog(DUMP_TYPE_LOG, "onPrefChange " + name + ":" + pref.get(name));
     switch (name) {
+    case 'noMouseBrowsing':  // shown in settings; drives useMouseBrowsing
+      pref.values.useMouseBrowsing = !pref.get(name);
+      this.onPrefChange(pref, 'useMouseBrowsing');
+      break;
     case 'useMouseBrowsing':
       var useMouseBrowsing = pref.get(name);
       this.CmdHandler.setAttribute('useMouseBrowsing', useMouseBrowsing?'1':'0');

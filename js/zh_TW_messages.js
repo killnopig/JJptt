@@ -288,6 +288,9 @@ locale.zh_TW = {
   "options_mouseBrowsing": {
     "message": "滑鼠瀏覽"
   },
+  "options_noMouseBrowsing": {
+    "message": "預設不使用滑鼠瀏覽（不使用時，底色設定不起作用）"
+  },
   "options_useMouseBrowsing": {
     "message": "預設使用滑鼠瀏覽"
   },
@@ -829,6 +832,9 @@ locale.zh_TW = {
   },
   "about_promote": {
     "message": "喜歡這個 APP 的話也請看看鄉民朝聖套件 "
+  },
+  "about_traffic_title": {
+    "message": "流量提醒"
   },
   "about_source_title": {
     "message": "來源與授權"
