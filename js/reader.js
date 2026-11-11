@@ -387,6 +387,21 @@ PttReader.prototype.ensureOverlay = function() {
     if (!(e.target.closest && e.target.closest('a'))) o.focus();
   });
   o.addEventListener('contextmenu', function(e) { self.onContextMenu(e); });
+  // hovering an image / YouTube link shows a large preview next to the mouse
+  o.addEventListener('mouseover', function(e) {
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a) return;
+    var src = PttReader.previewFor(a.getAttribute('href'));
+    if (src) self.showHoverPreview(src, e);
+  });
+  o.addEventListener('mousemove', function(e) {
+    if (self.hoverPreview && self.hoverPreview.style.display === 'block') self.placeHoverPreview(e);
+  });
+  o.addEventListener('mouseout', function(e) {
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (a && !(e.relatedTarget && a.contains(e.relatedTarget))) self.hideHoverPreview();
+  });
+  o.querySelector('.jjt-scroll').addEventListener('scroll', function() { self.hideHoverPreview(); });
   window.addEventListener('resize', function() {
     if (!self.isOpen()) return;
     // wait for the terminal to re-layout first
@@ -397,6 +412,48 @@ PttReader.prototype.ensureOverlay = function() {
   o.addEventListener('load', function() { self.updateStatus(); }, true);
   this.overlay = o;
   return o;
+};
+
+// Large picture for a link: the original image, or a YouTube thumbnail.
+PttReader.previewFor = function(url) {
+  if (!url || !/^https?:/.test(url)) return '';
+  var img = PttReader.imageSrc(url);
+  if (img) return img;
+  var yt = url.parseYoutubeUrl ? url.parseYoutubeUrl() : null;
+  if (yt) return 'https://i.ytimg.com/vi/' + yt.split(/[?&]/)[0] + '/hqdefault.jpg';
+  return '';
+};
+
+PttReader.prototype.showHoverPreview = function(src, e) {
+  var p = this.hoverPreview;
+  if (!p) {
+    p = this.hoverPreview = PttReader.el('img');
+    p.id = 'jjHoverPreview';
+    p.referrerPolicy = 'no-referrer';
+    var self = this;
+    p.addEventListener('load', function() {
+      if (self.lastMouse) self.placeHoverPreview(self.lastMouse);
+    });
+    this.overlay.appendChild(p);
+  }
+  if (p.getAttribute('src') !== src) p.setAttribute('src', src);
+  p.style.display = 'block';
+  this.placeHoverPreview(e);
+};
+
+PttReader.prototype.placeHoverPreview = function(e) {
+  var p = this.hoverPreview;
+  this.lastMouse = { clientX: e.clientX, clientY: e.clientY };
+  var w = p.offsetWidth || 0, h = p.offsetHeight || 0, gap = 18;
+  var x = e.clientX + gap;
+  if (x + w > window.innerWidth - 4) x = Math.max(4, e.clientX - gap - w);
+  var y = Math.min(Math.max(4, e.clientY - h / 2), window.innerHeight - h - 4);
+  p.style.left = x + 'px';
+  p.style.top = Math.max(4, y) + 'px';
+};
+
+PttReader.prototype.hideHoverPreview = function() {
+  if (this.hoverPreview) this.hoverPreview.style.display = 'none';
 };
 
 PttReader.prototype.isOpen = function() {
@@ -483,6 +540,7 @@ PttReader.prototype.show = function() {
 PttReader.prototype.close = function() {
   if (!this.overlay) return;
   this.hideMenu();
+  this.hideHoverPreview();
   this.overlay.style.display = 'none';
   this.app.modalShown = false;
   this.currentKey = '';

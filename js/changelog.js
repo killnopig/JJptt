@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.9.4',
+    date: '2026-11-11',
+    changes: [
+      '閱讀模式：滑鼠移到圖片網址上，旁邊顯示原尺寸大圖；移到 YouTube 網址上顯示影片縮圖'
+    ]
+  },
+  {
     version: '1.9.3',
     date: '2026-11-11',
     changes: [

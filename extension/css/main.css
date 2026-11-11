@@ -1119,3 +1119,16 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
   max-width: 90vw;
 }
 #jjTabsDialog .jj-dialog-buttons { margin-top: 14px; display: flex; gap: 10px; justify-content: flex-end; }
+
+#jjHoverPreview {
+  position: fixed;
+  display: none;
+  z-index: 2800;
+  max-width: 50vw;
+  max-height: 80vh;
+  padding: 0;
+  background: #111;
+  border: 1px solid #444;
+  box-shadow: 0 6px 24px rgba(0,0,0,.7);
+  pointer-events: none;
+}
