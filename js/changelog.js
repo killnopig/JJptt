@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.6.2',
+    date: '2026-11-11',
+    changes: [
+      '文章上按右鍵新增「用閱讀模式開啟」，自動開啟失敗或關掉後可以手動再開',
+      '閱讀模式更容易找到文章：標題列沒有看板名稱時改用文章列表的看板；畫面上出現「※ 文章網址」時直接用該網址'
+    ]
+  },
+  {
     version: '1.6.1',
     date: '2026-11-11',
     changes: [

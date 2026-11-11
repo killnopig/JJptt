@@ -1642,6 +1642,8 @@ pttchrome.App.prototype.setupContextMenus = function() {
       }
     }
 
+    $('#cmenu_openReader').toggle(self.buf.pageState == 3 && self.reader.available());
+
     if (contextOnUserId && self.pushInsights.enabled) {
       if (contextOnUserId in self.pref.watchlistedUserIds) {
         $('#cmenuRemoveWatchUserIdContent').text("'"+contextOnUserId+"'");
@@ -1780,6 +1782,7 @@ pttchrome.App.prototype.setupContextMenus = function() {
   $('#cmenu_showLiveArticleHelper a').text(i18n('cmenu_showLiveArticleHelper'));
   $('#cmenu_addBlacklistUserId a').html(i18n('cmenu_addBlacklistUserId')+' <span id="cmenuAddBlacklistUserIdContent"></span>');
   $('#cmenu_removeBlacklistUserId a').html(i18n('cmenu_removeBlacklistUserId')+' <span id="cmenuRemoveBlacklistUserIdContent"></span>');
+  $('#cmenu_openReader a').text(i18n('cmenu_openReader'));
   $('#cmenu_addWatchUserId a').html(i18n('cmenu_addWatchUserId')+' <span id="cmenuAddWatchUserIdContent"></span>');
   $('#cmenu_removeWatchUserId a').html(i18n('cmenu_removeWatchUserId')+' <span id="cmenuRemoveWatchUserIdContent"></span>');
   $('#cmenu_settings a').text(i18n('cmenu_settings'));
@@ -1823,6 +1826,9 @@ pttchrome.App.prototype.setupContextMenus = function() {
     },
     'cmenu_removeBlacklistUserId': function() { 
       self.doRemoveBlacklistUserId(contextOnUserId); 
+    },
+    'cmenu_openReader': function() {
+      self.reader.openManually();
     },
     'cmenu_addWatchUserId': function() {
       self.doAddWatchUserId(contextOnUserId);

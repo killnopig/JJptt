@@ -40,16 +40,61 @@ PttReader.prototype.headerFromTerminal = function() {
   var r0 = buf.getRowText(0, 0, buf.cols);
   var r1 = buf.getRowText(1, 0, buf.cols);
   var r2 = buf.getRowText(2, 0, buf.cols);
-  var m0 = /^\s*作者\s+(\w+).*?看板\s+(\S+)/.exec(r0);
+  var m0 = /^\s*作者\s+(\w+)(?:.*?看板\s+(\w+))?/.exec(r0);
   var m1 = /^\s*標題\s+(.*?)\s*$/.exec(r1);
   var m2 = /^\s*時間\s+(.*?)\s*$/.exec(r2);
   if (!m0 || !m1) return null;
-  return { author: m0[1], board: m0[2], title: m1[1], time: m2 ? m2[1] : '' };
+  // The board name can be pushed off the header row (long nicknames); fall
+  // back to the board of the list we came from.
+  var board = m0[2] || this.lastBoard;
+  if (!board) return null;
+  return { author: m0[1], board: board, title: m1[1], time: m2 ? m2[1] : '' };
 };
 
 // Called after every terminal redraw.
+// Remembers the current board (list header "看板《Gossiping》") and the
+// article's web URL when "※ 文章網址: ..." is on screen.
+PttReader.prototype.trackTerminal = function() {
+  var buf = this.app.buf;
+  if (buf.pageState == 2) {
+    var m = /看板《(\w+)》/.exec(buf.getRowText(0, 0, buf.cols));
+    if (m) this.lastBoard = m[1];
+    this.lastHeader = null;
+    this.lastUrl = '';
+  } else if (buf.pageState == 3) {
+    var h = this.headerFromTerminal();
+    if (h) {
+      var key = h.board + '|' + h.author + '|' + h.title;
+      if (!this.lastHeader || this.lastHeader.key !== key) this.lastUrl = '';
+      h.key = key;
+      this.lastHeader = h;
+    }
+    for (var r = 0; r < 23; ++r) {
+      var u = /※ 文章網址: (https?:\/\/www\.ptt\.cc\/bbs\/\S+\.html)/.exec(buf.getRowText(r, 0, buf.cols));
+      if (u) this.lastUrl = u[1].replace(/^http:/, 'https:');
+    }
+  }
+};
+
+// Right-click → 用閱讀模式開啟: open even if it failed or was closed before.
+PttReader.prototype.openManually = function() {
+  if (!this.available()) return;
+  this.trackTerminal();
+  var h = this.headerFromTerminal() || this.lastHeader;
+  if (!h) {
+    this.app.showToast(i18n('reader_needFirstPage'), 4000);
+    return;
+  }
+  var key = h.board + '|' + h.author + '|' + h.title;
+  this.dismissedKey = '';
+  this.currentKey = '';
+  this.openFor(h, key, true);
+};
+
 PttReader.prototype.onTerminalUpdate = function() {
-  if (!this.enabled || !this.available()) return;
+  if (!this.available()) return;
+  this.trackTerminal();
+  if (!this.enabled) return;
   if (this.app.buf.pageState != 3) {
     // left the article: allow it to open again next time
     this.dismissedKey = '';
@@ -296,14 +341,18 @@ PttReader.prototype.onKeyDown = function(e) {
   e.stopPropagation();
 };
 
-PttReader.prototype.openFor = function(h, key) {
+PttReader.prototype.openFor = function(h, key, manual) {
   var self = this;
   this.loadingKey = key;
-  this.findArticle(h).then(function(article) {
+  var url = (this.lastHeader && this.lastHeader.key === key) ? this.lastUrl : '';
+  var load = url ? this.fetchArticle(url) : this.findArticle(h);
+  if (manual) this.app.showToast(i18n('app_loading') || '…', 1500);
+  load.then(function(article) {
     if (self.loadingKey !== key) return;  // moved on meanwhile
-    // Still reading the same article in the terminal?
+    // Still reading the same article in the terminal? (manual opens may be
+    // on a later page where the header is not visible)
     var now = self.headerFromTerminal();
-    if (!now || now.board + '|' + now.author + '|' + now.title !== key) return;
+    if (!manual && (!now || now.board + '|' + now.author + '|' + now.title !== key)) return;
     self.loadingKey = '';
     self.currentKey = key;
     self.article = article;

@@ -324,6 +324,15 @@ locale.zh_TW = {
   "reader_allowPreview": {
     "message": "顯示網址預覽（需要允許讀取網站）"
   },
+  "cmenu_openReader": {
+    "message": "用閱讀模式開啟"
+  },
+  "reader_needFirstPage": {
+    "message": "請先回到文章第一頁（看得到作者、標題的那頁）再開啟"
+  },
+  "app_loading": {
+    "message": "閱讀模式載入中…"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },

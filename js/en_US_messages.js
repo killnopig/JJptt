@@ -327,6 +327,15 @@ locale.en_US = {
   "reader_allowPreview": {
     "message": "Show link previews (needs permission to read sites)"
   },
+  "cmenu_openReader": {
+    "message": "Open in reader view"
+  },
+  "reader_needFirstPage": {
+    "message": "Go back to the article's first page (with author and title) first"
+  },
+  "app_loading": {
+    "message": "Loading reader view…"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },
