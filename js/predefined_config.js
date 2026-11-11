@@ -39,6 +39,7 @@ var DEFAULT_PREFS = {
 
   enablePushInsights : true,
   enableReader : true,
+  readerLowResImages : true,
   textColor : '#c0c0c0',
   floorColor : '#8a8a8a',
   countryDisplay : 0,

@@ -336,6 +336,9 @@ locale.en_US = {
   "app_loading": {
     "message": "Loading reader view…"
   },
+  "options_readerLowResImages": {
+    "message": "Use lower resolution images in the reader (faster; click for the original)"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },

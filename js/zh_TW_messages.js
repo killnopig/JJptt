@@ -333,6 +333,9 @@ locale.zh_TW = {
   "app_loading": {
     "message": "閱讀模式載入中…"
   },
+  "options_readerLowResImages": {
+    "message": "閱讀模式用低解析度圖片（載入較快，點圖片開原圖）"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },

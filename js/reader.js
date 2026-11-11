@@ -18,6 +18,9 @@ function PttReader(app) {
 }
 
 PttReader.WEB = 'https://www.ptt.cc';
+// back to the list, move up / down, open (what you would type in PTT)
+PttReader.KEYS_PREV = '\x1b[D\x1b[A\x1b[C';
+PttReader.KEYS_NEXT = '\x1b[D\x1b[B\x1b[C';
 
 PttReader.prototype.available = function() {
   return lib.isExtension() && typeof DOMParser !== 'undefined';
@@ -61,6 +64,7 @@ PttReader.prototype.trackTerminal = function() {
     if (m) this.lastBoard = m[1];
     this.lastHeader = null;
     this.lastUrl = '';
+    if (this.enabled && this.available()) this.schedulePrefetch();
   } else if (buf.pageState == 3) {
     var h = this.headerFromTerminal();
     if (h) {
@@ -211,7 +215,76 @@ PttReader.prototype.findArticle = function(h) {
       return article;
     });
   };
-  return search(1).then(tryNext);
+  var ts = Date.now();
+  return search(1).then(function(list) {
+    console.log('JJptt 搜尋文章網址 ' + (Date.now() - ts) + 'ms');
+    return tryNext(list);
+  });
+};
+
+// ---- prefetch from the article list ------------------------------------------
+// While the cursor rests on an article in the list, fetch it in the
+// background so that it is ready when Enter is pressed.
+
+PttReader.prefetchKey = function(board, author, title) {
+  var t = PttReader.normalizeTitle(title).replace(/^(?:Re|R|Fw|轉)\s*:\s*/i, '');
+  return (board + '|' + author + '|' + t).toLowerCase();
+};
+
+PttReader.prototype.schedulePrefetch = function() {
+  var self = this;
+  var buf = this.app.buf;
+  if (buf.pageState != 2 || !this.lastBoard) return;
+  var row = null;
+  for (var r = 3; r < 23; ++r) {
+    var text = buf.getRowText(r, 0, buf.cols);
+    if (/^[>●]/.test(text)) { row = text; break; }
+  }
+  if (!row) return;
+  var author = row.parseThreadForUserId();
+  var title = row.parseThreadTitle();
+  if (!author || !title) return;
+  var key = PttReader.prefetchKey(this.lastBoard, author, title);
+  if (key === this.prefetchPending) return;
+  this.prefetchPending = key;
+  clearTimeout(this.prefetchTimer);
+  var board = this.lastBoard;
+  this.prefetchTimer = setTimeout(function() {
+    self.prefetch = self.prefetch || {};
+    if (self.prefetch[key]) return;
+    var h = { board: board, author: author, title: title.replace(/^(?:R|Re|Fw|轉)\s*:\s*/i, 'Re: '), time: '' };
+    var p = self.findArticle(h);
+    p.catch(function() { delete self.prefetch[key]; });
+    self.prefetch[key] = { promise: p, at: Date.now(), board: board.toLowerCase(), author: author.toLowerCase(),
+                           title: PttReader.prefetchKey('', '', title).slice(2) };
+    var keys = Object.keys(self.prefetch);
+    if (keys.length > 15) delete self.prefetch[keys[0]];
+  }, 400);
+};
+
+// Prefetched article for this header, if fresh (pushes keep coming in).
+PttReader.prototype.takePrefetch = function(h) {
+  if (!this.prefetch) return null;
+  // list and header both cut long titles, so compare by prefix
+  var want = PttReader.prefetchKey('', '', h.title).slice(2);
+  var key = null, hit = null;
+  for (var k in this.prefetch) {
+    var c = this.prefetch[k];
+    if (c.board !== String(h.board).toLowerCase() || c.author !== String(h.author).toLowerCase()) continue;
+    if (c.title === want || (Math.min(c.title.length, want.length) >= 6 &&
+        (c.title.indexOf(want) === 0 || want.indexOf(c.title) === 0))) {
+      key = k;
+      hit = c;
+      break;
+    }
+  }
+  if (!hit || Date.now() - hit.at > 60000) return null;
+  delete this.prefetch[key];
+  return hit.promise.then(function(article) {
+    var t = PttReader.normalizeTitle(article.meta['時間']);
+    if (h.time && t && t !== PttReader.normalizeTitle(h.time)) throw new Error('prefetch mismatch');
+    return article;
+  });
 };
 
 PttReader.prototype.fetchArticle = function(url) {
@@ -276,7 +349,7 @@ PttReader.prototype.ensureOverlay = function() {
     self.hideMenu();
     // clicking an image opens the original, like links in the terminal
     var img = e.target.closest && e.target.closest('.jjr-img');
-    if (img && img.tagName === 'IMG') window.open(img.currentSrc || img.src, '_blank', 'noreferrer');
+    if (img && img.tagName === 'IMG') window.open(img.getAttribute('data-full') || img.src, '_blank', 'noreferrer');
     if (!(e.target.closest && e.target.closest('a'))) o.focus();
   });
   o.addEventListener('contextmenu', function(e) { self.onContextMenu(e); });
@@ -394,6 +467,10 @@ PttReader.prototype.onKeyDown = function(e) {
   var scroller = this.overlay.querySelector('.jjt-scroll');
   var line = this.lineHeight || 20;
   var page = Math.max(line, scroller.clientHeight - line * 2);
+  // like PTT: past the top / bottom of the article goes to the previous /
+  // next one
+  var atTop = scroller.scrollTop <= 0;
+  var atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2;
   if (this.menu && this.menu.style.display === 'block') {
     if (e.key === 'Escape') {
       this.hideMenu();
@@ -412,15 +489,18 @@ PttReader.prototype.onKeyDown = function(e) {
       break;
     case 'ArrowDown':
     case 'Enter':
-      scroller.scrollTop += line;
+      if (atBottom) this.closeAndSend(PttReader.KEYS_NEXT);
+      else scroller.scrollTop += line;
       break;
     case 'ArrowUp':
-      scroller.scrollTop -= line;
+      if (atTop) this.closeAndSend(PttReader.KEYS_PREV);
+      else scroller.scrollTop -= line;
       break;
     case ' ':
     case 'PageDown':
     case 'ArrowRight':
-      scroller.scrollTop += page;
+      if (atBottom) this.closeAndSend(PttReader.KEYS_NEXT);
+      else scroller.scrollTop += page;
       break;
     case 'PageUp':
     case 'b':
@@ -449,9 +529,15 @@ PttReader.prototype.openFor = function(h, key, manual) {
   var self = this;
   this.loadingKey = key;
   var url = (this.lastHeader && this.lastHeader.key === key) ? this.lastUrl : '';
-  var load = url ? this.fetchArticle(url) : this.findArticle(h);
+  var t0 = Date.now();
+  var pre = this.takePrefetch(h);
+  var how = url ? 'url' : pre ? 'prefetch' : 'search';
+  var load = url ? this.fetchArticle(url) :
+    pre ? pre.catch(function() { how = 'search'; return self.findArticle(h); }) : this.findArticle(h);
   this.setLoading(true);
   load.then(function(article) {
+    var tFetched = Date.now();
+    PttReader.lastTiming = { how: how, fetchMs: tFetched - t0 };
     if (self.loadingKey === key) self.setLoading(false);
     if (self.loadingKey !== key) return;  // moved on meanwhile
     // Still reading the same article in the terminal? The header may have
@@ -468,6 +554,9 @@ PttReader.prototype.openFor = function(h, key, manual) {
     self.render(article, h);
     self.show();
     self.restorePosition();
+    PttReader.lastTiming.renderMs = Date.now() - tFetched;
+    console.log('JJptt 閱讀模式載入：' + (how === 'url' ? '直接用文章網址' : how === 'prefetch' ? '列表預先載入' : '搜尋網址＋下載') +
+      ' ' + PttReader.lastTiming.fetchMs + 'ms，排版 ' + PttReader.lastTiming.renderMs + 'ms');
   }).catch(function(e) {
     console.log('reader unavailable for this article:', e);
     if (self.loadingKey === key) {
@@ -506,6 +595,23 @@ PttReader.imageSrc = function(url) {
   return '';
 };
 
+// Smaller version of an image when the host offers one: imgur "l" thumbnails
+// (about 640px wide), Twitter "small". Animated GIFs are left alone.
+PttReader.lowResSrc = function(src) {
+  var m = /^https?:\/\/i\.imgur\.com\/(\w{7})\.(jpe?g|png|webp)(?:[?#].*)?$/i.exec(src);
+  if (m) return 'https://i.imgur.com/' + m[1] + 'l.jpg';
+  if (/^https?:\/\/pbs\.twimg\.com\/media\//i.test(src)) {
+    return src.replace(/([?&]name=)\w+/, '$1small') + (/[?&]name=/.test(src) ? '' : (src.indexOf('?') < 0 ? '?' : '&') + 'name=small');
+  }
+  return src;
+};
+
+PttReader.prototype.displaySrc = function(src) {
+  var pref = this.app.pref;
+  var low = !pref || !pref.values || pref.values.readerLowResImages !== false;
+  return low ? PttReader.lowResSrc(src) : src;
+};
+
 // Link line plus its media (image, video, YouTube or link card). With
 // mediaOnly the link text itself is left out (it is already in the text).
 PttReader.prototype.linkBlock = function(url, mediaOnly) {
@@ -529,7 +635,8 @@ PttReader.prototype.linkBlock = function(url, mediaOnly) {
     var im = el('img', 'jjr-img');
     im.loading = 'lazy';
     im.referrerPolicy = 'no-referrer';
-    im.src = img;
+    im.src = this.displaySrc(img);
+    im.setAttribute('data-full', img);
     im.addEventListener('error', function() { im.style.display = 'none'; });
     wrap.appendChild(im);
   } else if (yt) {

@@ -3,6 +3,16 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.8.0',
+    date: '2026-11-11',
+    changes: [
+      '閱讀模式比照 PTT：在最上面按 ↑ 到上一篇，在最下面按 ↓／空白／PageDown／→ 到下一篇',
+      '加快載入：游標停在文章列表某篇上時，先在背景載入那篇，按 Enter 幾乎立刻顯示',
+      '閱讀模式預設使用低解析度圖片（imgur 約 640 像素寬），點圖片開原圖；設定可關閉',
+      'Console 會記錄每次載入花多少時間，方便找出慢在哪裡'
+    ]
+  },
+  {
     version: '1.7.5',
     date: '2026-11-11',
     changes: [
