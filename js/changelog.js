@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.3.0',
+    date: '2026-11-11',
+    changes: [
+      '拿掉好讀模式：遇到自動換行的長網址會排版錯亂，YouTube 嵌入也被擋。推文樓層、國籍、可疑標記、黑名單在一般翻頁模式都正常運作',
+      '圖片改成滑鼠移到網址上時顯示預覽'
+    ]
+  },
+  {
     version: '1.2.1',
     date: '2026-11-11',
     changes: [

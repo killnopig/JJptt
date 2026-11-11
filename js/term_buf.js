@@ -795,15 +795,10 @@ TermBuf.prototype = {
         }
       }
 
-      // make sure to come back to easy reading mode
-      if (this.prevPageState == 2 && this.pageState == 3 && 
-          !this.view.useEasyReadingMode && 
-          this.view.bbscore.pref.values.enableEasyReading &&
-          this.view.bbscore.connectedUrl.site == 'ptt.cc') {
-        this.view.useEasyReadingMode = true;
-      } else if (!this.view.bbscore.pref.values.enableEasyReading) {
-        this.view.useEasyReadingMode = false;
-      }
+      // JJptt: easy reading mode is removed. Stitching PTT's pages into one
+      // scrolling view broke on wrapped lines and current PTT screens, and
+      // floors / insights / blacklist all work in the normal paged view.
+      this.view.useEasyReadingMode = false;
 
       if (this.view.useEasyReadingMode) {
         var lastRowText = this.getRowText(23, 0, this.cols);

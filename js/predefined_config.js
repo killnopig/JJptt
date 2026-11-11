@@ -8,7 +8,7 @@ var DEFAULT_PREFS = {
   openInPackagedApp     : false,
   enablePicPreview      : true,
   enableNotifications   : true,
-  enableEasyReading     : true,
+  enableEasyReading     : false,  // JJptt: feature removed
   endTurnsOnLiveUpdate  : false,
   copyOnSelect          : false,
   antiIdleTime          : 0,
