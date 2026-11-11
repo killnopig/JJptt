@@ -858,12 +858,21 @@ TermView.prototype = {
     var mainWidth = this.chw*this.buf.cols+10;
     // JJptt: room on the left for floor numbers and on the right for push
     // insight labels (positioned at --jj-label-left).
-    var leftGutter = this.chw * this.leftGutterCols();
+    // Floor numbers on the left only use spare width (up to 5 columns), so
+    // the terminal keeps its full font size.
+    var leftGutter = 0;
+    if (this.insightsActive()) {
+      if (this.compactLabels()) leftGutter = this.chw * 4;   // always reserved
+      else leftGutter = Math.max(0, Math.min(this.chw * 5, innerBounds.width - mainWidth));
+    }
+    this.leftGutterPx = leftGutter;
     mainWidth += leftGutter;
     if (this.insightsActive()) {
       var spare = innerBounds.width - mainWidth;
       mainWidth += Math.max(0, Math.min(spare, this.chw * 40));
     }
+    // columns available for the labels right of the 80 columns
+    this.rightSpaceCols = Math.max(0, (mainWidth - leftGutter - this.chw * this.buf.cols - 10) / this.chw);
     this.mainDisplay.style.setProperty('--jj-label-left', (this.chw*this.buf.cols) + 'px');
     this.mainDisplay.style.setProperty('--jj-cw2', (this.chw*2) + 'px');
     this.mainDisplay.style.setProperty('--jj-ch', this.chh + 'px');
@@ -1270,11 +1279,19 @@ TermView.prototype = {
     var insights = this.bbscore && this.bbscore.pushInsights;
     return !!(insights && insights.enabled && !this.fontFitWindowWidth);
   },
+  // The terminal keeps its full size: floor numbers use spare width on the
+  // left, country / hints the spare width on the right in a smaller font.
+  // Setting labelLayout: 0 = terminal full size (labels use spare space),
+  // 1 = compact reserved (slightly smaller font, labels always visible).
+  compactLabels: function() {
+    var pref = this.bbscore && this.bbscore.pref;
+    return !!(pref && pref.values && parseInt(pref.values.labelLayout, 10) === 1);
+  },
   leftGutterCols: function() {
-    return this.insightsActive() ? 5 : 0;
+    return this.chw ? (this.leftGutterPx || 0) / this.chw : 0;
   },
   labelGutterCols: function() {
-    return this.insightsActive() ? 10 + this.leftGutterCols() : 0;
+    return (this.insightsActive() && this.compactLabels()) ? 7 : 0;
   },
 
   onWindowResizeForInsights: function() {

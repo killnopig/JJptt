@@ -40,6 +40,7 @@ var DEFAULT_PREFS = {
   blacklistedTitleKeywords : '',
 
   enablePushInsights : true,
+  labelLayout : 0,
   enableReader : true,
   readerLowResImages : true,
   textColor : '#c0c0c0',
@@ -62,6 +63,7 @@ var PREF_OPTIONS = {
   mouseWheelFunction2 : [ 'options_none', 'options_upDown' , 'options_pageUpDown', 'options_threadLastNext' ],
   mouseWheelFunction3 : [ 'options_none', 'options_upDown' , 'options_pageUpDown', 'options_threadLastNext' ],
   countryDisplay : [ 'options_countryText', 'options_countryFlag', 'options_countryBoth' ],
+  labelLayout : [ 'options_labelLayoutFull', 'options_labelLayoutCompact' ],
 };
 
 // DUMP_TYPE

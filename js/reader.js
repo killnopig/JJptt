@@ -1090,6 +1090,7 @@ PttReader.prototype.layout = function() {
   page.style.width = (chw * 80) + 'px';
   page.style.marginLeft = Math.max(0, rect.left + gutter) + 'px';
   page.style.paddingTop = '0px';
+  this.rightSpaceCols = Math.max(0, (window.innerWidth - (rect.left + gutter) - chw * 80) / chw);
   scroller.style.marginTop = Math.max(0, rect.top) + 'px';
   scroller.style.height = (chh * (rows - 1)) + 'px';
   o.style.setProperty('--jj-box-h', (chh * (rows - 1)) + 'px');
@@ -1175,7 +1176,8 @@ PttReader.prototype.renderPushes = function(article) {
       if (level !== 'warn') level = 'watch';
     }
     if (countById[id] >= 8) parts.push('第' + nth[id] + '/' + countById[id] + '推');
-    var label = parts.concat(hints.length ? [(T.prefix ? T.prefix + ' ' : '') + hints.join(' ')] : []).join(' ');
+    var full = parts.concat(hints.length ? [(T.prefix ? T.prefix + ' ' : '') + hints.join(' ')] : []).join(' ');
+    var label = insights.fitLabel(full, parts, hints, T, self.rightSpaceCols);
 
     // "推 userid: content          ip mm/dd hh:mm" in PTT colours
     var line = el('div', 'jjt-line jjt-push' + ((id in black) ? ' jjt-faded' : ''));
@@ -1190,6 +1192,7 @@ PttReader.prototype.renderPushes = function(article) {
     line.appendChild(el('span', 'q7 b0 jjt-push-right', ' ' + [p.ip, p.time].filter(Boolean).join(' ')));
     line.setAttribute('data-jj-floor', (i + 1) + '樓');
     if (label) line.setAttribute('data-jj', label);
+    line.setAttribute('title', ((i + 1) + '樓 ' + full).trim());
     if (level) line.setAttribute('data-jj-level', level);
     wrap.appendChild(line);
     result[i] = { line: line, frag: wrap };

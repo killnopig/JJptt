@@ -354,6 +354,15 @@ locale.zh_TW = {
   "tabs_closed": {
     "message": "已關閉 %s 個之前的分頁"
   },
+  "options_labelLayout": {
+    "message": "推文標籤排版"
+  },
+  "options_labelLayoutFull": {
+    "message": "終端機原尺寸：字不縮小，標籤用視窗多的空間"
+  },
+  "options_labelLayoutCompact": {
+    "message": "精簡保留：字稍小，一定看得到樓層、國旗與 ⚠"
+  },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
   },

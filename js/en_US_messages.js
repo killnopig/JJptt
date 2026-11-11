@@ -357,6 +357,15 @@ locale.en_US = {
   "tabs_closed": {
     "message": "Closed %s earlier tab(s)"
   },
+  "options_labelLayout": {
+    "message": "Push label layout"
+  },
+  "options_labelLayoutFull": {
+    "message": "Full-size terminal: labels use spare space"
+  },
+  "options_labelLayoutCompact": {
+    "message": "Compact: slightly smaller text, labels always visible"
+  },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
   },

@@ -60,6 +60,16 @@ PushInsights.prototype.hintTexts = function() {
   };
 };
 
+// Compact layout with little room on the right: country plus a single
+// warning sign; the full text is in the row's tooltip.
+PushInsights.prototype.fitLabel = function(full, parts, warn, T, spaceCols) {
+  var view = this.app.view;
+  if (!view.compactLabels || !view.compactLabels() || spaceCols === undefined || spaceCols >= 12) return full;
+  var country = parts.length ? parts[0] : '';
+  var sign = warn.length ? (T.prefix || '\u26a0') : '';
+  return [country, sign].filter(Boolean).join(' ');
+};
+
 PushInsights.prototype.resetArticle = function() {
   this.articleKey = '';
   this.pendingAuthor = '';
@@ -221,12 +231,13 @@ PushInsights.prototype.annotate = function() {
       parts.push('第' + p.nth + '/' + total + '推');  // 第k/n推
     }
 
-    var label = parts.concat(warn.length ? [(T.prefix ? T.prefix + ' ' : '') + warn.join(' ')] : []).join(' ');
+    var full = parts.concat(warn.length ? [(T.prefix ? T.prefix + ' ' : '') + warn.join(' ')] : []).join(' ');
+    var label = this.fitLabel(full, parts, warn, T, view.rightSpaceCols);
     this.setAttr(p.row, 'data-jj-floor', floorText);
     this.setAttr(p.row, 'data-jj', label);
     this.setAttr(p.row, 'data-jj-level', label ? level : '');
-    // full text on hover in case the label is clipped
-    this.setAttr(p.row, 'title', [floorText, label].filter(Boolean).join(' '));
+    // full text on hover in case the label is clipped / shortened
+    this.setAttr(p.row, 'title', [floorText, full].filter(Boolean).join(' '));
   }
 };
 

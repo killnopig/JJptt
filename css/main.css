@@ -808,8 +808,8 @@ span {
   top: 0;
   left: var(--jj-label-left, 40em);
   padding-left: 0.6em;
-  font-size: 0.6em;
-  line-height: 1.6667;
+  font-size: 0.5em;
+  line-height: 2;
   color: #8a8a8a;
   white-space: pre;
   pointer-events: none;
@@ -1065,7 +1065,7 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 .jjt-root .jjt-line[data-jj]::after {
   content: attr(data-jj);
   position: absolute; top: 0; left: 100%;
-  padding-left: 0.6em; font-size: 0.6em; line-height: 1.6667;
+  padding-left: 0.6em; font-size: 0.5em; line-height: 2;
   color: #8a8a8a; white-space: pre; pointer-events: none; user-select: none;
 }
 .jjt-root .jjt-line[data-jj-level="foreign"]::after { color: #ffa940; }

@@ -1291,6 +1291,10 @@ pttchrome.App.prototype.onPrefChange = function(pref, name) {
     case 'floorColor':
       document.documentElement.style.setProperty('--jj-floor-color', pref.get(name) || '#8a8a8a');
       break;
+    case 'labelLayout':
+      this.onWindowResize();
+      this.pushInsights.annotate();
+      break;
     case 'countryDisplay':
     case 'suspectPrefix':
     case 'suspectSameIpText':
