@@ -1162,6 +1162,7 @@ PttReader.prototype.renderPushes = function(article) {
     var wrap = document.createDocumentFragment();
 
     var hints = [];
+    var tags = [];
     var level = '';
     var parts = [];
     var asFlag = self.app.view.ipAsFlag && self.app.view.ipAsFlag();
@@ -1178,15 +1179,18 @@ PttReader.prototype.renderPushes = function(article) {
       var others = Object.keys(idsByIp[p.ip] || {}).filter(function(x) { return x !== id; });
       if (others.length) {
         hints.push(T.sameIp + ':' + others.slice(0, 2).join(',') + (others.length > 2 ? '等' + others.length + '人' : ''));
+        tags.push(T.sameIp);
         level = 'warn';
       }
       if (authorIp && p.ip === authorIp && id !== authorId) {
         hints.push(T.authorIp);
+        tags.push(T.authorIp);
         level = 'warn';
       }
     }
     if (id in watch) {
       hints.push(T.watch + (watch[id] ? ':' + watch[id] : ''));
+      tags.push(T.watch);
       if (level !== 'warn') level = 'watch';
     }
     if (countById[id] >= 8) parts.push('第' + nth[id] + '/' + countById[id] + '推');
@@ -1203,7 +1207,12 @@ PttReader.prototype.renderPushes = function(article) {
     var c = content.node;
     while (c.firstChild) left.appendChild(c.firstChild);
     line.appendChild(left);
-    line.appendChild(el('span', 'q7 b0 jjt-push-right', ' ' + [asFlag ? flag : p.ip, p.time].filter(Boolean).join(' ')));
+    var right = el('span', 'q7 b0 jjt-push-right', ' ');
+    if (asFlag && tags.length) {
+      right.appendChild(el('span', 'jjt-itag jjt-itag-' + level, (T.prefix || '') + tags.join('') + ' '));
+    }
+    right.appendChild(document.createTextNode([asFlag ? flag : p.ip, p.time].filter(Boolean).join(' ')));
+    line.appendChild(right);
     line.setAttribute('data-jj-floor', (i + 1) + '樓');
     if (label) line.setAttribute('data-jj', label);
     line.setAttribute('title', ((i + 1) + '樓 ' + full).trim());

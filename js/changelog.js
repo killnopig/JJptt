@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.11.2',
+    date: '2026-11-11',
+    changes: [
+      '「隱藏 IP，改顯示國旗」模式：可疑標記（同 IP 多帳號、與作者同 IP、觀察名單）的簡短字樣顯示在國旗旁，視窗窄也看得到'
+    ]
+  },
+  {
     version: '1.11.1',
     date: '2026-11-11',
     changes: [

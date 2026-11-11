@@ -1145,3 +1145,10 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
   -webkit-user-select: none;
   user-select: none;
 }
+
+#mainContainer > span[data-jj-ilevel="warn"] .jj-ip::before,
+.jjt-root .jjt-itag-warn { color: #ff5c5c; }
+#mainContainer > span[data-jj-ilevel="watch"] .jj-ip::before,
+.jjt-root .jjt-itag-watch { color: #d58bff; }
+#mainContainer > span[data-jj-ilevel="foreign"] .jj-ip::before,
+.jjt-root .jjt-itag-foreign { color: #ffa940; }

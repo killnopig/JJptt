@@ -219,6 +219,8 @@ PushInsights.prototype.annotate = function() {
     var parts = [];
     var level = '';
     var warn = [];
+    var tags = [];
+    var flagText = '';
 
     var floor = easyReading ? i + 1 : this.floorOf(p.line);
     var floorText = floor > 0 ? floor + '樓' : '';  // shown at the left
@@ -226,7 +228,7 @@ PushInsights.prototype.annotate = function() {
     if (p.ip) {
       var cc = this.geo.lookup(p.ip);
       var asFlag = view.ipAsFlag && view.ipAsFlag();
-      if (asFlag) this.maskIp(p.row, p.ip, cc ? PushInsights.flagEmoji(cc) : '');
+      flagText = cc ? PushInsights.flagEmoji(cc) : '';
       if (cc) {
         if (!asFlag) parts.push(this.countryLabel(cc));
         if (cc !== this.homeCountry) {
@@ -238,10 +240,12 @@ PushInsights.prototype.annotate = function() {
         var shown = others.slice(0, 2).join(',');
         if (others.length > 2) shown += '等' + others.length + '人';  // 等N人
         warn.push(T.sameIp + ':' + shown);
+        tags.push(T.sameIp);
         level = 'warn';
       }
       if (this.authorIps[p.ip] && p.id !== this.authorId) {
         warn.push(T.authorIp);
+        tags.push(T.authorIp);
         level = 'warn';
       }
     }
@@ -249,6 +253,7 @@ PushInsights.prototype.annotate = function() {
     if (p.id in watchlist) {
       var note = watchlist[p.id];
       warn.push(T.watch + (note ? ':' + note : ''));
+      tags.push(T.watch);
       if (level !== 'warn') level = 'watch';
     }
 
@@ -259,6 +264,12 @@ PushInsights.prototype.annotate = function() {
 
     var full = parts.concat(warn.length ? [(T.prefix ? T.prefix + ' ' : '') + warn.join(' ')] : []).join(' ');
     var label = this.fitLabel(full, parts, warn, T, view.rightSpaceCols);
+    // IP-as-flag layout: short hint labels next to the flag, in the IP's place
+    if (p.ip && view.ipAsFlag && view.ipAsFlag()) {
+      var inline = (tags.length ? (T.prefix || '') + tags.join('') + ' ' : '') + (flagText || '');
+      this.maskIp(p.row, p.ip, inline);
+      this.setAttr(p.row, 'data-jj-ilevel', tags.length ? level : '');
+    }
     this.setAttr(p.row, 'data-jj-floor', floorText);
     this.setAttr(p.row, 'data-jj', label);
     this.setAttr(p.row, 'data-jj-level', label ? level : '');
