@@ -61,6 +61,8 @@ fi
 mkdir -p "$INSTALL_DIR"
 cp "$BIN" "$INSTALL_DIR/jjptt-host"
 chmod 755 "$INSTALL_DIR/jjptt-host"
+# Remember the jjptt folder so the "立即更新" button can git pull it.
+(cd "$SCRIPT_DIR/.." && pwd) > "$INSTALL_DIR/repo-path"
 if [ "$OS" = darwin ]; then
   # Files downloaded from the internet are quarantined by macOS.
   xattr -d com.apple.quarantine "$INSTALL_DIR/jjptt-host" 2>/dev/null || true

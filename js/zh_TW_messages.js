@@ -112,11 +112,26 @@ locale.zh_TW = {
   "backup_imported": {
     "message": "設定已匯入"
   },
+  "update_now": {
+    "message": "立即更新"
+  },
+  "update_running": {
+    "message": "正在下載新版 JJptt…"
+  },
+  "update_restarting": {
+    "message": "下載完成，JJptt 馬上重新開啟…"
+  },
+  "update_needHost": {
+    "message": "自動更新需要新版的本機程式：請在 jjptt/native-host 資料夾重新執行一次安裝（Mac：sh install.sh）。"
+  },
+  "update_failedRun": {
+    "message": "自動更新失敗。"
+  },
   "update_title": {
     "message": "檢查更新"
   },
   "update_help": {
-    "message": "JJptt 每次開啟時會自動檢查 GitHub 上有沒有新版本。\n有新版時：雙擊 jjptt 資料夾裡的 update-jjptt.command（Windows 用 update-jjptt.bat），下載完成後畫面上會出現「套用更新」按鈕。"
+    "message": "JJptt 每次開啟時會自動檢查 GitHub 上有沒有新版本，有的話按「立即更新」就會自動下載並重新開啟。\n如果按鈕不能用：雙擊 jjptt 資料夾裡的 update-jjptt.command（Windows 用 update-jjptt.bat），下載完成後畫面上會出現「套用更新」按鈕。"
   },
   "update_check": {
     "message": "立即檢查"
@@ -128,7 +143,7 @@ locale.zh_TW = {
     "message": "JJptt 有新版本 v%s。"
   },
   "update_howto": {
-    "message": "請雙擊 jjptt 資料夾裡的 update-jjptt.command 下載，完成後這裡會出現「套用更新」按鈕。"
+    "message": "也可以雙擊 jjptt 資料夾裡的 update-jjptt.command 下載，完成後這裡會出現「套用更新」按鈕。"
   },
   "update_downloaded": {
     "message": "新版本 v%s 已經下載好了。"

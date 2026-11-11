@@ -112,6 +112,21 @@ locale.en_US = {
   "backup_imported": {
     "message": "Settings imported"
   },
+  "update_now": {
+    "message": "Update now"
+  },
+  "update_running": {
+    "message": "Downloading the new JJptt…"
+  },
+  "update_restarting": {
+    "message": "Done, reopening JJptt…"
+  },
+  "update_needHost": {
+    "message": "One-click update needs the new native host: run the installer in jjptt/native-host once more (Mac: sh install.sh)."
+  },
+  "update_failedRun": {
+    "message": "Automatic update failed."
+  },
   "update_title": {
     "message": "Updates"
   },

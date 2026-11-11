@@ -9,6 +9,10 @@
 //
 // and receives {"type":"connected"}, {"type":"data","data":"<base64>"},
 // {"type":"error","message":"..."} and {"type":"closed"}.
+//
+// {"type":"update"} runs "git pull --ff-only" in the JJptt folder the
+// install script recorded (only if its origin is the JJptt repository) and
+// answers {"type":"updated","message":"<git output>"} or an error.
 // The browser runs telnet/SSH itself; this program only forwards bytes.
 package main
 
@@ -22,12 +26,19 @@ import (
 	"io"
 	"net"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
 
-const version = "1.0.0"
+const version = "1.1.0"
+
+// The repository the "update" message may pull.
+const repoMarker = "github.com/killnopig/jjptt"
 
 var allowedHosts = map[string]bool{"ptt.cc": true, "ptt2.cc": true}
 
@@ -166,6 +177,87 @@ func main() {
 
 		case "ping":
 			send(outMsg{Type: "pong", Version: version})
+
+		case "update":
+			out, err := runUpdate()
+			if err != nil {
+				send(outMsg{Type: "error", Message: err.Error() + "\n" + out})
+			} else {
+				send(outMsg{Type: "updated", Message: out, Version: version})
+			}
+			return
 		}
 	}
+}
+
+// repoDir is the JJptt folder recorded by the install script in a file
+// named "repo-path" next to this program.
+func repoDir() (string, error) {
+	exe, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	raw, err := os.ReadFile(filepath.Join(filepath.Dir(exe), "repo-path"))
+	if err != nil {
+		return "", errors.New("不知道 jjptt 資料夾在哪裡，請重新執行一次 native-host 的安裝程式")
+	}
+	dir := strings.TrimSpace(string(raw))
+	if st, err := os.Stat(filepath.Join(dir, ".git")); err != nil || !st.IsDir() {
+		return "", errors.New("記錄的 jjptt 資料夾不是 git 資料夾：" + dir)
+	}
+	return dir, nil
+}
+
+// findGit looks on PATH and in the usual places (a browser starts this
+// program with a short PATH).
+func findGit() string {
+	if p, err := exec.LookPath("git"); err == nil {
+		return p
+	}
+	var cands []string
+	if runtime.GOOS == "windows" {
+		cands = []string{`C:\Program Files\Git\cmd\git.exe`, `C:\Program Files (x86)\Git\cmd\git.exe`,
+			filepath.Join(os.Getenv("LOCALAPPDATA"), `Programs\Git\cmd\git.exe`)}
+	} else {
+		cands = []string{"/usr/bin/git", "/opt/homebrew/bin/git", "/usr/local/bin/git"}
+	}
+	for _, c := range cands {
+		if _, err := os.Stat(c); err == nil {
+			return c
+		}
+	}
+	return ""
+}
+
+func runUpdate() (string, error) {
+	dir, err := repoDir()
+	if err != nil {
+		return "", err
+	}
+	git := findGit()
+	if git == "" {
+		return "", errors.New("找不到 git")
+	}
+	origin, err := exec.Command(git, "-C", dir, "remote", "get-url", "origin").Output()
+	if err != nil || !strings.Contains(strings.ToLower(string(origin)), repoMarker) {
+		return "", errors.New("這個資料夾不是 JJptt 的 GitHub 專案：" + dir)
+	}
+	cmd := exec.Command(git, "-C", dir, "pull", "--ff-only")
+	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
+	done := make(chan struct{})
+	var out []byte
+	go func() {
+		out, err = cmd.CombinedOutput()
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(3 * time.Minute):
+		if cmd.Process != nil {
+			cmd.Process.Kill()
+		}
+		<-done
+		return string(out), errors.New("下載太久，已經停止")
+	}
+	return string(out), err
 }

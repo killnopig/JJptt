@@ -75,7 +75,7 @@ JJUpdater.prototype.refresh = function(manual) {
     this.showBar(i18n('update_downloaded').replace('%s', disk), i18n('update_apply'));
   } else if (remote && JJUpdater.compare(remote, disk) > 0) {
     this.setStatus(i18n('update_available').replace('%s', remote));
-    this.showBar(i18n('update_available').replace('%s', remote) + ' ' + i18n('update_howto'), '');
+    this.showBar(i18n('update_available').replace('%s', remote), i18n('update_now'), 'now');
     this.startPolling();
   } else {
     this.hideBar();
@@ -109,12 +109,62 @@ JJUpdater.prototype.apply = function() {
   chrome.runtime.reload();
 };
 
+// One button: the JJptt native host (1.1.0+) runs "git pull" in the jjptt
+// folder, then the extension reloads itself.
+JJUpdater.HOST = 'com.jjptt.host';
+
+JJUpdater.prototype.native = function(msg) {
+  return new Promise(function(resolve) {
+    if (!(chrome.runtime && chrome.runtime.sendNativeMessage)) {
+      resolve(null);
+      return;
+    }
+    chrome.runtime.sendNativeMessage(JJUpdater.HOST, msg, function(res) {
+      if (chrome.runtime.lastError) resolve(null);
+      else resolve(res || null);
+    });
+  });
+};
+
+JJUpdater.prototype.updateNow = function() {
+  var self = this;
+  if (this.updating) return;
+  this.updating = true;
+  this.showBar(i18n('update_running'), '');
+  this.setStatus(i18n('update_running'));
+  this.native({ type: 'ping' }).then(function(pong) {
+    if (!pong || JJUpdater.compare(pong.version, '1.1.0') < 0) {
+      throw new Error(i18n('update_needHost'));
+    }
+    return self.native({ type: 'update' });
+  }).then(function(res) {
+    if (!res) throw new Error(i18n('update_failedRun'));
+    if (res.type !== 'updated') throw new Error(res.message || i18n('update_failedRun'));
+    return self.fetchVersion(chrome.runtime.getURL('manifest.json'));
+  }).then(function(disk) {
+    self.updating = false;
+    if (disk && JJUpdater.compare(disk, self.running()) > 0) {
+      self.setStatus(i18n('update_restarting'));
+      self.showBar(i18n('update_restarting'), '');
+      setTimeout(function() { self.apply(); }, 800);
+    } else {
+      self.check(true);
+    }
+  }).catch(function(err) {
+    self.updating = false;
+    var text = String(err && err.message || err).trim();
+    self.setStatus(text);
+    self.showBar(text + ' ' + i18n('update_howto'), '');
+    self.startPolling();
+  });
+};
+
 JJUpdater.prototype.setStatus = function(text) {
   this.status = text;
   $('#update_status').text(text);
 };
 
-JJUpdater.prototype.showBar = function(text, buttonText) {
+JJUpdater.prototype.showBar = function(text, buttonText, action) {
   var self = this;
   var bar = document.getElementById('jjUpdateBar');
   if (!bar) {
@@ -129,7 +179,10 @@ JJUpdater.prototype.showBar = function(text, buttonText) {
   if (buttonText) {
     var btn = document.createElement('button');
     btn.textContent = buttonText;
-    btn.addEventListener('click', function() { self.apply(); });
+    btn.addEventListener('click', function() {
+      if (action === 'now') self.updateNow();
+      else self.apply();
+    });
     bar.appendChild(btn);
   }
   var close = document.createElement('button');
@@ -207,6 +260,10 @@ JJUpdater.prototype.setupUi = function() {
   $('#update_check').text(i18n('update_check')).off().click(function(e) {
     e.preventDefault();
     self.check(true);
+  });
+  $('#update_now').text(i18n('update_now')).off().click(function(e) {
+    e.preventDefault();
+    self.updateNow();
   });
   $('#update_status').text(this.status);
   $('#update_row').toggle(this.available());

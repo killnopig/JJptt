@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.15.0',
+    date: '2026-11-11',
+    changes: [
+      '一鍵自動更新：有新版時按畫面上方的「立即更新」（或設定 → 同步與備份 →「立即更新」），JJptt 會自己下載新版、重新載入並重新開啟',
+      '本機程式更新到 1.1.0（新增「更新」功能，只會在 jjptt 資料夾執行 git pull）；第一次要在 jjptt/native-host 重新執行一次安裝'
+    ]
+  },
+  {
     version: '1.14.1',
     date: '2026-11-11',
     changes: [

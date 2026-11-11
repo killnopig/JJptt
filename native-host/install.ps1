@@ -31,6 +31,9 @@ New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 $Exe = Join-Path $InstallDir 'jjptt-host.exe'
 Copy-Item -Path $Source -Destination $Exe -Force
 Unblock-File -Path $Exe
+# Remember the jjptt folder so the update button can git pull it.
+$RepoDir = Split-Path $PSScriptRoot -Parent
+[System.IO.File]::WriteAllText((Join-Path $InstallDir 'repo-path'), $RepoDir, (New-Object System.Text.UTF8Encoding $false))
 
 $ManifestPath = Join-Path $InstallDir "$Name.json"
 $Manifest = [ordered]@{
