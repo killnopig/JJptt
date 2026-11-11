@@ -564,6 +564,18 @@ locale.en_US = {
   "options_factReportExpanded": {
     "message": "Show the report expanded (otherwise one line; click to expand)"
   },
+  "options_factSameIp": {
+    "message": "Same IP: tag different accounts pushing from one IP"
+  },
+  "options_factAuthorIp": {
+    "message": "Author IP: tag pushers using the author\u2019s IP"
+  },
+  "fact_allOn": {
+    "message": "All on"
+  },
+  "fact_allOff": {
+    "message": "All off"
+  },
   "options_factFastPush": {
     "message": "Fast pushes within a few minutes of posting (marked stronger when the article is too long to have been read)"
   },
@@ -641,6 +653,24 @@ locale.en_US = {
   },
   "options_enableBlacklist": {
     "message": "Enable user blacklist feature"
+  },
+  "options_blacklistMode": {
+    "message": "Pushes and articles of blacklisted users"
+  },
+  "options_blacklistFade": {
+    "message": "Faded"
+  },
+  "options_blacklistHide": {
+    "message": "Hidden"
+  },
+  "options_blacklistOff": {
+    "message": "Shown as usual (blacklist paused, list kept)"
+  },
+  "options_watchlistEnabled": {
+    "message": "Use the watchlist (tag pushes; the list is kept when off)"
+  },
+  "options_customListEnabled": {
+    "message": "Use the custom list (tag pushes with the list name; kept when off)"
   },
   "options_blacklistInstruction": {
     "message": "Type in the usernames in the textarea below, one per line"

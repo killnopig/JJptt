@@ -1352,18 +1352,18 @@ PttReader.prototype.renderPushes = function(article) {
     }
     if (p.ip) {
       var others = Object.keys(idsByIp[p.ip] || {}).filter(function(x) { return x !== id; });
-      if (others.length) {
+      if (others.length && pref.values.factSameIp !== false) {
         hints.push(T.sameIp + ':' + others.slice(0, 2).join(',') + (others.length > 2 ? '等' + others.length + '人' : ''));
         tags.push(T.sameIp);
         level = 'warn';
       }
-      if (authorIp && p.ip === authorIp && id !== authorId) {
+      if (authorIp && p.ip === authorIp && id !== authorId && pref.values.factAuthorIp !== false) {
         hints.push(T.authorIp);
         tags.push(T.authorIp);
         level = 'warn';
       }
     }
-    if (id in watch) {
+    if (id in watch && pref.values.watchlistEnabled !== false) {
       hints.push(T.watch + (watch[id] ? ':' + watch[id] : ''));
       tags.push(T.watch);
       if (level !== 'warn') level = 'watch';
@@ -1378,7 +1378,7 @@ PttReader.prototype.renderPushes = function(article) {
       if (t.lvl === 'warn') level = 'warn';
       else if (!level || level === 'foreign') level = 'watch';
     });
-    var notes = (pref && pref.notedUserIds) || {};
+    var notes = (pref && pref.values.customListEnabled !== false && pref.notedUserIds) || {};
     if (id in notes) {  // the user's own named list (網軍 by default)
       parts.push(pref.customListName() + (notes[id] ? ':' + notes[id] : ''));
       if (!level || level === 'foreign') level = 'note';

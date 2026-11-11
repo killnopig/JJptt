@@ -561,6 +561,18 @@ locale.zh_TW = {
   "options_factReportExpanded": {
     "message": "報告框預設展開（不勾選則只顯示一行，點一下展開）"
   },
+  "options_factSameIp": {
+    "message": "同 IP 多帳號：不同帳號用同一個 IP 推文時標示"
+  },
+  "options_factAuthorIp": {
+    "message": "與作者同 IP：推文者跟作者用同一個 IP 時標示"
+  },
+  "fact_allOn": {
+    "message": "全部開啟"
+  },
+  "fact_allOff": {
+    "message": "全部關閉"
+  },
   "options_factFastPush": {
     "message": "秒推：發文後幾分鐘內就推文的人標「秒推」，內文長到不可能讀完的標「秒推‧沒讀完」"
   },
@@ -638,6 +650,24 @@ locale.zh_TW = {
   },
   "options_enableBlacklist": {
     "message": "啟用使用者黑名單功能"
+  },
+  "options_blacklistMode": {
+    "message": "黑名單使用者的推文和文章"
+  },
+  "options_blacklistFade": {
+    "message": "淡化（看得到但變淡）"
+  },
+  "options_blacklistHide": {
+    "message": "完全隱藏"
+  },
+  "options_blacklistOff": {
+    "message": "照常顯示（暫停黑名單，名單保留）"
+  },
+  "options_watchlistEnabled": {
+    "message": "啟用觀察名單（推文旁標示；關掉時名單保留）"
+  },
+  "options_customListEnabled": {
+    "message": "啟用自訂名單（推文旁標示名單名稱；關掉時名單保留）"
   },
   "options_blacklistInstruction": {
     "message": "請在下面輸入所有欲加入黑名單的使用者ID, 每行一個"

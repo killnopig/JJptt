@@ -606,11 +606,11 @@ pttchrome.App.prototype.setAutoPushthreadUpdate = function(seconds) {
 
 pttchrome.App.prototype.doAddBlacklistUserId = function(userid) {
   if (!this.pref.enableBlacklist) {
-    // Adding someone means the user wants the blacklist on.
-    this.pref.enableBlacklist = true;
-    this.pref.values.enableBlacklist = true;
-    this.pref.setStorage({ values: { enableBlacklist: true } });
-    $('#opt_enableBlacklist input').prop('checked', true);
+    // Adding someone means the user wants the blacklist on (faded).
+    this.pref.values.blacklistMode = 0;
+    this.pref.setStorage({ values: { blacklistMode: 0 } });
+    this.onPrefChange(this.pref, 'blacklistMode');
+    $('#opt_blacklistMode select').val(0);
   }
   this.pref.blacklistedUserIds[userid] = true;
   this.pref.setBlacklistValue();
@@ -1337,17 +1337,26 @@ pttchrome.App.prototype.onPrefChange = function(pref, name) {
       this.onWindowResize();
       break;
     case 'enableBlacklist':
-      this.pref.enableBlacklist = pref.get(name);
+    case 'hideBlacklisted':
+      break;  // follow blacklistMode
+    case 'blacklistMode':
+      var mode = parseInt(pref.get(name), 10) || 0;
+      this.pref.enableBlacklist = mode !== 2;
+      this.pref.hideBlacklisted = mode === 1;
+      pref.values.enableBlacklist = this.pref.enableBlacklist;
+      pref.values.hideBlacklisted = this.pref.hideBlacklisted;
       this.view.redraw(true);
+      if (this.reader && this.reader.isOpen && this.reader.isOpen()) this.reader.rerender();
+      break;
+    case 'watchlistEnabled':
+    case 'customListEnabled':
+      this.pushInsights.annotate();
+      if (this.reader && this.reader.isOpen && this.reader.isOpen()) this.reader.rerender();
       break;
     case 'listNewestFirst':
     case 'hidePinned':
       this.view.redraw(true);
       this.view.updateCursorPos();
-      break;
-    case 'hideBlacklisted':
-      this.pref.hideBlacklisted = pref.get(name);
-      this.view.redraw(true);
       break;
     case 'blacklistedTitleKeywords':
       this.pref.titleKeywords = String(pref.get(name) || '')

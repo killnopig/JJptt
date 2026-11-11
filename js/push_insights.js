@@ -283,28 +283,28 @@ PushInsights.prototype.annotate = function() {
         }
       }
       var others = this.otherIdsOnIp(p.ip, p.id);
-      if (others.length) {
+      if (others.length && pref.values.factSameIp !== false) {
         var shown = others.slice(0, 2).join(',');
         if (others.length > 2) shown += '等' + others.length + '人';  // 等N人
         warn.push(T.sameIp + ':' + shown);
         tags.push(T.sameIp);
         level = 'warn';
       }
-      if (this.authorIps[p.ip] && p.id !== this.authorId) {
+      if (this.authorIps[p.ip] && p.id !== this.authorId && pref.values.factAuthorIp !== false) {
         warn.push(T.authorIp);
         tags.push(T.authorIp);
         level = 'warn';
       }
     }
 
-    if (p.id in watchlist) {
+    if (p.id in watchlist && pref.values.watchlistEnabled !== false) {
       var note = watchlist[p.id];
       warn.push(T.watch + (note ? ':' + note : ''));
       tags.push(T.watch);
       if (level !== 'warn') level = 'watch';
     }
 
-    var notes = (pref && pref.notedUserIds) || {};
+    var notes = (pref && pref.values.customListEnabled !== false && pref.notedUserIds) || {};
     if (p.id in notes) {  // the user's own named list (網軍 by default)
       parts.push(pref.customListName() + (notes[p.id] ? ':' + notes[p.id] : ''));
       if (!level || level === 'foreign') level = 'note';

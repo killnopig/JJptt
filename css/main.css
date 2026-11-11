@@ -1261,3 +1261,6 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 .jjt-root .jjt-fact-clickable { cursor: pointer; }
 .jjt-root .jjt-fact-toggle { color: #ffb347; white-space: nowrap; }
 .jjt-root .jjt-fact.jjt-fact-closed .jjt-fact-line { display: none; }
+#tabContentBlacklist .jj-allswitch { margin: 0 0 8px; }
+#tabContentBlacklist .jj-allswitch .btn { margin-right: 6px; }
+#opt_blacklistMode select { width: 100% !important; max-width: 520px; }

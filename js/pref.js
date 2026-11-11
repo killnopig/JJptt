@@ -559,6 +559,12 @@ PttChromePref.prototype = {
     this.readWatchlistValues();
     this.readNotesValues();
     var selectedVal;
+    var modeSel = $('#opt_blacklistMode select');
+    if (modeSel.length) {
+      var m = parseInt(modeSel.val(), 10) || 0;
+      this.values.enableBlacklist = m !== 2;
+      this.values.hideBlacklisted = m === 1;
+    }
     for (var i in this.values) {
       if (i === 'blacklistedUserIds' || i === 'watchlistedUserIds' || i === 'notedUserIds' || i === 'tempBlacklist') {
         continue;
@@ -581,11 +587,13 @@ PttChromePref.prototype = {
       }
 
       if (i in PREF_OPTIONS) {
+        if (!$('#opt_'+i+' select').length) continue;
         selectedVal = $('#opt_'+i+' select').val();
         this.values[i] = parseInt(selectedVal);
         continue;
       }
 
+      if (!$('#opt_'+i).length) continue;  // no field on the page: keep it
       var elem = $('#opt_'+i+' input');
       var type = typeof(this.values[i]);
       switch(type) {
@@ -674,6 +682,14 @@ PttChromePref.prototype = {
           }
         }
       }
+    }
+    // older settings: two switches -> one blacklist mode
+    // (stored values come back with defaults filled in, so look for old
+    // switches that disagree with the default mode)
+    if (msg.data && msg.data.values && !parseInt(this.values.blacklistMode, 10)) {
+      var v = msg.data.values;
+      if (v.enableBlacklist === false) this.values.blacklistMode = 2;
+      else if (v.hideBlacklisted === true) this.values.blacklistMode = 1;
     }
     if (msg.data && msg.data.logins) {
       var data = msg.data.logins;

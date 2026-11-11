@@ -232,14 +232,15 @@
                   <div class="list-group">
                     <h4 id="opt_factLists" class="list-group-item-heading"></h4>
                     <div class="list-group-item-text">
-                      <div id="opt_enableBlacklist" class="checkbox"></div>
-                      <div id="opt_hideBlacklisted" class="checkbox"></div>
+                      <div id="opt_blacklistMode" class="form-group"></div>
                       <div id="opt_blacklistedTitleKeywords" class="form-group"></div>
                       <span id="opt_blacklistInstruction"></span>
                       <textarea id="opt_blacklistedUsers" class="form-control"></textarea>
-                      <div id="opt_watchlistInstruction" style="margin-top:15px"></div>
+                      <div id="opt_watchlistEnabled" class="checkbox" style="margin-top:15px"></div>
+                      <div id="opt_watchlistInstruction"></div>
                       <textarea id="opt_watchlistedUsers" class="form-control" style="height:120px"></textarea>
-                      <div id="opt_customListName" class="form-group" style="margin-top:15px"></div>
+                      <div id="opt_customListEnabled" class="checkbox" style="margin-top:15px"></div>
+                      <div id="opt_customListName" class="form-group"></div>
                       <div id="opt_notesInstruction"></div>
                       <textarea id="opt_notedUsers" class="form-control" style="height:120px"></textarea>
                     </div>
@@ -247,6 +248,10 @@
                   <div class="list-group">
                     <h4 id="opt_factDetect" class="list-group-item-heading"></h4>
                     <div class="list-group-item-text">
+                      <div class="jj-allswitch">
+                        <a id="fact_allOn" class="btn btn-default btn-sm"></a>
+                        <a id="fact_allOff" class="btn btn-default btn-sm"></a>
+                      </div>
                       <div id="opt_enablePushInsights" class="checkbox"></div>
                       <div id="opt_autoBlacklistSameUrl" class="checkbox"></div>
                       <div id="opt_tempBlacklist" style="margin:4px 0 10px 20px; color:#555"></div>
@@ -281,7 +286,9 @@
                         <a id="fact_historyClear" class="btn btn-default btn-sm"></a>
                       </div>
                       <div id="opt_suspectPrefix" class="form-group"></div>
+                      <div id="opt_factSameIp" class="checkbox"></div>
                       <div id="opt_suspectSameIpText" class="form-group"></div>
+                      <div id="opt_factAuthorIp" class="checkbox"></div>
                       <div id="opt_suspectAuthorIpText" class="form-group"></div>
                       <div id="opt_watchText" class="form-group"></div>
                     </div>

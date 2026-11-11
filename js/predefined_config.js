@@ -33,6 +33,9 @@ var DEFAULT_PREFS = {
 
   // blacklist
   enableBlacklist : true,
+  blacklistMode : 0,
+  watchlistEnabled : true,
+  customListEnabled : true,
   blacklistedUserIds  : '{}',
   hideBlacklisted : false,
   pushFilterDefault : 10,
@@ -49,6 +52,8 @@ var DEFAULT_PREFS = {
   readerImageMaxPercent : 60,
   readerPrefetchCount : 5,
   colorRepeatPushers : true,
+  factSameIp : true,
+  factAuthorIp : true,
   factReport : true,
   factReportMinPushes : 10,
   factReportExpanded : false,
@@ -99,6 +104,7 @@ var PREF_OPTIONS = {
   mouseWheelFunction3 : [ 'options_none', 'options_upDown' , 'options_pageUpDown', 'options_threadLastNext' ],
   countryDisplay : [ 'options_countryText', 'options_countryFlag', 'options_countryBoth' ],
   labelLayout : [ 'options_labelLayoutFull', 'options_labelLayoutCompact', 'options_labelLayoutIpFlag' ],
+  blacklistMode : [ 'options_blacklistFade', 'options_blacklistHide', 'options_blacklistOff' ],
   aiService : [ 'ai_chatgpt', 'ai_claude', 'ai_perplexity', 'ai_grok', 'ai_copilot', 'ai_custom' ],
 };
 

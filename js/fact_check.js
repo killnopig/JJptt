@@ -418,6 +418,12 @@ FactCheck.prototype.setupUi = function() {
     $('#fact_historyCount').text(i18n('fact_historyCount').replace('%s', self.history.count()));
   };
   $('#fact_historyNote').text(i18n('fact_historyNote'));
+  // one click for every rule in 自動偵測 (saved with the other settings)
+  var setAll = function(on) {
+    $('#opt_factDetect').next('.list-group-item-text').find('.checkbox input[type=checkbox]').prop('checked', on);
+  };
+  $('#fact_allOn').text(i18n('fact_allOn')).off().click(function(e) { e.preventDefault(); setAll(true); });
+  $('#fact_allOff').text(i18n('fact_allOff')).off().click(function(e) { e.preventDefault(); setAll(false); });
   $('#fact_historyClear').text(i18n('fact_historyClear')).off().click(function(e) {
     e.preventDefault();
     if (!window.confirm(i18n('fact_historyConfirm'))) return;
