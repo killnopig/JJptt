@@ -1,2 +1,4 @@
 node_modules
 **/*.concat.*
+*.pem
+*.crx
