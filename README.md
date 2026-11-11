@@ -20,7 +20,7 @@ JJptt 有兩種用法：
 3. 瀏覽器打開 `chrome://extensions`，開啟右上角「開發人員模式」，按「載入未封裝項目」，選 `extension` 資料夾
 4. 完全關閉瀏覽器再重開，點工具列上的 JJptt 圖示
 
-預設走 SSH（`ptt.cc:22`）。要走 telnet，在畫面上按右鍵選「連到其他站台」，輸入 `ptt.cc:23`。
+預設走 SSH（`ptt.cc:22`）。要走 telnet，在畫面上按右鍵選「去其他站台 ...」，輸入 `ptt.cc:23`。
 
 移除本機小程式：Mac / Linux 執行 `sh native-host/install.sh --uninstall`，Windows 雙擊 `native-host/uninstall.bat`。
 
