@@ -1220,31 +1220,39 @@ TermView.prototype = {
     }
     this.listMap = { slotOf: slotOf, rowOf: rowOf, html: html, hidden: {}, reversed: true };
 
-    // Entering a board: start on the newest article ("$" = last article in
-    // PTT). If the last page is short, first look at the previous page once
-    // (PageUp) so the screen can be filled, then "$" once it has been drawn
-    // (sent separately: PTT would otherwise only draw the final screen).
+    // Entering a board: start on the newest article. If the last page is
+    // short, first look at the previous page once (PageUp) so the screen can
+    // be filled. The selection is then moved to the newest article with ↓
+    // (one per article number): PTT's "jump to last" keys did not work
+    // reliably here.
     if (!this.conn) return;
     var conn = this.conn;
+    var selText = buf.getRowText(selRow, 0, buf.cols);
+    var selMatch = /^.\s*(\d+)\s/.exec(selText);
+    var selNum = selMatch ? +selMatch[1] : 0;
+    var maxNum = nums.length ? nums[0] : 0;
+    var goNewest = function(why) {
+      var steps = (selNum && maxNum > selNum) ? Math.min(maxNum - selNum, 200) : 0;
+      console.log('JJptt list: ' + why + ', selected #' + selNum + ', newest #' + maxNum + ', sending ↓ x' + steps);
+      if (steps) conn.send(new Array(steps + 1).join('\x1b[B'));
+    };
     if (st.fill === 'start') {
       st.fill = 'done';
-      var curText = buf.getRowText(selRow, 0, buf.cols);
-      var curNum = /^.\s*(\d+)\s/.exec(curText);
-      var maxNum = nums.length ? nums[0] : 0;
       // count only rows that are shown (hidden pinned posts leave gaps)
       if (entered && numbered && numbered + (hidePinned ? 0 : pinnedNow.length) < slots) {
         st.fill = 'up';
+        console.log('JJptt list: entered ' + board + ' on a short page, PageUp to fill the screen');
         conn.send('\x1b[5~');
         st.fillTimer = setTimeout(function() {  // safety net
-          if (st.fill === 'up') { st.fill = 'done'; conn.send('$'); }
+          if (st.fill === 'up') { st.fill = 'done'; }
         }, 1500);
-      } else if (entered && maxNum && (!curNum || +curNum[1] !== maxNum)) {
-        conn.send('$');
+      } else if (entered) {
+        goNewest('entered ' + board);
       }
-    } else if (st.fill === 'up' && !pinnedNow.length) {
+    } else if (st.fill === 'up' && !pinnedNow.length && selNum) {
       st.fill = 'done';
       clearTimeout(st.fillTimer);
-      conn.send('$');
+      goNewest('previous page loaded');
     }
   },
 
