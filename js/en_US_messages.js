@@ -270,6 +270,15 @@ locale.en_US = {
   "reader_back": {
     "message": "← Back to list"
   },
+  "reader_copyUrl": {
+    "message": "Copy link"
+  },
+  "reader_openUrl": {
+    "message": "Open in new tab"
+  },
+  "reader_copied": {
+    "message": "Copied"
+  },
   "reader_terminal": {
     "message": "Terminal (Esc)"
   },

@@ -267,6 +267,15 @@ locale.zh_TW = {
   "reader_back": {
     "message": "← 回列表"
   },
+  "reader_copyUrl": {
+    "message": "複製網址"
+  },
+  "reader_openUrl": {
+    "message": "在新分頁開啟"
+  },
+  "reader_copied": {
+    "message": "已複製"
+  },
   "reader_terminal": {
     "message": "終端機畫面 (Esc)"
   },

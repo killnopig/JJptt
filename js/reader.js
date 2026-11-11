@@ -382,6 +382,17 @@ PttReader.prototype.ensureOverlay = function() {
     if (!self.isOpen()) return;
     if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
     if ($('#prefModal').is(':visible')) return;
+    // Ctrl/Cmd+C with text selected: copy it here so the terminal's own
+    // key handling never gets the key.
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.keyCode === 67 || e.key === 'c')) {
+      var sel = window.getSelection();
+      if (sel && !sel.isCollapsed) {
+        e.preventDefault();
+        e.stopPropagation();
+        self.copyText(sel.toString().replace(/\u00a0/g, ' '));
+        return;
+      }
+    }
     self.onKeyDown(e);
   }, true);
   o.addEventListener('click', function(e) {
@@ -470,14 +481,36 @@ PttReader.prototype.hideMenu = function() {
 };
 
 // Right-click: blacklist / watchlist the pusher, or go back / settings.
+PttReader.prototype.copyText = function(text) {
+  var app = this.app;
+  var done = function() { app.showToast(i18n('reader_copied'), 1500); };
+  var fallback = function() {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, fallback);
+  } else {
+    fallback();
+  }
+};
+
 PttReader.prototype.onContextMenu = function(e) {
   var self = this;
   var app = this.app;
-  e.preventDefault();
-  e.stopPropagation();
-  if (!window.getSelection().isCollapsed) {  // keep the browser menu for copying
+  // Selected text: keep the browser's own menu so 複製 works.
+  if (!window.getSelection().isCollapsed) {
+    e.stopPropagation();
     return;
   }
+  e.preventDefault();
+  e.stopPropagation();
   if (!this.menu) {
     this.menu = PttReader.el('ul', 'dropdown-menu jjt-menu');
     document.body.appendChild(this.menu);
@@ -497,6 +530,13 @@ PttReader.prototype.onContextMenu = function(e) {
     li.appendChild(a);
     menu.appendChild(li);
   };
+  var link = e.target.closest && e.target.closest('a[href^="http"]');
+  if (link) {
+    var href = link.getAttribute('href');
+    add(i18n('reader_copyUrl'), function() { self.copyText(href); });
+    add(i18n('reader_openUrl'), function() { window.open(href, '_blank', 'noreferrer'); });
+    menu.appendChild(PttReader.el('li', 'divider'));
+  }
   var push = e.target.closest && e.target.closest('[data-user]');
   if (push) {
     var id = push.getAttribute('data-user');
