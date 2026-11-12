@@ -218,8 +218,59 @@ lib.AppConnection.prototype.loadStoredItems = function() {
   }
 };
 
+// Android app: the saved PTT password goes to the SecureStore plugin
+// (encrypted with a key in Android's Keystore); localStorage keeps p: ''.
+// null outside the app (the extension / web page keep it as before).
+lib.SECURE_PASS_KEY = 'pttPass';
+lib.secureStore = function() {
+  var C = window.Capacitor;
+  var p = lib.isApp() && C.Plugins && C.Plugins.SecureStore;
+  return p && typeof p.get === 'function' ? p : null;
+};
+
 lib.AppConnection.prototype.handleStorage = function(msg) {
   var stored = this.loadStoredItems();
+  var secure = lib.secureStore();
+  var self = this;
+  // one after another, so a 登出 right after a login ends up removed
+  var queue = function(fn) {
+    self.secureQueue = (self.secureQueue || Promise.resolve()).then(fn, fn);
+    return self.secureQueue;
+  };
+  if (msg.type === 'get' && secure && !('pass' in msg)) {
+    var plain = stored.logins && stored.logins.p;
+    queue(function() {
+      if (plain) {
+        // from before: move it into the SecureStore, then off localStorage
+        return secure.set({ key: lib.SECURE_PASS_KEY, value: plain }).then(function() {
+          var now = self.loadStoredItems();
+          if (now.logins && now.logins.p === plain) {
+            now.logins.p = '';
+            lib.safeSetItem(lib.PREFS_STORAGE_KEY, JSON.stringify(now));
+          }
+          return plain;
+        }, function() { return plain; });
+      }
+      return secure.get({ key: lib.SECURE_PASS_KEY }).then(function(r) {
+        return (r && r.value) || '';
+      }, function() { return ''; });
+    }).then(function(pass) {
+      self.handleStorage({ type: 'get', defaults: msg.defaults, pass: pass });
+    });
+    return;
+  }
+  if (msg.type === 'set' && secure && msg.data && msg.data.logins && 'p' in msg.data.logins) {
+    var pass = msg.data.logins.p || '';
+    queue(function() {
+      return pass ? secure.set({ key: lib.SECURE_PASS_KEY, value: pass })
+                  : secure.remove({ key: lib.SECURE_PASS_KEY });
+    });
+    var copy = {};
+    for (var g in msg.data) copy[g] = msg.data[g];
+    copy.logins = { u: msg.data.logins.u, p: '' };
+    if (!('u' in msg.data.logins)) delete copy.logins.u;
+    msg = { type: 'set', data: copy };
+  }
   if (msg.type === 'get') {
     var result = {};
     var defaults = msg.defaults || {};
@@ -231,6 +282,7 @@ lib.AppConnection.prototype.handleStorage = function(msg) {
       for (var s in saved) merged[s] = saved[s];
       result[key] = merged;
     }
+    if ('pass' in msg && result.logins) result.logins.p = msg.pass;
     if (this.callbacks.storage) {
       this.callbacks.storage({ action: 'onStorageDone', data: result });
     }

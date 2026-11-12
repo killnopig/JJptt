@@ -474,10 +474,21 @@ function appContext() {
   };
   var ctx = { console: console, setTimeout: setTimeout, Promise: Promise, btoa: btoa, atob: atob };
   ctx.window = ctx;
-  ctx.Capacitor = { isNativePlatform: function() { return true; }, Plugins: { PttSocket: plugin } };
+  var local = {};
+  ctx.localStorage = { getItem: function(k) { return k in local ? local[k] : null; },
+                       setItem: function(k, v) { local[k] = String(v); },
+                       removeItem: function(k) { delete local[k]; } };
+  // the SecureStore plugin: what it holds is "encrypted" (kept apart here)
+  var secret = {};
+  var secure = {
+    set: function(o) { secret[o.key] = o.value; return Promise.resolve(); },
+    get: function(o) { return Promise.resolve({ value: secret[o.key] || '' }); },
+    remove: function(o) { delete secret[o.key]; return Promise.resolve(); }
+  };
+  ctx.Capacitor = { isNativePlatform: function() { return true; }, Plugins: { PttSocket: plugin, SecureStore: secure } };
   vm.createContext(ctx);
   vm.runInContext(fs.readFileSync(path.join(root, 'js/app_conn.js'), 'utf8'), ctx);
-  return { lib: ctx.lib, listeners: listeners, calls: calls, plugin: plugin };
+  return { lib: ctx.lib, listeners: listeners, calls: calls, plugin: plugin, local: local, secret: secret };
 }
 // objects from the other context have other prototypes: compare contents
 function sameJson(a, b) { assert.strictEqual(JSON.stringify(a), JSON.stringify(b)); }
@@ -529,6 +540,46 @@ testAsync('app port: a refused connect becomes an error and a disconnect', async
   await tick(); await tick(); await tick();
   sameJson(got, [{ type: 'error', message: 'target not allowed' }]);
   assert.strictEqual(closed, 1);
+});
+
+// the saved PTT password: SecureStore, never localStorage
+function storageConn(a) {
+  var got = [];
+  var c = new a.lib.AppConnection({ onStorageDone: function(m) { got.push(m.data); } });
+  return { conn: c, got: got };
+}
+var LOGIN_DEFAULTS = { values: {}, logins: { u: '', p: '' } };
+testAsync('app storage: a saved password goes to SecureStore, localStorage keeps p empty', async function() {
+  var a = appContext(), s = storageConn(a);
+  s.conn.handleStorage({ type: 'set', data: { logins: { u: 'me', p: 'hunter2' } } });
+  await tick(); await tick();
+  assert.strictEqual(a.secret.pttPass, 'hunter2');
+  assert.ok(a.local['jjptt.storage'].indexOf('hunter2') < 0);
+  sameJson(JSON.parse(a.local['jjptt.storage']).logins, { u: 'me', p: '' });
+  s.conn.handleStorage({ type: 'get', defaults: LOGIN_DEFAULTS });
+  await tick(); await tick(); await tick();
+  sameJson(s.got[0].logins, { u: 'me', p: 'hunter2' });
+});
+testAsync('app storage: a password from before is moved off localStorage', async function() {
+  var a = appContext(), s = storageConn(a);
+  a.local['jjptt.storage'] = JSON.stringify({ values: { x: 1 }, logins: { u: 'me', p: 'old' } });
+  s.conn.handleStorage({ type: 'get', defaults: LOGIN_DEFAULTS });
+  await tick(); await tick(); await tick(); await tick();
+  sameJson(s.got[0].logins, { u: 'me', p: 'old' });
+  assert.strictEqual(a.secret.pttPass, 'old');
+  sameJson(JSON.parse(a.local['jjptt.storage']), { values: { x: 1 }, logins: { u: 'me', p: '' } });
+});
+testAsync('app storage: 登出 right after a login leaves no password', async function() {
+  var a = appContext(), s = storageConn(a);
+  s.conn.handleStorage({ type: 'set', data: { logins: { u: 'me', p: 'pw' } } });
+  s.conn.handleStorage({ type: 'set', data: { logins: { u: '', p: '' } } });
+  await tick(); await tick(); await tick();
+  assert.ok(!('pttPass' in a.secret));
+});
+testAsync('app storage: other settings are saved as before', async function() {
+  var a = appContext(), s = storageConn(a);
+  s.conn.handleStorage({ type: 'set', data: { values: { fontSize: 20 } } });
+  sameJson(JSON.parse(a.local['jjptt.storage']), { values: { fontSize: 20 } });
 });
 
 // ---- Android app: the background PTT connection (js/mobile_ptt.js) ----------

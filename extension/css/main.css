@@ -1394,7 +1394,9 @@ body.jj-mobile .jjm {
   padding: env(safe-area-inset-top) 6px 0; background: var(--bg); border-bottom: 1px solid var(--line);
 }
 .jjm-title { flex: 1 1 auto; min-width: 0; font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.jjm-actions { display: flex; flex: 0 0 auto; }
+.jjm-actions { display: flex; flex: 0 0 auto; align-items: center; }
+/* no back button (home): the title starts at the edge, not after an empty space */
+.jjm-bar.jjm-noback .jjm-title { padding-left: 10px; }
 .jjm .jjm-icon {
   width: 48px; height: 48px; border-radius: 24px; font-size: 22px; text-align: center; line-height: 48px; color: var(--text);
 }
@@ -1442,7 +1444,7 @@ body.jj-mobile .jjm {
 .jjm-badge { flex: 0 0 auto; font-size: 13px; color: var(--sub); background: var(--card); border-radius: 10px; padding: 3px 9px; }
 
 .jjm .jjm-article { flex-direction: column; align-items: stretch; gap: calc(2px + var(--jjm-lgap, 12px) * .35); }
-.jjm-article-title { font-size: var(--jjm-fs); line-height: 1.4; font-weight: 500; }
+.jjm-article-title { font-size: var(--jjm-lfs, var(--jjm-fs)); line-height: 1.4; font-weight: 500; }
 .jjm-article-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--sub); }
 .jjm-author { color: var(--sub); }
 .jjm-author.jjm-watch { color: var(--watch); }
@@ -1468,7 +1470,7 @@ body.jj-mobile .jjm {
   min-height: 34px; padding: 0 12px; border-radius: 17px; background: var(--card); border: 1px solid var(--line);
   font-size: 15px; font-weight: 600; color: var(--accent);
 }
-.jjm-body { padding: 16px 18px 8px; line-height: 1.65; }
+.jjm-body { padding: 16px 18px 8px; line-height: var(--jjm-lh, 1.65); }
 .jjm-body .jjt-line { white-space: pre-wrap; word-break: break-word; min-height: 1em; }
 .jjm-body .jjt-line span, .jjm-push-text span { background: transparent !important; }
 .jjm-body .jjm-quote { color: #8d958a; border-left: 3px solid #3a3e3a; padding-left: 10px; }
@@ -1488,28 +1490,31 @@ body.jj-mobile .jjm {
 .jjm .jjr-card-text { min-width: 0; font-size: 15px; line-height: 1.4; }
 .jjm .jjr-card-host { color: var(--sub); font-size: 13px; }
 
-/* 真.事實查核中心 report (built by PttReader.factReportNode) */
+/* 真.事實查核中心 report (built by PttReader.factReportNode): closed, one
+   compact line -- title, summary, a small AI button, 展開 */
 .jjm .jjm-fact {
-  margin: 12px 14px 4px; padding: 14px; border-radius: 14px; background: #241f14; border: 1px solid #5c4b1f;
-  font-size: 15px; line-height: 1.5; color: #f3e9d2;
+  margin: 8px 14px 2px; padding: 7px 10px; border-radius: 10px; background: #241f14; border: 1px solid #5c4b1f;
+  font-size: 13px; line-height: 1.4; color: #f3e9d2;
 }
-.jjm .jjm-fact .jjt-fact-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
-.jjm .jjm-fact .jjt-fact-title { font-weight: 800; color: #ffcc66; }
-.jjm .jjm-fact .jjt-fact-sum { flex: 1 1 100%; order: 3; }
-.jjm .jjm-fact .jjt-fact-host { color: #ff8a65; font-weight: 700; margin-right: 6px; }
-.jjm .jjm-fact .jjt-fact-toggle { color: #ffcc66; margin-left: auto; padding: 6px 0; }
+.jjm .jjm-fact .jjt-fact-head { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; }
+.jjm .jjm-fact .jjt-fact-title { flex: 0 0 auto; font-weight: 800; color: #ffcc66; order: 0; }
+.jjm .jjm-fact .jjt-fact-sum { flex: 1 1 auto; min-width: 0; order: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jjm .jjm-fact .jjt-fact-host { color: #ff8a65; font-weight: 700; margin-right: 4px; }
 .jjm .jjm-fact .jjt-fact-ai {
-  order: 4; margin-top: 8px; min-height: 44px; padding: 0 16px; border-radius: 22px;
-  background: #ffb74d; color: #2a1a00; font-weight: 700; border: 0;
+  flex: 0 0 auto; order: 2; min-height: 28px; padding: 0 10px; border-radius: 14px;
+  background: #ffb74d; color: #2a1a00; font-weight: 700; font-size: 12px; border: 0;
 }
-.jjm .jjm-fact .jjt-fact-line { margin-top: 6px; }
+.jjm .jjm-fact .jjt-fact-toggle { flex: 0 0 auto; order: 3; color: #ffcc66; padding: 4px 0; font-size: 13px; }
+.jjm .jjm-fact .jjt-fact-line { margin-top: 5px; }
+.jjm .jjm-fact:not(.jjt-fact-closed) .jjt-fact-head { flex-wrap: wrap; }
+.jjm .jjm-fact:not(.jjt-fact-closed) .jjt-fact-sum { flex-basis: 100%; white-space: normal; order: 4; }
 .jjm .jjm-fact.jjt-fact-closed .jjt-fact-line { display: none; }
 
 /* pushes */
 .jjm-pushes { display: flex; flex-direction: column; }
 /* 推文間距 (--jjm-pgap, 0-24px) sets the space around a push and inside it
    (name to text, between lines) together */
-.jjm-push { padding: var(--jjm-pgap, 10px) 18px; border-bottom: 1px solid var(--line); }
+.jjm-push { padding: var(--jjm-pgap, 10px) 18px; border-bottom: 1px solid var(--line); font-size: var(--jjm-pfs, var(--jjm-fs)); }
 .jjm-push[data-level="warn"] { box-shadow: inset 4px 0 0 var(--warn); }
 .jjm-push[data-level="watch"] { box-shadow: inset 4px 0 0 var(--watch); }
 .jjm-push[data-level="note"] { box-shadow: inset 4px 0 0 var(--note); }
@@ -1526,7 +1531,7 @@ body.jj-mobile .jjm {
 .jjm .jjm-push-id[style*="--jj-repeat"] { color: var(--jj-repeat); }
 .jjm .jjm-push-id:active { background: rgba(255,255,255,.08); }
 .jjm-push-time { margin-left: auto; font-size: 13px; }
-.jjm-push-floor { font-size: 12px; color: #6f776b; min-width: 36px; text-align: right; }
+.jjm-push-floor { font-size: 12px; color: var(--jjm-floor, #6f776b); min-width: 36px; text-align: right; }
 .jjm-push-text { white-space: pre-wrap; word-break: break-word; line-height: calc(1.25em + var(--jjm-pgap, 10px) * .4); margin: calc(var(--jjm-pgap, 10px) * .3) 0 0 30px; color: var(--text); }
 .jjm-push-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: calc(4px + var(--jjm-pgap, 10px) * .3) 0 0 30px; }
 .jjm-pchip { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #2a2e2a; color: #c5ccc0; }
@@ -1644,7 +1649,7 @@ body.jj-mobile .jjm {
 .jjm-range { width: 100%; accent-color: var(--accent); height: 32px; }
 .jjm-preview { border-radius: 12px; border: 1px solid var(--line); background: var(--bg); overflow: hidden; }
 .jjm-preview .jjm-push:last-child { border-bottom: 0; }
-.jjm-preview .jjm-push-id { color: #ffd54f; font-weight: 700; font-size: 15px; }
+.jjm-preview .jjm-push-id, .jjm-demo .jjm-push-id { color: #ffd54f; font-weight: 700; font-size: 15px; }
 
 /* password with an eye */
 .jjm-pass { position: relative; }
@@ -1712,3 +1717,102 @@ body.jj-mobile #prefModal .modal-body {
 /* phones: never let the browser enlarge text on its own (the terminal grid
    is sized to the screen; bigger letters push the bottom rows out) */
 body.jj-mobile { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* home tabs: 我的最愛1 / 2 / folders / 熱門看板, sliding sideways */
+.jjm-tabs {
+  display: flex; gap: 8px; padding: 10px 12px; overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 2;
+}
+.jjm-tabs::-webkit-scrollbar { display: none; }
+.jjm .jjm-tab {
+  flex: 0 0 auto; padding: 7px 14px; border-radius: 18px; border: 1px solid var(--line);
+  font-size: 15px; font-weight: 600; color: var(--sub); white-space: nowrap; background: none;
+}
+.jjm .jjm-tab.jjm-on { background: #9ccc65; border-color: #9ccc65; color: #11180a; font-weight: 700; }
+.jjm .jjm-tab-sync { color: var(--accent); }
+/* the version / 檢查更新 in the home top bar */
+.jjm .jjm-verbtn {
+  font-size: 14px; font-weight: 600; color: var(--sub); padding: 7px 12px; border-radius: 16px;
+  border: 1px solid var(--line); background: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.jjm .jjm-verbtn-new { color: #11180a; background: #9ccc65; border-color: #9ccc65; font-weight: 700; }
+
+/* 自動黑名單: why / the address / the article */
+.jjm-temp-why { font-size: 15px; color: var(--text); }
+.jjm-temp-link { word-break: break-all; }
+.jjm .jjm-temp-art { text-align: left; font-size: 14px; color: var(--accent); background: none; padding: 0; line-height: 1.4; }
+
+/* 版面: sub-tabs and the live demo that stays on top while scrolling */
+.jjm-subtabs { display: flex; gap: 8px; padding: 12px 14px 6px; overflow-x: auto; scrollbar-width: none; }
+.jjm-subtabs::-webkit-scrollbar { display: none; }
+.jjm-subtabs .jjm-chip { flex: 0 0 auto; }
+.jjm-demo {
+  position: sticky; top: 58px; z-index: 1; margin: 8px 14px 4px; border: 1px dashed #4f7a2e; border-radius: 14px;
+  background: var(--bg); max-height: 45vh; overflow: hidden;
+}
+.jjm-demo-label { font-size: 12px; color: var(--accent); padding: 6px 12px 0; }
+.jjm-demo .jjm-head { padding: 10px 14px 8px; }
+.jjm-demo .jjm-body { padding: 8px 14px 12px; }
+
+/* 介面文字大小 (設定 → 版面 → 介面文字) */
+.jjm-bar, .jjm-view[data-type="home"], .jjm-view[data-type="settings"], .jjm-sheet { zoom: var(--jjm-ui, 1); }
+.jjm-demo .jjm-demo-ui { zoom: var(--jjm-ui, 1); margin: 6px 10px 10px; }
+/* 關於: real buttons */
+.jjm .jjm-wide { display: block; width: calc(100% - 28px); margin: 14px 14px 4px; min-height: 50px; font-size: 17px; }
+.jjm .jjm-btn-coffee { background: #3b2a1a; color: #ffd8a8; border: 1px solid #8a5a2b; font-weight: 700; }
+
+/* fact-check chips on the account's line */
+.jjm-push-head .jjm-push-chips-inline { display: inline-flex; flex-wrap: nowrap; gap: 4px; margin: 0; min-width: 0; overflow: hidden; flex: 0 1 auto; }
+.jjm-push-chips-inline .jjm-pchip { font-size: 11px; padding: 1px 6px; line-height: 1.5; white-space: nowrap; }
+
+/* 發信站 / 文章網址 / 編輯 / -- : half the size and line height of the text */
+.jjm-body .jjt-line.jjm-sys { font-size: .5em; line-height: 1.35; min-height: 0; color: var(--sub); }
+
+/* 上一篇／下一篇 at the top, and floating on an edge for one hand */
+.jjm-topnav { padding: 10px 14px 4px; }
+.jjm-topnav .jjm-btn { min-height: 40px; font-size: 15px; }
+.jjm-sidenav {
+  position: fixed; top: 50%; transform: translateY(-50%); z-index: 5;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.jjm-sidenav-left { left: 4px; }
+.jjm-sidenav-right { right: 4px; }
+.jjm .jjm-sidenav .jjm-btn {
+  width: 46px; height: 46px; min-height: 0; padding: 0; border-radius: 23px; font-size: 22px; font-weight: 700;
+  opacity: .82; box-shadow: 0 2px 8px rgba(0,0,0,.5);
+}
+
+/* 關於 FACT */
+.jjm-fact-about { gap: 6px; }
+.jjm-fact-name { font-size: 28px; font-weight: 800; letter-spacing: 2px; color: #ffcc66; }
+.jjm-fact-motto { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: .5px; }
+.jjm-fact-more { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.jjm .jjm-fact-value { display: flex; flex-direction: column; align-items: center; line-height: 1.25; padding: 6px 10px; }
+.jjm-fact-value small { font-size: 10px; color: var(--sub); }
+.jjm-fact-rules { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; color: var(--text); }
+.jjm-fact-about .jjm-link-btn { align-self: flex-start; }
+
+/* floating 上一篇/下一篇: see-through so the text behind stays readable;
+   solid only while pressed */
+.jjm .jjm-sidenav .jjm-btn { opacity: 1; background: rgba(40, 44, 40, .28); color: rgba(236, 239, 232, .7); box-shadow: none; border: 1px solid rgba(255, 255, 255, .12); }
+.jjm .jjm-sidenav .jjm-btn-main { background: rgba(156, 204, 101, .22); color: rgba(220, 240, 200, .8); border-color: rgba(156, 204, 101, .35); }
+.jjm .jjm-sidenav .jjm-btn:active { background: rgba(156, 204, 101, .85); color: #11180a; }
+
+/* the push just sent, for a moment */
+@keyframes jjm-flash { from { background: rgba(156, 204, 101, .35); } to { background: transparent; } }
+.jjm .jjm-push-new { animation: jjm-flash 2.5s ease-out; }
+
+/* a text box inside a settings row (自訂名稱) */
+.jjm .jjm-set input[type=text] {
+  width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px 12px; border-radius: 12px;
+  border: 1px solid #2a2e2a; background: #141614; color: #ecefe8; font-size: 16px; outline: none;
+}
+
+/* 版面 → 建議組合 */
+.jjm-looks { margin: 12px 14px 0; border: 1px solid var(--line); border-radius: 14px; gap: 8px; }
+.jjm .jjm-chip.jjm-empty { opacity: .55; }
+.jjm .jjm-chip-small { font-size: 13px; min-height: 32px; padding: 4px 10px; }
+
+/* 建議組合: 存自訂1 / 存自訂2 / 複製碼 / 貼上碼 on one line */
+.jjm-chips.jjm-chips-row { flex-wrap: nowrap; gap: 6px; }
+.jjm-chips-row .jjm-chip { flex: 1 1 0; min-width: 0; text-align: center; white-space: nowrap; padding-left: 4px; padding-right: 4px; }

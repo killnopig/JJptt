@@ -519,7 +519,7 @@ JJMobile.prototype.accountSheet = function(then) {
   form.appendChild(remember);
   form.appendChild(err);
   form.appendChild(go);
-  form.appendChild(el('div', 'jjm-hint', '看文章不用登入；登入後才能推文、回文、發文。帳號密碼只存在這支手機。'));
+  form.appendChild(el('div', 'jjm-hint', '看文章不用登入；登入後才能推文、回文、發文。帳號密碼只存在這支手機，密碼加密保存，不會備份到雲端。'));
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     var u = user.value.trim(), p = pass.value;
