@@ -585,6 +585,15 @@ testAsync('login: PTT opening an article after login (an announcement) is logged
   await f.ptt.login('tester', 'right');
   assert.strictEqual(f.ptt.state, 'in');
 });
+testAsync('login: from where PTT put us, ← until the main menu', async function() {
+  var s = LOGIN.slice();
+  s[4] = ['  瀏覽 第 1/2 頁 ( 71%)  目前顯示: 第 04~25 行 (y)回應(X)推文', { '\x1b[D': 6 }];
+  s.push(['【分類看板】      批踢踢實業坊\n分類看板  (m)加入最愛', { '\x1b[D': 7 }]);  // 6
+  s.push(['【主功能表】 批踢踢實業坊', {}]);                                             // 7
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  assert.ok(/主功能表/.test(f.ptt.screen()), f.ptt.screen());
+});
 testAsync('login: in as soon as PTT takes the password, even if a later screen is unknown', async function() {
   var s = LOGIN.slice();
   s[4] = ['某個 App 不認得的畫面', {}];

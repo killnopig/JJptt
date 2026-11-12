@@ -229,7 +229,11 @@ JJPtt.prototype.doLogin = function(user, pass) {
     };
     return self.pastLogin(before, mark, accepted).catch(at('密碼送出後'));
   }).then(function() {
-    mark('畫面都過了');
+    // wherever PTT put us (分類看板, an article…): ← until the main menu,
+    // so every login ends on the same screen
+    return self.toMenu().catch(function() {});
+  }).then(function() {
+    mark('回到主選單');
   }).catch(function(err) {
     if (self.state === 'in') return;  // already in: a screen left over is no failure
     // dropped: the top bar must not stay on 「登入中…」
@@ -596,11 +600,12 @@ JJPtt.prototype.toMenu = function() {
   var step = function() {
     var text = self.screen();
     if (/【\s*主功能表\s*】|主功能表/.test(text)) return Promise.resolve();
-    if (++tries > 8) return Promise.reject(new Error('回不到 PTT 主選單'));
+    if (++tries > 12) return Promise.reject(new Error('回不到 PTT 主選單'));
     if (/確定要離開|您確定要離開|離開.*嗎/.test(text)) self.send('n\r');
-    else if (/按任意鍵|請按任意鍵/.test(text)) self.send(' ');
+    else if (/按任意鍵|請按任意鍵|按任一鍵/.test(text)) self.send(' ');
+    else if (/刪除其他重複登入的連線/.test(text)) self.send(JJPtt.kickOthers() ? 'y\r' : 'n\r');
     else self.send('\x1b[D');
-    return JJPtt.sleep(500).then(step);
+    return JJPtt.sleep(350).then(step);
   };
   return step();
 };
