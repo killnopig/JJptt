@@ -22,7 +22,7 @@ JJMobile.SYNCED_KEY = 'jjptt.m.favsSynced';
 JJMobile.SEARCH_PUSH_KEY = 'jjptt.m.searchByPush';
 JJMobile.FONT_KEY = 'jjptt.m.font';
 // pushes and the article list have their own sizes (unset: the text's size)
-JJMobile.FONTS = {
+JJMobile.FONT_PARTS = {
   text: { key: JJMobile.FONT_KEY, css: '--jjm-fs', title: '文章內文' },
   push: { key: 'jjptt.m.fontPush', css: '--jjm-pfs', title: '推文' },
   list: { key: 'jjptt.m.fontList', css: '--jjm-lfs', title: '文章列表' }
@@ -121,8 +121,8 @@ JJMobile.prototype.setup = function() {
     }
   });
   this.setFont(JJMobile.store(JJMobile.FONT_KEY) || 17);
-  this.setFontOf('push', JJMobile.store(JJMobile.FONTS.push.key));
-  this.setFontOf('list', JJMobile.store(JJMobile.FONTS.list.key));
+  this.setFontOf('push', JJMobile.store(JJMobile.FONT_PARTS.push.key));
+  this.setFontOf('list', JJMobile.store(JJMobile.FONT_PARTS.list.key));
   this.setPushStyle();
   this.setListGap();
 
@@ -293,7 +293,7 @@ JJMobile.prototype.autoLogin = function() {
 
 JJMobile.prototype.setFontOf = function(which, px) {
   if (which === 'text') return this.setFont(px);
-  var f = JJMobile.FONTS[which];
+  var f = JJMobile.FONT_PARTS[which];
   this.fonts = this.fonts || {};
   this.fonts[which] = px || null;
   if (px) this.root.style.setProperty(f.css, px + 'px');
@@ -1648,7 +1648,7 @@ JJMobile.prototype.renderSettings = function(screen) {
   var lay = section('layout', '文章與列表');
   ['text', 'push', 'list'].forEach(function(which) {
     var fontRow = el('div', 'jjm-set jjm-set-col');
-    fontRow.appendChild(el('div', 'jjm-set-title', JJMobile.FONTS[which].title + '的字大小'));
+    fontRow.appendChild(el('div', 'jjm-set-title', JJMobile.FONT_PARTS[which].title + '的字大小'));
     var fonts = el('div', 'jjm-chips');
     var now = which === 'text' ? self.fontPx : (self.fonts || {})[which] || null;
     var opts = [['小', 15], ['中', 17], ['大', 19], ['特大', 22]];
