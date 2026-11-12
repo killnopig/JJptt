@@ -221,7 +221,7 @@ JJMobile.prototype.renderSettings = function(screen) {
   if (b.time) verText.appendChild(el('div', 'jjm-set-sub', '打包時間 ' + this.shortTime(b.time)));
   verRow.appendChild(verText);
   ab.appendChild(verRow);
-  var upd = JJMobile.button('jjm-btn jjm-btn-main jjm-wide', '⟳ 檢查並自動更新', function() { self.checkUpdate(true); });
+  var upd = JJMobile.iconButton('jjm-btn jjm-btn-main jjm-wide', 'reload', '檢查並自動更新', function() { self.checkUpdate(true); });
   panes.about.insertBefore(upd, ab);
   panes.about.insertBefore(el('div', 'jjm-hint', '有新版就直接下載，接著會跳出 Android 的安裝畫面，按「更新」就裝好（設定和登入都會保留）。'), ab);
   var cafe = JJMobile.button('jjm-btn jjm-wide jjm-btn-coffee', '☕ 覺得好用？請我喝杯咖啡', function() {
@@ -619,7 +619,9 @@ JJMobile.prototype.setRow = function(title, sub, onTap) {
   t.appendChild(el('div', 'jjm-set-title', title));
   if (sub) t.appendChild(el('div', 'jjm-set-sub', sub));
   row.appendChild(t);
-  row.appendChild(el('span', 'jjm-set-chev', '›'));
+  var chev = el('span', 'jjm-set-chev');
+  chev.innerHTML = JJMobile.svg('next');
+  row.appendChild(chev);
   return JJMobile.tap(row, onTap);
 };
 

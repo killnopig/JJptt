@@ -101,9 +101,10 @@ JJMobile.prototype.fillArticle = function(screen, article) {
   var hasNext = list && (screen.index + 1 < list.entries.length || list.older);
   var makeNav = function(cls, short) {
     var nav = el('div', cls);
-    if (hasPrev) nav.appendChild(JJMobile.button('jjm-btn', short ? '‹' : '‹ 上一篇', function() { self.step(screen, -1); }));
-    nav.appendChild(JJMobile.button('jjm-btn', short ? '≡' : '回列表', function() { self.back(); }));
-    if (hasNext) nav.appendChild(JJMobile.button('jjm-btn jjm-btn-main', short ? '›' : '下一篇 ›', function() { self.step(screen, 1); }));
+    if (hasPrev) nav.appendChild(JJMobile.iconButton('jjm-btn', 'back', short ? '' : '上一篇', function() { self.step(screen, -1); }));
+    nav.appendChild(short ? JJMobile.iconButton('jjm-btn', 'list', '', function() { self.back(); }) :
+      JJMobile.button('jjm-btn', '回列表', function() { self.back(); }));
+    if (hasNext) nav.appendChild(JJMobile.iconButton('jjm-btn jjm-btn-main', 'next', short ? '' : '下一篇', function() { self.step(screen, 1); }, true));
     return nav;
   };
   var where = JJMobile.navPlaces();
@@ -148,7 +149,8 @@ JJMobile.prototype.composer = function(screen) {
   var send = el('button', 'jjm-btn jjm-btn-main', '送出');
   row.appendChild(send);
   box.appendChild(row);
-  var reply = JJMobile.button('jjm-link-btn', '回文到看板…', function() { self.replySheet(screen); });
+  // a quiet button like the rest (not a blue link, the only one in the app)
+  var reply = JJMobile.iconButton('jjm-btn jjm-btn-quiet', 'edit', '回文到看板…', function() { self.replySheet(screen); });
   box.appendChild(reply);
 
   var max = function() { return JJPtt.pushMaxBytes(self.ptt.user || 'abcdefghijkl'); };

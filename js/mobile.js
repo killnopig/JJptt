@@ -60,9 +60,39 @@ JJMobile.button = function(cls, text, fn) {
 // The terminal code listens to clicks, mouse and keys on the whole window
 // (and cancels form submits, takes Enter...). Nothing in the phone UI is for
 // it, so events stop here.
-JJMobile.SEARCH_SVG = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" style="vertical-align:middle">' +
-  '<circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/>' +
-  '<line x1="15.4" y1="15.4" x2="20.5" y2="20.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
+// One set of line icons (24 x 24, 2px strokes, the text's color) instead
+// of font glyphs that each came in their own weight and size.
+JJMobile.ICONS = {
+  back: '<polyline points="15 5 8 12 15 19"/>',
+  next: '<polyline points="9 5 16 12 9 19"/>',
+  list: '<line x1="5" y1="7" x2="19" y2="7"/><line x1="5" y1="12" x2="19" y2="12"/><line x1="5" y1="17" x2="19" y2="17"/>',
+  search: '<circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/>',
+  star: '<polygon points="12 3.5 14.6 9 20.5 9.6 16 13.6 17.3 19.5 12 16.5 6.7 19.5 8 13.6 3.5 9.6 9.4 9"/>',
+  starOn: '<polygon fill="currentColor" points="12 3.5 14.6 9 20.5 9.6 16 13.6 17.3 19.5 12 16.5 6.7 19.5 8 13.6 3.5 9.6 9.4 9"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16v4z"/><line x1="13.5" y1="6.5" x2="17.5" y2="10.5"/>',
+  reload: '<path d="M20 12a8 8 0 1 1-2.34-5.66"/><polyline points="20 4 20 9 15 9"/>',
+  top: '<line x1="5" y1="4" x2="19" y2="4"/><line x1="12" y1="20" x2="12" y2="8"/><polyline points="7 13 12 8 17 13"/>',
+  bottom: '<line x1="5" y1="20" x2="19" y2="20"/><line x1="12" y1="4" x2="12" y2="16"/><polyline points="7 11 12 16 17 11"/>',
+  textSize: '<polyline points="3 19 8 6 13 19"/><line x1="4.8" y1="14.5" x2="11.2" y2="14.5"/>' +
+    '<polyline points="14 19 17.5 10 21 19"/><line x1="15.2" y1="16" x2="19.8" y2="16"/>',
+  settings: '<path d="M21.02 10.17 L21.02 13.83 L18.46 14.43 L18.29 14.85 L19.67 17.08 L17.08 19.67 L14.85 18.29 L14.43 18.46 L13.83 21.02 L10.17 21.02 L9.57 18.46 L9.15 18.29 L6.92 19.67 L4.33 17.08 L5.71 14.85 L5.54 14.43 L2.98 13.83 L2.98 10.17 L5.54 9.57 L5.71 9.15 L4.33 6.92 L6.92 4.33 L9.15 5.71 L9.57 5.54 L10.17 2.98 L13.83 2.98 L14.43 5.54 L14.85 5.71 L17.08 4.33 L19.67 6.92 L18.29 9.15 L18.46 9.57Z"/><circle cx="12" cy="12" r="3"/>',
+  eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="3" x2="21" y2="21"/>'
+};
+JJMobile.svg = function(name, cls) {
+  return '<svg class="jjm-svg' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true" fill="none" ' +
+    'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + JJMobile.ICONS[name] + '</svg>';
+};
+// a text button with an icon before (or after) the words
+JJMobile.setLabel = function(b, icon, text, after) {
+  var i = JJMobile.svg(icon, 'jjm-svg-inline');
+  var t = text ? '<span>' + String(text).replace(/[&<>]/g, function(c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }) + '</span>' : '';
+  b.innerHTML = after ? t + i : i + t;
+  return b;
+};
+JJMobile.iconButton = function(cls, icon, text, fn, after) {
+  return JJMobile.setLabel(JJMobile.button(cls, '', fn), icon, text, after);
+};
 
 JJMobile.EVENTS = ['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'keydown', 'keypress', 'keyup', 'input', 'paste'];
 JJMobile.isolate = function(node) {
@@ -88,7 +118,9 @@ JJMobile.prototype.setup = function() {
   document.body.classList.add('jj-mobile');
   this.root = el('div', 'jjm');
   this.bar = el('div', 'jjm-bar');
-  this.backBtn = JJMobile.button('jjm-icon jjm-back', '‹', function() { self.back(); });
+  this.backBtn = JJMobile.button('jjm-icon jjm-back', '', function() { self.back(); });
+  this.backBtn.innerHTML = JJMobile.svg('back');
+  this.backBtn.setAttribute('aria-label', '返回');
   this.titleEl = el('div', 'jjm-title');
   this.actions = el('div', 'jjm-actions');
   this.bar.appendChild(this.backBtn);
@@ -112,7 +144,7 @@ JJMobile.prototype.setup = function() {
     var home = self.stack[0];
     if (home && home.type === 'home' && home.view) {  // the sync button's text
       var btn = home.view.querySelector('.jjm-tab-sync');
-      if (btn) btn.textContent = state === 'in' ? '⟳ 同步' : '⟳ 同步 PTT';
+      if (btn) JJMobile.setLabel(btn, 'reload', state === 'in' ? '同步' : '同步 PTT');
     }
     // logged in: bring PTT's 我的最愛 in once per app start
     if (state === 'in' && !self.favsSyncedNow) {
@@ -443,36 +475,41 @@ JJMobile.prototype.setBar = function(screen) {
   this.titleEl.textContent = screen.title || 'JJptt';
   if (screen.type === 'home') this.refreshVersion();  // the version, not the name
   this.actions.innerHTML = '';
-  var add = function(text, label, fn) {
-    var b = JJMobile.button('jjm-icon', text === '⌕' ? '' : text, fn);
-    if (text === '⌕') b.innerHTML = JJMobile.SEARCH_SVG;  // a real magnifier (the ⌕ glyph is tiny)
+  // `what`: an icon's name (JJMobile.ICONS), or words with `words` (the
+  // account: an ID may be spelled like an icon's name)
+  var add = function(what, label, fn, words) {
+    var icon = !words && JJMobile.ICONS[what];
+    var b = JJMobile.button('jjm-icon', icon ? '' : what, fn);
+    if (icon) b.innerHTML = JJMobile.svg(what);
     b.setAttribute('aria-label', label);
     self.actions.appendChild(b);
     return b;
   };
   if (screen.type === 'board') {
     var fav = this.isFav(screen.board);
-    var star = add(fav ? '★' : '☆', '我的看板', function() {
+    var star = add(fav ? 'starOn' : 'star', '我的看板', function() {
       self.toggleFav(screen.board, screen.boardTitle);
-      star.textContent = self.isFav(screen.board) ? '★' : '☆';
+      var on = self.isFav(screen.board);
+      star.innerHTML = JJMobile.svg(on ? 'starOn' : 'star');
+      star.classList.toggle('jjm-on', on);
     });
     star.classList.toggle('jjm-on', fav);
-    add('⌕', '搜尋', function() { self.searchSheet(screen); });
-    add('✎', '發文', function() { self.postSheet(screen); });
-    add('⟳', '重新整理', function() { self.reload(screen); });
+    add('search', '搜尋', function() { self.searchSheet(screen); });
+    add('edit', '發文', function() { self.postSheet(screen); });
+    add('reload', '重新整理', function() { self.reload(screen); });
   } else if (screen.type === 'article') {
-    add('⇡', '回到頂部', function() { if (screen.view) screen.view.scrollTo({ top: 0, behavior: 'smooth' }); });
-    add('⇣', '到最下面推文', function() { self.toComposer(screen); });
-    add('Aa', '字的大小', function() { self.fontSheet(); });
-    add('⟳', '重新整理', function() { self.reload(screen); });
+    add('top', '回到頂部', function() { if (screen.view) screen.view.scrollTo({ top: 0, behavior: 'smooth' }); });
+    add('bottom', '到最下面推文', function() { self.toComposer(screen); });
+    add('textSize', '字的大小', function() { self.fontSheet(); });
+    add('reload', '重新整理', function() { self.reload(screen); });
   } else if (screen.type === 'settings') {
     // nothing on the right
   } else {
-    add('⌕', '找看板', function() { self.boardSheet(); });
+    add('search', '找看板', function() { self.boardSheet(); });
     var st = this.ptt ? this.ptt.state : 'off';
-    var acct = add(st === 'in' ? JJMobile.acctLabel(this.ptt.user) : st === 'connecting' ? '登入中…' : '登入', '帳號', function() { self.accountSheet(); });
+    var acct = add(st === 'in' ? JJMobile.acctLabel(this.ptt.user) : st === 'connecting' ? '登入中…' : '登入', '帳號', function() { self.accountSheet(); }, true);
     acct.classList.add('jjm-acct');
     if (st === 'in') acct.classList.add('jjm-acct-in');
-    add('⚙', '設定', function() { self.open({ type: 'settings' }); });
+    add('settings', '設定', function() { self.open({ type: 'settings' }); });
   }
 };

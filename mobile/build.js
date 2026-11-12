@@ -24,6 +24,11 @@ const info = {
 fs.writeFileSync(path.join(out, 'build-info.js'), 'window.JJPTT_BUILD = ' + JSON.stringify(info) + ';\n');
 let page = fs.readFileSync(path.join(ext, 'app.html'), 'utf8');
 page = page.replace('</head>', '<script src="build-info.js"></script>\n</head>');
+// the page runs under the status bar and the navigation bar (it paints
+// them in its own dark color; the top bar and the lists keep clear of them
+// with env(safe-area-inset-*))
+page = page.replace('initial-scale=1, maximum-scale=1"', 'initial-scale=1, maximum-scale=1, viewport-fit=cover"');
+if (page.indexOf('viewport-fit=cover') < 0) throw new Error('app page: viewport meta not found');
 fs.writeFileSync(path.join(out, 'index.html'), page);
 // the app's own icon (the home screen title)
 fs.copyFileSync(path.join(__dirname, 'assets', 'jjptt-app-icon-192.png'), path.join(out, 'app-icon.png'));

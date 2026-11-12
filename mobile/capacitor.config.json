@@ -3,6 +3,10 @@
   "appName": "JJptt",
   "webDir": "www",
   "plugins": {
+    "SystemBars": {
+      "style": "DARK",
+      "initialViewportFitValueHint": "cover"
+    },
     "CapacitorHttp": {
       "enabled": true
     }

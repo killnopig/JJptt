@@ -51,13 +51,15 @@ JJMobile.prototype.accountSheet = function(then) {
   // the password with an eye to see what was typed
   var passRow = el('div', 'jjm-pass');
   passRow.appendChild(pass);
-  var eye = JJMobile.button('jjm-eye', '👁', function() {
+  var eye = JJMobile.button('jjm-eye', '', function() {
     var show = pass.type === 'password';
     pass.type = show ? 'text' : 'password';
+    eye.innerHTML = JJMobile.svg(show ? 'eyeOff' : 'eye');
     eye.classList.toggle('jjm-on', show);
     eye.setAttribute('aria-label', show ? '隱藏密碼' : '顯示密碼');
     pass.focus();
   });
+  eye.innerHTML = JJMobile.svg('eye');
   eye.setAttribute('aria-label', '顯示密碼');
   passRow.appendChild(eye);
   form.appendChild(passRow);
@@ -260,7 +262,7 @@ JJMobile.prototype.renderHome = function(screen) {
     });
     bar.appendChild(b);
   });
-  bar.appendChild(JJMobile.button('jjm-tab jjm-tab-sync', this.ptt.state === 'in' ? '⟳ 同步' : '⟳ 同步 PTT', function() {
+  bar.appendChild(JJMobile.iconButton('jjm-tab jjm-tab-sync', 'reload', this.ptt.state === 'in' ? '同步' : '同步 PTT', function() {
     self.syncFavs(true);
   }));
   v.appendChild(bar);
