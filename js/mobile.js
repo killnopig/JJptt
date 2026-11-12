@@ -128,6 +128,85 @@ JJMobile.prototype.setup = function() {
 JJMobile.prototype.start = function() {
   this.open({ type: 'home' });
   this.autoLogin();
+  this.checkUpdate(false);
+};
+
+// ---- updating from inside the app ----------------------------------------------------
+// The release page says 「第 N 次打包」; this build knows its own N
+// (build-info.js). Newer -> a bar on the home screen; one tap downloads the
+// APK (ApkUpdaterPlugin, no browser) and opens Android's installer.
+
+JJMobile.RELEASE_API = 'https://api.github.com/repos/killnopig/JJptt/releases/tags/android-latest';
+
+JJMobile.prototype.checkUpdate = function(manual) {
+  var self = this;
+  var mine = parseInt((window.JJPTT_BUILD || {}).run, 10);
+  return fetch(JJMobile.RELEASE_API, { headers: { 'Accept': 'application/vnd.github+json' } }).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(rel) {
+    var m = /第\s*(\d+)\s*次打包/.exec((rel && (rel.body || rel.name)) || '');
+    var latest = m ? +m[1] : 0;
+    var apk = ((rel && rel.assets) || []).filter(function(a) { return /\.apk$/i.test(a.name); })[0];
+    if (!apk || !latest) throw new Error('看不懂下載頁');
+    self.update = { run: latest, url: apk.browser_download_url, size: apk.size };
+    if (!isNaN(mine) && latest > mine) {
+      self.updateAvailable = true;
+      self.showUpdateBar();
+      if (manual) self.installUpdate();
+    } else if (manual && self.app.showToast) {
+      self.app.showToast('已經是最新版（第 ' + (isNaN(mine) ? '?' : mine) + ' 次打包）', 2500);
+    }
+  }).catch(function(err) {
+    if (manual && self.app.showToast) self.app.showToast('檢查更新失敗：' + err.message, 3000);
+  });
+};
+
+JJMobile.prototype.showUpdateBar = function() {
+  var self = this;
+  var home = this.stack[0];
+  if (!home || !home.view || !this.update) return;
+  var old = home.view.querySelector('.jjm-update');
+  if (old) old.remove();
+  var bar = JJMobile.el('div', 'jjm-update');
+  this.updateText = JJMobile.el('div', 'jjm-update-text', '有新版（第 ' + this.update.run + ' 次打包）');
+  bar.appendChild(this.updateText);
+  this.updateBtn = JJMobile.button('jjm-btn jjm-btn-main', '更新', function() { self.installUpdate(); });
+  bar.appendChild(this.updateBtn);
+  home.view.insertBefore(bar, home.view.firstChild);
+};
+
+JJMobile.prototype.installUpdate = function() {
+  var self = this;
+  var C = window.Capacitor;
+  var plugin = C && C.Plugins && C.Plugins.ApkUpdater;
+  if (!this.update) return;
+  if (!plugin) {  // an older app without the updater: the download page
+    window.open(this.update.url, '_blank');
+    return;
+  }
+  if (this.updating) return;
+  this.updating = true;
+  if (!this.updateText) this.showUpdateBar();
+  var say = function(t) { if (self.updateText) self.updateText.textContent = t; };
+  if (this.updateBtn) this.updateBtn.disabled = true;
+  say('下載中…');
+  var handle = null;
+  Promise.resolve(plugin.addListener('progress', function(p) {
+    var total = p.total > 0 ? p.total : self.update.size;
+    if (total) say('下載中 ' + Math.floor(p.done / total * 100) + '%');
+  })).then(function(h) { handle = h; });
+  plugin.install({ url: this.update.url }).then(function() {
+    say('請在跳出的畫面按「更新」');
+  }).catch(function(err) {
+    var msg = String((err && err.message) || err);
+    if (/permission/.test(msg)) say('請在剛打開的設定裡允許 JJptt「安裝不明應用程式」，回來再按一次更新');
+    else say('更新失敗：' + msg);
+  }).then(function() {
+    self.updating = false;
+    if (self.updateBtn) self.updateBtn.disabled = false;
+    if (handle) handle.remove();
+  });
 };
 
 // With a saved account, log in in the background when the app opens (the
@@ -482,6 +561,7 @@ JJMobile.prototype.renderHome = function(screen) {
     wait.remove();
     self.failed(hot, err, function() { self.reload(screen); });
   });
+  if (this.updateAvailable) this.showUpdateBar();  // the bar survives a redraw
 };
 
 JJMobile.prototype.boardRow = function(name, title, users) {
@@ -1271,8 +1351,8 @@ JJMobile.prototype.renderSettings = function(screen) {
   var b = window.JJPTT_BUILD || {};
   var buildText = b.run ? '第 ' + b.run + ' 次打包' + (b.time ? '（' + this.shortTime(b.time) + '）' : '') : '';
   ab.appendChild(this.setRow('JJptt ' + (typeof JJPTT_VERSION !== 'undefined' ? JJPTT_VERSION : '') + (buildText ? '・' + buildText : ''),
-                             '檢查有沒有新版（下載頁會寫最新是第幾次打包）', function() {
-    window.open('https://github.com/killnopig/JJptt/releases/tag/android-latest', '_blank');
+                             '檢查有沒有新版，有就直接更新', function() {
+    self.checkUpdate(true);
   }));
   ab.appendChild(this.setRow('覺得好用？請我喝杯咖啡', 'Ko-fi（自願，不影響任何功能）', function() {
     window.open('https://ko-fi.com/killnopig', '_blank');

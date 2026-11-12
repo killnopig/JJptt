@@ -1576,6 +1576,11 @@ body.jj-mobile .jjm {
 .jjm-section-row { display: flex; align-items: center; gap: 8px; }
 .jjm .jjm-mini { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--accent); padding: 6px 10px; border-radius: 14px; border: 1px solid var(--line); letter-spacing: 0; }
 
+/* update bar on the home screen */
+.jjm-update { display: flex; align-items: center; gap: 12px; margin: 12px 14px 0; padding: 12px 14px; border-radius: 14px; background: #24331a; border: 1px solid #4f7a2e; }
+.jjm-update-text { flex: 1 1 auto; font-size: 15px; line-height: 1.4; color: #e6f2d6; }
+.jjm .jjm-update .jjm-btn { flex: 0 0 auto; min-height: 42px; }
+
 /* settings */
 .jjm-group { background: var(--card); margin: 0 12px; border-radius: 16px; border: 1px solid var(--line); overflow: hidden; }
 .jjm .jjm-set {
