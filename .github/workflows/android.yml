@@ -48,6 +48,8 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
           cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/JJptt.apk"
+          # what the app reads to know whether it is the newest build
+          echo "{\"run\": ${GITHUB_RUN_NUMBER}, \"sha\": \"${GITHUB_SHA::7}\"}" > "$GITHUB_WORKSPACE/version.json"
 
       - name: Publish to the android-latest release
         env:
@@ -61,7 +63,7 @@ jobs:
           在手機上點下面的 JJptt.apk 下載，打開安裝（第一次要允許「安裝不明來源的應用程式」）。新版直接裝在舊版上面，設定會保留。"
           if gh release view android-latest >/dev/null 2>&1; then
             gh release edit android-latest --title "JJptt Android 測試版 ${VERSION}" --notes "$NOTES" --prerelease
-            gh release upload android-latest JJptt.apk --clobber
+            gh release upload android-latest JJptt.apk version.json --clobber
           else
-            gh release create android-latest JJptt.apk --title "JJptt Android 測試版 ${VERSION}" --notes "$NOTES" --prerelease
+            gh release create android-latest JJptt.apk version.json --title "JJptt Android 測試版 ${VERSION}" --notes "$NOTES" --prerelease
           fi

@@ -138,28 +138,75 @@ JJMobile.prototype.start = function() {
 
 JJMobile.RELEASE_API = 'https://api.github.com/repos/killnopig/JJptt/releases/tags/android-latest';
 
+JJMobile.RELEASE_DL = 'https://github.com/killnopig/JJptt/releases/download/android-latest/';
+
+JJMobile.prototype.myBuild = function() {
+  return parseInt((window.JJPTT_BUILD || {}).run, 10);
+};
+
+// The newest build: version.json next to the APK, read by the app itself
+// (no limit on how often); GitHub's API (60 a hour per network, often used
+// up on phone networks) only when that fails.
+JJMobile.prototype.latestBuild = function() {
+  var C = window.Capacitor;
+  var plugin = C && C.Plugins && C.Plugins.ApkUpdater;
+  var fromFile = plugin && plugin.fetchText ?
+    plugin.fetchText({ url: JJMobile.RELEASE_DL + 'version.json' }).then(function(r) {
+      var v = JSON.parse(r.text);
+      if (typeof v.run !== 'number' || v.run <= 0) throw new Error('no run');
+      return { run: +v.run, url: JJMobile.RELEASE_DL + 'JJptt.apk' };
+    }) : Promise.reject(new Error('no plugin'));
+  return fromFile.catch(function() {
+    return fetch(JJMobile.RELEASE_API, { headers: { 'Accept': 'application/vnd.github+json' } }).then(function(r) {
+      if (r.status === 403) throw new Error('GitHub 暫時不給查（這個網路查太多次了），等一下再試或換 Wi-Fi');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function(rel) {
+      var m = /第\s*(\d+)\s*次打包/.exec((rel && (rel.body || rel.name)) || '');
+      var apk = ((rel && rel.assets) || []).filter(function(a) { return /\.apk$/i.test(a.name); })[0];
+      if (!m || !apk) throw new Error('看不懂下載頁');
+      return { run: +m[1], url: apk.browser_download_url, size: apk.size };
+    });
+  });
+};
+
 JJMobile.prototype.checkUpdate = function(manual) {
   var self = this;
-  var mine = parseInt((window.JJPTT_BUILD || {}).run, 10);
-  return fetch(JJMobile.RELEASE_API, { headers: { 'Accept': 'application/vnd.github+json' } }).then(function(r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  }).then(function(rel) {
-    var m = /第\s*(\d+)\s*次打包/.exec((rel && (rel.body || rel.name)) || '');
-    var latest = m ? +m[1] : 0;
-    var apk = ((rel && rel.assets) || []).filter(function(a) { return /\.apk$/i.test(a.name); })[0];
-    if (!apk || !latest) throw new Error('看不懂下載頁');
-    self.update = { run: latest, url: apk.browser_download_url, size: apk.size };
-    if (!isNaN(mine) && latest > mine) {
+  var mine = this.myBuild();
+  this.setUpdateRow(manual ? '檢查中…' : null);
+  return this.latestBuild().then(function(latest) {
+    self.update = latest;
+    if (!isNaN(mine) && latest.run > mine) {
       self.updateAvailable = true;
       self.showUpdateBar();
       if (manual) self.installUpdate();
-    } else if (manual && self.app.showToast) {
-      self.app.showToast('已經是最新版（第 ' + (isNaN(mine) ? '?' : mine) + ' 次打包）', 2500);
+    } else {
+      self.setUpdateRow('已經是最新版');
     }
   }).catch(function(err) {
-    if (manual && self.app.showToast) self.app.showToast('檢查更新失敗：' + err.message, 3000);
+    self.setUpdateRow(manual ? '檢查失敗：' + err.message : null);
   });
+};
+
+// The row at the top of the home screen: which build this is and a button
+// to check (always there); green with 更新 when there is a newer one.
+JJMobile.prototype.setUpdateRow = function(note) {
+  var self = this;
+  var home = this.stack[0];
+  if (!home || !home.view || this.updateAvailable) return;
+  var row = home.view.querySelector('.jjm-verrow');
+  if (!row) {
+    row = JJMobile.el('div', 'jjm-verrow');
+    row.appendChild(JJMobile.el('span', 'jjm-ver'));
+    row.appendChild(JJMobile.button('jjm-mini', '檢查更新', function() { self.checkUpdate(true); }));
+    home.view.insertBefore(row, home.view.firstChild);
+  }
+  var mine = this.myBuild();
+  var text = 'JJptt 第 ' + (isNaN(mine) ? '?' : mine) + ' 次打包';
+  if (note) text += '・' + note;
+  else if (this.lastUpdateNote) text += '・' + this.lastUpdateNote;
+  if (note) this.lastUpdateNote = note;
+  row.querySelector('.jjm-ver').textContent = text;
 };
 
 JJMobile.prototype.showUpdateBar = function() {
@@ -168,6 +215,8 @@ JJMobile.prototype.showUpdateBar = function() {
   if (!home || !home.view || !this.update) return;
   var old = home.view.querySelector('.jjm-update');
   if (old) old.remove();
+  var plain = home.view.querySelector('.jjm-verrow');
+  if (plain) plain.remove();
   var bar = JJMobile.el('div', 'jjm-update');
   this.updateText = JJMobile.el('div', 'jjm-update-text', '有新版（第 ' + this.update.run + ' 次打包）');
   bar.appendChild(this.updateText);
@@ -566,6 +615,7 @@ JJMobile.prototype.renderHome = function(screen) {
     self.failed(hot, err, function() { self.reload(screen); });
   });
   if (this.updateAvailable) this.showUpdateBar();  // the bar survives a redraw
+  else this.setUpdateRow(null);
 };
 
 JJMobile.prototype.boardRow = function(name, title, users) {
