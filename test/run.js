@@ -489,6 +489,32 @@ test('the settings page does not wipe the temporary blacklist list', function() 
   assert.ok(skip >= 0 && wipe > skip, '#opt_tempBlacklist is emptied before the skip check');
 });
 
+// ---- 機房 report line: accounts only when expanded ---------------------------
+
+console.log('report: 機房 accounts');
+
+test('expanded 機房 line names the accounts; the collapsed line does not', function() {
+  global.HostingIp = { ready: true, load: function() {}, lookup: function(ip) {
+    return /^1\.1\./.test(ip) ? 'Zenlayer' : /^2\.2\./.test(ip) ? 'DigitalOcean' : '';
+  } };
+  try {
+    var ps = many('x', 12, 1);
+    ps[0] = push('OpenBook13', 1); ps[0].ip = '1.1.1.1';
+    ps[1] = push('crispy04', 1);   ps[1].ip = '2.2.2.2';
+    ps[2] = push('crispy05', 1);   ps[2].ip = '2.2.2.3';
+    var r = analyze(article(ps), { factFloodRun: false });
+    var host = r.report.filter(function(t) { return /機房/.test(t); })[0];
+    assert.strictEqual(host, '同機房：DigitalOcean 2 個帳號（crispy04、crispy05）；Zenlayer 1 個帳號（openbook13）');
+    var sum = PttReader.factSummary(PttReader.mergeFactLines(r.report));
+    assert.strictEqual(sum.hostLine, '同機房：DigitalOcean×2、Zenlayer×1');
+    assert.ok(!/crispy|OpenBook/i.test(sum.hostLine + sum.kinds.join('')), 'no account in the collapsed line');
+    assert.strictEqual(PttReader.factSummary(['機房／VPN IP：Zenlayer 1 個帳號（openbook13）', '秒推：發文 2 分鐘內 5 人推文'])
+                         .hostLine, '機房：Zenlayer×1');
+  } finally {
+    delete global.HostingIp;
+  }
+});
+
 // ---- article list with 置底公告 hidden ---------------------------------------
 
 console.log('list: hide pinned posts');

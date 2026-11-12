@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.33.2',
+    date: '2026-11-12',
+    changes: [
+      '真.事實查核中心：「機房」那一條展開後寫出是哪些帳號（例如「Zenlayer 1 個帳號（openbook13）」，超過 5 個列前 5 個）；收起時那一行維持只寫「機房：Zenlayer×1」，不出現帳號'
+    ]
+  },
+  {
     version: '1.33.1',
     date: '2026-11-12',
     changes: [
