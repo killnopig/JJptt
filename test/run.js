@@ -792,6 +792,26 @@ testAsync('我的最愛: F only moves the menu cursor -> → goes in', async fun
   var boards = await f.ptt.favorites();
   sameJson(boards.map(function(b) { return b.name; }), ['Gossiping']);
 });
+testAsync('我的最愛 with folders: each folder\'s boards where the folder was, named after it', async function() {
+  var head = '【 我 的 最愛 】\n   編號   看 板   類別   轉信  中   文   敘   述\n';
+  var top = head + ['     1   MyFavFolder 目錄 □MLB',
+                    '     2 ˇGossiping   綜合 ◎[八卦] 亂講話   爆! x',
+                    '     3   MyFavFolder 目錄 □新的目錄',
+                    '     4 ˇStock       學術 ◎[股市] 股票板   爆! y'].join('\n');
+  var s = LOGIN.slice(0, 6);
+  s[4] = ['【主功能表】 批踢踢實業坊', { 'f': 6 }];
+  s.push([top, { '\x1b[6~': 6, '1\r': 7, '3\r': 9, '\x1b[D': 4 }]);                 // 6: one page
+  s.push([top.replace('     1 ', '>    1 '), { '\x1b[C': 8 }]);                     // 7: cursor on 1
+  s.push([head + '     1 ˇMLB         棒球 ◎[MLB] 大聯盟   12 z', { '\x1b[6~': 8, '\x1b[D': 6 }]);  // 8: inside MLB
+  s.push([top.replace('     3 ', '>    3 '), { '\x1b[C': 10 }]);                    // 9: cursor on 3
+  s.push([head, { '\x1b[6~': 10, '\x1b[D': 6 }]);                                     // 10: empty folder
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  var boards = await f.ptt.favorites();
+  sameJson(boards, [{ name: 'MLB', title: '[MLB] 大聯盟', folder: 'MLB' },
+                    { name: 'Gossiping', title: '[八卦] 亂講話' },
+                    { name: 'Stock', title: '[股市] 股票板' }]);
+});
 testAsync('a failed job keeps the screen it failed on', async function() {
   var s = LOGIN.slice(0, 6);
   s[4] = ['【主功能表】 批踢踢實業坊', {}];  // F does nothing at all

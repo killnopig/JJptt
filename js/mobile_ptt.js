@@ -598,32 +598,66 @@ JJPtt.prototype.enterFavorites = function() {
   });
 };
 
+// A folder row of 我的最愛: "     2   MyFavFolder 目錄 □MLB" -> { n, title }.
+JJPtt.parseFolderRow = function(row) {
+  var m = /^\s*[>●]?\s*(\d+)\s+[ˇ∨\s]?\s*([A-Za-z][\w\-]{1,15})\s+目錄\s+□\s*(.*)$/.exec(row);
+  if (!m) return null;
+  return { n: +m[1], title: m[3].split(/\s{2,}/)[0].trim() || m[2] };
+};
+
+// The account's 我的最愛, in PTT's order, with the boards inside its folders
+// (each with `folder`: the folder's name):
+//   [{ name, title }, { name, title, folder: 'MLB' }, ...]
 JJPtt.prototype.favorites = function() {
   var self = this;
   return this.run(function() {
-    var boards = [], seen = {};
-    var lastFirst = -1, pages = 0;
-    var read = function() {
-      var buf = self.app.buf;
-      var first = -1;
-      for (var r = 2; r < (buf.rows || 24) - 1; ++r) {
-        var b = JJPtt.parseBoardRow(buf.getRowText(r, 0, buf.cols));
-        if (!b) continue;
-        if (first < 0) first = b.n;
-        var k = b.name.toLowerCase();
-        if (!seen[k]) {
-          seen[k] = true;
-          boards.push({ name: b.name, title: b.title });
+    var out = [];
+    // one list (我的最愛 or a folder), every page; folders found are
+    // returned with where they were, to be read afterwards
+    var readList = function(folder) {
+      var boards = [], folders = [], seen = {};
+      var lastFirst = -1, pages = 0;
+      var read = function() {
+        var buf = self.app.buf;
+        var first = -1;
+        for (var r = 2; r < (buf.rows || 24) - 1; ++r) {
+          var text = buf.getRowText(r, 0, buf.cols);
+          var num = /^\s*[>●]?\s*(\d+)\s/.exec(text);
+          if (!num) continue;
+          if (first < 0) first = +num[1];
+          if (seen[num[1]]) continue;
+          var b = JJPtt.parseBoardRow(text);
+          var f = !b && !folder && JJPtt.parseFolderRow(text);
+          if (b || f) seen[num[1]] = true;
+          if (b) boards.push(folder ? { name: b.name, title: b.title, folder: folder } : { name: b.name, title: b.title });
+          if (f) folders.push({ n: f.n, title: f.title, at: boards.length });
         }
-      }
-      return first;
+        return first;
+      };
+      var page = function() {
+        var first = read();
+        if (first === lastFirst || ++pages > 30) return Promise.resolve({ boards: boards, folders: folders });
+        lastFirst = first;
+        self.send('\x1b[6~');  // page down
+        return JJPtt.sleep(500).then(page);
+      };
+      return page();
     };
-    var page = function() {
-      var first = read();
-      if (first === lastFirst || ++pages > 30) return Promise.resolve();
-      lastFirst = first;
-      self.send('\x1b[6~');  // page down
-      return JJPtt.sleep(500).then(page);
+    // into folder number n (jump to it, →), read it, ← back out. A folder
+    // that can't be opened is left out, not the whole sync.
+    var readFolder = function(f) {
+      self.type(String(f.n) + '\r');
+      return JJPtt.sleep(600).then(function() {
+        var at = self.screen();
+        self.send('\x1b[C');
+        return JJPtt.sleep(900).then(function() {
+          if (self.screen() === at) return [];
+          return readList(f.title).then(function(r) {
+            self.send('\x1b[D');
+            return JJPtt.sleep(700).then(function() { return r.boards; });
+          });
+        });
+      });
     };
     return self.ensureIn().then(function() {
       return self.toMenu();
@@ -633,9 +667,29 @@ JJPtt.prototype.favorites = function() {
       // the rows come a moment after the header: wait for the first one
       // (none within 4 s: an empty 我的最愛)
       return self.wait({ row: /^\s*[>●]?\s*\d+\s+[ˇ\s]?\s*[A-Za-z][\w\-]+\s+\S/m }, 4000).catch(function() {});
-    }).then(page).then(function() {
+    }).then(function() {
+      return readList('');
+    }).then(function(top) {
+      var inside = [];
+      var next = function(i) {
+        if (i >= top.folders.length) return Promise.resolve();
+        return readFolder(top.folders[i]).then(function(b) {
+          inside[i] = b;
+          return next(i + 1);
+        });
+      };
+      return next(0).then(function() {
+        // each folder's boards where the folder was
+        var at = 0;
+        top.folders.forEach(function(f, i) {
+          out = out.concat(top.boards.slice(at, f.at), inside[i] || []);
+          at = f.at;
+        });
+        out = out.concat(top.boards.slice(at));
+      });
+    }).then(function() {
       self.send('\x1b[D');  // leave the list
-      return boards;
+      return out;
     });
   });
 };

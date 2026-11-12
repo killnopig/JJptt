@@ -1712,3 +1712,22 @@ body.jj-mobile #prefModal .modal-body {
 /* phones: never let the browser enlarge text on its own (the terminal grid
    is sized to the screen; bigger letters push the bottom rows out) */
 body.jj-mobile { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* home tabs: 我的最愛1 / 2 / folders / 熱門看板, sliding sideways */
+.jjm-tabs {
+  display: flex; gap: 8px; padding: 10px 12px; overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 2;
+}
+.jjm-tabs::-webkit-scrollbar { display: none; }
+.jjm .jjm-tab {
+  flex: 0 0 auto; padding: 7px 14px; border-radius: 18px; border: 1px solid var(--line);
+  font-size: 15px; font-weight: 600; color: var(--sub); white-space: nowrap; background: none;
+}
+.jjm .jjm-tab.jjm-on { background: #9ccc65; border-color: #9ccc65; color: #11180a; font-weight: 700; }
+.jjm .jjm-tab-sync { color: var(--accent); }
+/* the version / 檢查更新 in the home top bar */
+.jjm .jjm-verbtn {
+  font-size: 14px; font-weight: 600; color: var(--sub); padding: 7px 12px; border-radius: 16px;
+  border: 1px solid var(--line); background: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.jjm .jjm-verbtn-new { color: #11180a; background: #9ccc65; border-color: #9ccc65; font-weight: 700; }

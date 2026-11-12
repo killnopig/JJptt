@@ -105,8 +105,8 @@ JJMobile.prototype.setup = function() {
     if (top) self.setBar(top);
     var home = self.stack[0];
     if (home && home.type === 'home' && home.view) {  // the sync button's text
-      var btn = home.view.querySelector('.jjm-section-row .jjm-mini');
-      if (btn) btn.textContent = state === 'in' ? '從 PTT 同步' : '登入後可同步 PTT 我的最愛';
+      var btn = home.view.querySelector('.jjm-tab-sync');
+      if (btn) btn.textContent = state === 'in' ? '⟳ 同步' : '⟳ 同步 PTT';
     }
     // logged in: bring PTT's 我的最愛 in once per app start
     if (state === 'in' && !self.favsSyncedNow) {
@@ -199,41 +199,33 @@ JJMobile.prototype.checkUpdate = function(manual) {
   });
 };
 
-// The row at the top of the home screen: which build this is and a button
-// to check (always there); green with 更新 when there is a newer one.
+// The version and 檢查更新 sit in the home screen's top bar (no icon or
+// name: space). A short note there (檢查中…, 下载中 40%); anything longer
+// is a toast. Green 更新到 0.0.N when there is a newer one.
 JJMobile.prototype.setUpdateRow = function(note) {
-  var self = this;
-  var home = this.stack[0];
-  if (!home || !home.view || this.updateAvailable) return;
-  var row = home.view.querySelector('.jjm-verrow');
-  if (!row) {
-    row = JJMobile.el('div', 'jjm-verrow');
-    row.appendChild(JJMobile.el('span', 'jjm-ver'));
-    row.appendChild(JJMobile.button('jjm-mini', '檢查更新', function() { self.checkUpdate(true); }));
-    home.view.insertBefore(row, home.view.firstChild);
-  }
-  var mine = this.myBuild();
-  var text = 'JJptt ' + JJMobile.version(mine);
-  if (note) text += '・' + note;
-  else if (this.lastUpdateNote) text += '・' + this.lastUpdateNote;
-  if (note) this.lastUpdateNote = note;
-  row.querySelector('.jjm-ver').textContent = text;
+  var shortNote = note && note.length <= 10 && !/^已經是最新版$/.test(note);
+  this.updateNote = shortNote ? note : null;
+  if (note && !shortNote && this.app.showToast) this.app.showToast(note, note.length > 20 ? 5000 : 2000);
+  this.refreshVersion();
 };
 
 JJMobile.prototype.showUpdateBar = function() {
+  this.refreshVersion();
+};
+
+JJMobile.prototype.refreshVersion = function() {
   var self = this;
-  var home = this.stack[0];
-  if (!home || !home.view || !this.update) return;
-  var old = home.view.querySelector('.jjm-update');
-  if (old) old.remove();
-  var plain = home.view.querySelector('.jjm-verrow');
-  if (plain) plain.remove();
-  var bar = JJMobile.el('div', 'jjm-update');
-  this.updateText = JJMobile.el('div', 'jjm-update-text', '有新版 ' + JJMobile.version(this.update.run));
-  bar.appendChild(this.updateText);
-  this.updateBtn = JJMobile.button('jjm-btn jjm-btn-main', '更新', function() { self.installUpdate(); });
-  bar.appendChild(this.updateBtn);
-  home.view.insertBefore(bar, home.view.firstChild);
+  var top = this.stack[this.stack.length - 1];
+  if (!top || top.type !== 'home' || !this.titleEl) return;
+  var text = this.updateNote ||
+    (this.updateAvailable ? '更新到 ' + JJMobile.version(this.update.run) : JJMobile.version(this.myBuild()) + '・檢查更新');
+  var b = JJMobile.button('jjm-verbtn' + (this.updateAvailable ? ' jjm-verbtn-new' : ''), text, function() {
+    if (self.updating) return;
+    if (self.updateAvailable) self.installUpdate();
+    else self.checkUpdate(true);
+  });
+  this.titleEl.innerHTML = '';
+  this.titleEl.appendChild(b);
 };
 
 JJMobile.prototype.installUpdate = function() {
@@ -247,9 +239,7 @@ JJMobile.prototype.installUpdate = function() {
   }
   if (this.updating) return;
   this.updating = true;
-  if (!this.updateText) this.showUpdateBar();
-  var say = function(t) { if (self.updateText) self.updateText.textContent = t; };
-  if (this.updateBtn) this.updateBtn.disabled = true;
+  var say = function(t) { self.setUpdateRow(t); };
   say('下載中…');
   var handle = null;
   Promise.resolve(plugin.addListener('progress', function(p) {
@@ -258,13 +248,15 @@ JJMobile.prototype.installUpdate = function() {
   })).then(function(h) { handle = h; });
   plugin.install({ url: this.update.url }).then(function() {
     say('請在跳出的畫面按「更新」');
+    self.updateNote = null;
   }).catch(function(err) {
     var msg = String((err && err.message) || err);
     if (/permission/.test(msg)) say('請在剛打開的設定裡允許 JJptt「安裝不明應用程式」，回來再按一次更新');
     else say('更新失敗：' + msg);
   }).then(function() {
     self.updating = false;
-    if (self.updateBtn) self.updateBtn.disabled = false;
+    if (/^下載中/.test(self.updateNote || '')) self.updateNote = null;
+    self.refreshVersion();
     if (handle) handle.remove();
   });
 };
@@ -361,13 +353,7 @@ JJMobile.prototype.setBar = function(screen) {
   this.backBtn.style.display = hasBack ? '' : 'none';
   this.bar.classList.toggle('jjm-noback', !hasBack);
   this.titleEl.textContent = screen.title || 'JJptt';
-  if (screen.type === 'home') {  // the app icon in front of the name
-    var logo = JJMobile.el('img', 'jjm-logo');
-    logo.src = 'app-icon.png';
-    logo.alt = '';
-    logo.addEventListener('error', function() { logo.remove(); });
-    this.titleEl.insertBefore(logo, this.titleEl.firstChild);
-  }
+  if (screen.type === 'home') this.refreshVersion();  // the version, not the name
   this.actions.innerHTML = '';
   var add = function(text, label, fn) {
     var b = JJMobile.button('jjm-icon', text === '⌕' ? '' : text, fn);
@@ -557,7 +543,7 @@ JJMobile.prototype.syncFavs = function(manual) {
     var have = {};
     var merged = boards.map(function(b) {
       have[b.name.toLowerCase()] = true;
-      return { name: b.name, title: b.title };
+      return b.folder ? { name: b.name, title: b.title, folder: b.folder } : { name: b.name, title: b.title };
     });
     var added = 0;
     mine.forEach(function(f) {
@@ -611,47 +597,87 @@ JJMobile.prototype.boardSheet = function() {
   setTimeout(function() { input.focus(); }, 50);
 };
 
+// Home: tabs instead of one long page. 我的最愛 10 boards a tab (我的最愛1,
+// 我的最愛2…), each PTT folder its own tab, then 熱門看板. The tab shown is
+// remembered.
+JJMobile.TAB_SIZE = 10;
+JJMobile.TAB_KEY = 'jjptt.m.homeTab';
+
+JJMobile.homeTabs = function(favs) {
+  var tabs = [], top = [], folders = {}, order = [];
+  favs.forEach(function(f) {
+    if (!f.folder) return top.push(f);
+    if (!folders[f.folder]) { folders[f.folder] = []; order.push(f.folder); }
+    folders[f.folder].push(f);
+  });
+  var n = Math.max(1, Math.ceil(top.length / JJMobile.TAB_SIZE));
+  for (var i = 0; i < n; ++i) {
+    tabs.push({ id: 'fav' + (i + 1), label: n > 1 ? '我的最愛' + (i + 1) : '我的最愛',
+                boards: top.slice(i * JJMobile.TAB_SIZE, (i + 1) * JJMobile.TAB_SIZE) });
+  }
+  order.forEach(function(name) {
+    tabs.push({ id: 'dir:' + name, label: name, boards: folders[name] });
+  });
+  tabs.push({ id: 'hot', label: '熱門看板', hot: true });
+  return tabs;
+};
+
 JJMobile.prototype.renderHome = function(screen) {
   var self = this;
   var el = JJMobile.el;
   var v = screen.view;
   screen.title = 'JJptt';
 
+  var tabs = JJMobile.homeTabs(this.favs());
+  var want = screen.tab;
+  if (!want) { try { want = window.localStorage.getItem(JJMobile.TAB_KEY); } catch (e) {} }
+  var cur = tabs.filter(function(t) { return t.id === want; })[0] || tabs[0];
+  screen.tab = cur.id;
 
-  var favs = this.favs();
-  var favHead = el('div', 'jjm-section jjm-section-row');
-  favHead.appendChild(el('span', '', '我的看板'));
-  favHead.appendChild(JJMobile.button('jjm-mini', this.ptt.state === 'in' ? '從 PTT 同步' : '登入後可同步 PTT 我的最愛', function() {
+  var bar = el('div', 'jjm-tabs');
+  tabs.forEach(function(t) {
+    var b = JJMobile.button('jjm-tab' + (t === cur ? ' jjm-on' : ''), t.label, function() {
+      if (t === cur) return;
+      screen.tab = t.id;
+      try { window.localStorage.setItem(JJMobile.TAB_KEY, t.id); } catch (e) {}
+      self.reload(screen);
+    });
+    bar.appendChild(b);
+  });
+  bar.appendChild(JJMobile.button('jjm-tab jjm-tab-sync', this.ptt.state === 'in' ? '⟳ 同步' : '⟳ 同步 PTT', function() {
     self.syncFavs(true);
   }));
-  v.appendChild(favHead);
-  var favList = el('div', 'jjm-list');
-  if (!favs.length) {
-    favList.appendChild(el('div', 'jjm-hint', '在看板裡按右上角的 ☆，就會加到這裡。'));
-  }
-  favs.forEach(function(f) { favList.appendChild(self.boardRow(f.name, f.title, '')); });
-  v.appendChild(favList);
+  v.appendChild(bar);
+  setTimeout(function() {  // the chosen tab in view
+    var on = bar.querySelector('.jjm-on');
+    if (on && on.scrollIntoView) on.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }, 0);
 
-  v.appendChild(el('div', 'jjm-section', '熱門看板'));
-  var hot = el('div', 'jjm-list');
-  v.appendChild(hot);
-  var wait = this.loading(hot);
-  this.app.reader.fetchDoc(JJMobile.WEB + '/bbs/hotboards.html').then(function(doc) {
-    wait.remove();
-    var rows = doc.querySelectorAll('.b-ent a.board');
-    for (var i = 0; i < rows.length; ++i) {
-      var a = rows[i];
-      var name = (a.querySelector('.board-name') || {}).textContent || '';
-      var title = ((a.querySelector('.board-title') || {}).textContent || '').replace(/^◎/, '');
-      var users = ((a.querySelector('.board-nuser') || {}).textContent || '').trim();
-      if (name) hot.appendChild(self.boardRow(name.trim(), title.trim(), users));
+  var list = el('div', 'jjm-list');
+  v.appendChild(list);
+  if (!cur.hot) {
+    if (!cur.boards.length) {
+      list.appendChild(el('div', 'jjm-hint', '在看板裡按右上角的 ☆ 加到這裡，或登入後按「同步」拿 PTT 的我的最愛。'));
     }
-  }).catch(function(err) {
-    wait.remove();
-    self.failed(hot, err, function() { self.reload(screen); });
-  });
-  if (this.updateAvailable) this.showUpdateBar();  // the bar survives a redraw
-  else this.setUpdateRow(null);
+    cur.boards.forEach(function(f) { list.appendChild(self.boardRow(f.name, f.title, '')); });
+  } else {
+    var wait = this.loading(list);
+    this.app.reader.fetchDoc(JJMobile.WEB + '/bbs/hotboards.html').then(function(doc) {
+      wait.remove();
+      var rows = doc.querySelectorAll('.b-ent a.board');
+      for (var i = 0; i < rows.length; ++i) {
+        var a = rows[i];
+        var name = (a.querySelector('.board-name') || {}).textContent || '';
+        var title = ((a.querySelector('.board-title') || {}).textContent || '').replace(/^◎/, '');
+        var users = ((a.querySelector('.board-nuser') || {}).textContent || '').trim();
+        if (name) list.appendChild(self.boardRow(name.trim(), title.trim(), users));
+      }
+    }).catch(function(err) {
+      wait.remove();
+      self.failed(list, err, function() { self.reload(screen); });
+    });
+  }
+  this.refreshVersion();
 };
 
 JJMobile.prototype.boardRow = function(name, title, users) {
