@@ -1733,14 +1733,13 @@ JJMobile.prototype.renderSettings = function(screen) {
     function(id) { self.app.doSetUserNote(id); }, function(id) { self.app.doRemoveUserNote(id); }, screen));
 
   // fact check (from the extension's settings page)
-  var fc = section('fact', 'FACT 真.事實查核中心',
-                   'FACT = Facts, Accuracy, Credibility & Truth。文章推文上方那一條「FACT」就是它的報告。' +
-                   '證據勝於立場：不問立場，只問事實；不分對象，一體查核。標出來的只是疑點，不代表一定是網軍。');
+  var fc = section('fact', 'FACT 真.事實查核中心', '文章推文上方那一條「FACT」。標出來的只是疑點，不代表一定是網軍。');
   this.factRows(fc, screen);
   if (pref.values.aiService !== undefined && typeof PREF_OPTIONS !== 'undefined' && PREF_OPTIONS.aiService) {
     fc.appendChild(this.choiceRow('aiService', '「請 AI 分析」用哪一個',
       PREF_OPTIONS.aiService.map(function(k, i) { return [i, i18n(k)]; })));
   }
+  this.aboutFact(section('fact', '關於 FACT'));
 
   // about
   var ab = section('about', '關於');
@@ -2242,6 +2241,47 @@ JJMobile.prototype.autoBlackRules = function(box) {
       box.appendChild(self.toggleRow(key, '同網址洗版', '24 小時內把同一網址貼在超過 3 篇文章，自動加入 24 小時'));
     }
   });
+};
+
+// 關於 FACT, at the bottom of 事實查核: one line, the rest folded away
+// for whoever wants it.
+JJMobile.prototype.aboutFact = function(box) {
+  var el = JJMobile.el;
+  var head = el('div', 'jjm-set jjm-set-col jjm-fact-about');
+  head.appendChild(el('div', 'jjm-fact-name', 'FACT'));
+  head.appendChild(el('div', 'jjm-set-sub', 'Facts, Accuracy, Credibility & Truth・真.事實查核中心'));
+  head.appendChild(el('div', 'jjm-fact-motto', 'Evidence over opinion. 證據勝於立場'));
+  var more = el('div', 'jjm-fact-more');
+  more.style.display = 'none';
+  more.appendChild(el('div', 'jjm-set-title', '不問立場，只問事實；不分對象，一體查核。'));
+  more.appendChild(el('div', 'jjm-set-sub', 'One Standard. For All. Fact Over Bias.'));
+  var values = el('div', 'jjm-chips');
+  [['公開透明', 'Transparency'], ['標準一致', 'Consistency'], ['不偏不倚', 'Impartiality'],
+   ['證據優先', 'Evidence First'], ['勇於更正', 'Accountability']].forEach(function(v) {
+    var c = el('span', 'jjm-chip jjm-fact-value');
+    c.appendChild(el('b', '', v[0]));
+    c.appendChild(el('small', '', v[1]));
+    values.appendChild(c);
+  });
+  more.appendChild(values);
+  var rules = el('ol', 'jjm-fact-rules');
+  [['同一把尺', '不因政治立場、人物身分或組織背景改變查核標準。'],
+   ['公開證據', '每個標記都說得出為什麼：同 IP、機房、秒推…點開 FACT 就看得到。'],
+   ['接受檢驗', '誤判的人可以從自動黑名單移除，規則也都能在上面自己調整。']].forEach(function(r) {
+    var li = el('li', '');
+    li.appendChild(el('b', '', r[0] + '：'));
+    li.appendChild(document.createTextNode(r[1]));
+    rules.appendChild(li);
+  });
+  more.appendChild(rules);
+  head.appendChild(more);
+  var toggle = JJMobile.button('jjm-link-btn', '看 FACT 的原則 ›', function() {
+    var open = more.style.display === 'none';
+    more.style.display = open ? '' : 'none';
+    toggle.textContent = open ? '收起' : '看 FACT 的原則 ›';
+  });
+  head.appendChild(toggle);
+  box.appendChild(head);
 };
 
 // The fact-check rules, in the order and groups of the extension's settings

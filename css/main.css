@@ -1779,3 +1779,13 @@ body.jj-mobile { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   width: 46px; height: 46px; min-height: 0; padding: 0; border-radius: 23px; font-size: 22px; font-weight: 700;
   opacity: .82; box-shadow: 0 2px 8px rgba(0,0,0,.5);
 }
+
+/* 關於 FACT */
+.jjm-fact-about { gap: 6px; }
+.jjm-fact-name { font-size: 28px; font-weight: 800; letter-spacing: 2px; color: #ffcc66; }
+.jjm-fact-motto { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: .5px; }
+.jjm-fact-more { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.jjm .jjm-fact-value { display: flex; flex-direction: column; align-items: center; line-height: 1.25; padding: 6px 10px; }
+.jjm-fact-value small { font-size: 10px; color: var(--sub); }
+.jjm-fact-rules { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; color: var(--text); }
+.jjm-fact-about .jjm-link-btn { align-self: flex-start; }

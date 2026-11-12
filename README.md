@@ -18,6 +18,12 @@
 
 ![真.事實查核中心：推文上方的報告，每則推文旁標出秒推、同網段、機房、罐頭等疑點](docs/images/reader-factcheck.png)
 
+### FACT 真.事實查核中心
+
+**FACT = Facts, Accuracy, Credibility & Truth。** 證據勝於立場：不問立場，只問事實；不分對象，一體查核。
+
+![FACT 真.事實查核中心：Evidence over opinion，公開透明、標準一致、不偏不倚、證據優先、勇於更正](docs/images/fact.png)
+
 <sub>以上為示範畫面，帳號與內容都是虛構的。</sub>
 
 ### 流量提醒
