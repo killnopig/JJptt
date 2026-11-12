@@ -122,6 +122,7 @@ JJMobile.prototype.setup = function() {
   });
   this.setFont(JJMobile.store(JJMobile.FONT_KEY) || 17);
   this.setUiZoom(JJMobile.store(JJMobile.UI_KEY) || 1);
+  this.setLineHeight(JJMobile.store(JJMobile.LH_KEY));
   this.setFloorColor(JJMobile.store(JJMobile.FLOOR_KEY));
   this.setFontOf('push', JJMobile.store(JJMobile.FONT_PARTS.push.key));
   this.setFontOf('list', JJMobile.store(JJMobile.FONT_PARTS.list.key));
@@ -310,6 +311,14 @@ JJMobile.prototype.setUiZoom = function(z) {
   this.uiZoom = z || 1;
   this.root.style.setProperty('--jjm-ui', String(this.uiZoom));
   JJMobile.store(JJMobile.UI_KEY, this.uiZoom);
+};
+
+// 內文行距: 1.2 to 2.4 times the text (default 1.65)
+JJMobile.LH_KEY = 'jjptt.m.lineHeight';
+JJMobile.prototype.setLineHeight = function(lh) {
+  this.lineHeight = lh || 1.65;
+  this.root.style.setProperty('--jjm-lh', String(this.lineHeight));
+  JJMobile.store(JJMobile.LH_KEY, lh || null);
 };
 
 JJMobile.prototype.setFontOf = function(which, px) {
@@ -1788,7 +1797,7 @@ JJMobile.prototype.fontChips = function(which) {
   return row;
 };
 
-JJMobile.prototype.slider = function(title, sub, min, max, value, words, onInput) {
+JJMobile.prototype.slider = function(title, sub, min, max, value, words, onInput, step) {
   var el = JJMobile.el;
   var row = el('div', 'jjm-set jjm-set-col');
   var head = el('div', 'jjm-set-head');
@@ -1801,7 +1810,7 @@ JJMobile.prototype.slider = function(title, sub, min, max, value, words, onInput
   range.type = 'range';
   range.min = min;
   range.max = max;
-  range.step = 2;
+  range.step = step || 2;
   range.value = value;
   var show = function() { val.textContent = words(+range.value); };
   show();
@@ -1894,6 +1903,9 @@ JJMobile.prototype.layoutPane = function(pane, screen) {
     }, JJMobile.demoList],
     ['text', '內文', function(box) {
       box.appendChild(self.fontChips('text'));
+      box.appendChild(self.slider('行距', '每一行之間的空間', 12, 24, Math.round((self.lineHeight || 1.65) * 10),
+        function(v) { return v <= 13 ? '最緊' : v <= 15 ? '緊' : v <= 18 ? '標準' : v <= 21 ? '鬆' : '最鬆'; },
+        function(v) { self.setLineHeight(v / 10); }, 1));
       var nr = el('div', 'jjm-set jjm-set-col');
       nr.appendChild(el('div', 'jjm-set-title', '上一篇／回列表／下一篇 放在哪'));
       nr.appendChild(el('div', 'jjm-set-sub', '可以選好幾個；左側、右側是貼在螢幕邊的小按鈕，單手拇指按得到'));
@@ -1970,7 +1982,7 @@ JJMobile.prototype.layoutPane = function(pane, screen) {
       row.appendChild(el('div', 'jjm-set-title', '介面文字大小'));
       row.appendChild(el('div', 'jjm-set-sub', '首頁、設定、說明文字和跳出來的視窗；文章和列表在前面幾個分頁調'));
       var chips = el('div', 'jjm-chips');
-      [['標準', 1], ['大', 1.1], ['更大', 1.2], ['特大', 1.3]].forEach(function(z) {
+      [['最小', 0.8], ['小', 0.9], ['中', 1], ['大', 1.1], ['更大', 1.2], ['特大', 1.3]].forEach(function(z) {
         var b = JJMobile.button('jjm-chip' + ((self.uiZoom || 1) === z[1] ? ' jjm-on' : ''), z[0], function() {
           self.setUiZoom(z[1]);
           Array.prototype.forEach.call(chips.children, function(x) { x.classList.remove('jjm-on'); });

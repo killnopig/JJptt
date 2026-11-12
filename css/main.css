@@ -1468,7 +1468,7 @@ body.jj-mobile .jjm {
   min-height: 34px; padding: 0 12px; border-radius: 17px; background: var(--card); border: 1px solid var(--line);
   font-size: 15px; font-weight: 600; color: var(--accent);
 }
-.jjm-body { padding: 16px 18px 8px; line-height: 1.65; }
+.jjm-body { padding: 16px 18px 8px; line-height: var(--jjm-lh, 1.65); }
 .jjm-body .jjt-line { white-space: pre-wrap; word-break: break-word; min-height: 1em; }
 .jjm-body .jjt-line span, .jjm-push-text span { background: transparent !important; }
 .jjm-body .jjm-quote { color: #8d958a; border-left: 3px solid #3a3e3a; padding-left: 10px; }
