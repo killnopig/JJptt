@@ -420,6 +420,7 @@ JJMobile.prototype.setBar = function(screen) {
     add('✎', '發文', function() { self.postSheet(screen); });
     add('⟳', '重新整理', function() { self.reload(screen); });
   } else if (screen.type === 'article') {
+    add('⇡', '回到頂部', function() { if (screen.view) screen.view.scrollTo({ top: 0, behavior: 'smooth' }); });
     add('⇣', '到最下面推文', function() { self.toComposer(screen); });
     add('Aa', '字的大小', function() { self.fontSheet(); });
     add('⟳', '重新整理', function() { self.reload(screen); });
@@ -1068,17 +1069,30 @@ JJMobile.prototype.fillArticle = function(screen, article) {
 
   v.appendChild(this.composer(screen));
 
-  // the end: previous / next in the list
-  var nav = el('div', 'jjm-endnav');
+  // 上一篇 / 回列表 / 下一篇 where 設定 → 版面 → 內文 puts them: the top,
+  // the bottom, and/or floating on the left or right edge (one hand)
   var list = screen.list;
-  if (list && screen.index > 0) {
-    nav.appendChild(JJMobile.button('jjm-btn', '‹ 上一篇', function() { self.step(screen, -1); }));
-  }
-  nav.appendChild(JJMobile.button('jjm-btn', '回列表', function() { self.back(); }));
-  if (list && (screen.index + 1 < list.entries.length || list.older)) {
-    nav.appendChild(JJMobile.button('jjm-btn jjm-btn-main', '下一篇 ›', function() { self.step(screen, 1); }));
-  }
-  v.appendChild(nav);
+  var hasPrev = list && screen.index > 0;
+  var hasNext = list && (screen.index + 1 < list.entries.length || list.older);
+  var makeNav = function(cls, short) {
+    var nav = el('div', cls);
+    if (hasPrev) nav.appendChild(JJMobile.button('jjm-btn', short ? '‹' : '‹ 上一篇', function() { self.step(screen, -1); }));
+    nav.appendChild(JJMobile.button('jjm-btn', short ? '≡' : '回列表', function() { self.back(); }));
+    if (hasNext) nav.appendChild(JJMobile.button('jjm-btn jjm-btn-main', short ? '›' : '下一篇 ›', function() { self.step(screen, 1); }));
+    return nav;
+  };
+  var where = JJMobile.navPlaces();
+  if (where.indexOf('top') >= 0) v.insertBefore(makeNav('jjm-endnav jjm-topnav'), head.nextSibling);
+  if (where.indexOf('bottom') >= 0) v.appendChild(makeNav('jjm-endnav'));
+  if (where.indexOf('left') >= 0) v.appendChild(makeNav('jjm-sidenav jjm-sidenav-left', true));
+  if (where.indexOf('right') >= 0) v.appendChild(makeNav('jjm-sidenav jjm-sidenav-right', true));
+};
+
+JJMobile.NAV_KEY = 'jjptt.m.navPlaces';
+JJMobile.NAV_PLACES = [['top', '文章頂部'], ['bottom', '文章底部'], ['left', '左側浮動'], ['right', '右側浮動']];
+JJMobile.navPlaces = function() {
+  var v = JJMobile.store(JJMobile.NAV_KEY);
+  return Array.isArray(v) ? v : ['bottom'];
 };
 
 // Push box under the pushes: 推 / 噓 / →, the text (as long as PTT allows
@@ -1880,6 +1894,23 @@ JJMobile.prototype.layoutPane = function(pane, screen) {
     }, JJMobile.demoList],
     ['text', '內文', function(box) {
       box.appendChild(self.fontChips('text'));
+      var nr = el('div', 'jjm-set jjm-set-col');
+      nr.appendChild(el('div', 'jjm-set-title', '上一篇／回列表／下一篇 放在哪'));
+      nr.appendChild(el('div', 'jjm-set-sub', '可以選好幾個；左側、右側是貼在螢幕邊的小按鈕，單手拇指按得到'));
+      var nchips = el('div', 'jjm-chips');
+      JJMobile.NAV_PLACES.forEach(function(pl) {
+        var on = JJMobile.navPlaces().indexOf(pl[0]) >= 0;
+        var b = JJMobile.button('jjm-chip' + (on ? ' jjm-on' : ''), pl[1], function() {
+          var cur = JJMobile.navPlaces().slice();
+          var i = cur.indexOf(pl[0]);
+          if (i >= 0) cur.splice(i, 1); else cur.push(pl[0]);
+          JJMobile.store(JJMobile.NAV_KEY, cur);
+          b.classList.toggle('jjm-on', i < 0);
+        });
+        nchips.appendChild(b);
+      });
+      nr.appendChild(nchips);
+      box.appendChild(nr);
     }, JJMobile.demoText],
     ['push', '推文', function(box) {
       box.appendChild(self.fontChips('push'));

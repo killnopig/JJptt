@@ -1765,3 +1765,17 @@ body.jj-mobile { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 /* 發信站 / 文章網址 / 編輯 / -- : half the size and line height of the text */
 .jjm-body .jjt-line.jjm-sys { font-size: .5em; line-height: 1.35; min-height: 0; color: var(--sub); }
+
+/* 上一篇／下一篇 at the top, and floating on an edge for one hand */
+.jjm-topnav { padding: 10px 14px 4px; }
+.jjm-topnav .jjm-btn { min-height: 40px; font-size: 15px; }
+.jjm-sidenav {
+  position: fixed; top: 50%; transform: translateY(-50%); z-index: 5;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.jjm-sidenav-left { left: 4px; }
+.jjm-sidenav-right { right: 4px; }
+.jjm .jjm-sidenav .jjm-btn {
+  width: 46px; height: 46px; min-height: 0; padding: 0; border-radius: 23px; font-size: 22px; font-weight: 700;
+  opacity: .82; box-shadow: 0 2px 8px rgba(0,0,0,.5);
+}
