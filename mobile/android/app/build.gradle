@@ -10,7 +10,8 @@ android {
         // CI: one higher per build so updates install over the old one;
         // the version name is JJptt's (package.json)
         versionCode((System.getenv("GITHUB_RUN_NUMBER") ?: "1") as int)
-        versionName new groovy.json.JsonSlurper().parse(file("../../../package.json")).version
+        // the app's own version: 1.<GitHub Actions run>.0 (run 21 = 1.21.0)
+        versionName "1.${System.getenv("GITHUB_RUN_NUMBER") ?: "0"}.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

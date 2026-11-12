@@ -138,13 +138,18 @@ JJMobile.prototype.start = function() {
 };
 
 // ---- updating from inside the app ----------------------------------------------------
-// The release page says 「版次 N」; this build knows its own N
+// Versions are 1.N.0, N the GitHub Actions run (版次); the release page
+// says 「1.N.0」 and this build knows its own N
 // (build-info.js). Newer -> a bar on the home screen; one tap downloads the
 // APK (ApkUpdaterPlugin, no browser) and opens Android's installer.
 
 JJMobile.RELEASE_API = 'https://api.github.com/repos/killnopig/JJptt/releases/tags/android-latest';
 
 JJMobile.RELEASE_DL = 'https://github.com/killnopig/JJptt/releases/download/android-latest/';
+
+JJMobile.version = function(run) {
+  return isNaN(run) ? '?' : '1.' + run + '.0';
+};
 
 JJMobile.prototype.myBuild = function() {
   return parseInt((window.JJPTT_BUILD || {}).run, 10);
@@ -168,7 +173,7 @@ JJMobile.prototype.latestBuild = function() {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }).then(function(rel) {
-      var m = /版次\s*(\d+)|第\s*(\d+)\s*次打包/.exec((rel && (rel.body || rel.name)) || '');
+      var m = /\b1\.(\d+)\.0\b|第\s*(\d+)\s*次打包/.exec((rel && (rel.body || rel.name)) || '');
       var apk = ((rel && rel.assets) || []).filter(function(a) { return /\.apk$/i.test(a.name); })[0];
       if (!m || !apk) throw new Error('看不懂下載頁');
       return { run: +(m[1] || m[2]), url: apk.browser_download_url, size: apk.size };
@@ -208,7 +213,7 @@ JJMobile.prototype.setUpdateRow = function(note) {
     home.view.insertBefore(row, home.view.firstChild);
   }
   var mine = this.myBuild();
-  var text = 'JJptt 版次 ' + (isNaN(mine) ? '?' : mine);
+  var text = 'JJptt ' + JJMobile.version(mine);
   if (note) text += '・' + note;
   else if (this.lastUpdateNote) text += '・' + this.lastUpdateNote;
   if (note) this.lastUpdateNote = note;
@@ -224,7 +229,7 @@ JJMobile.prototype.showUpdateBar = function() {
   var plain = home.view.querySelector('.jjm-verrow');
   if (plain) plain.remove();
   var bar = JJMobile.el('div', 'jjm-update');
-  this.updateText = JJMobile.el('div', 'jjm-update-text', '有新版（版次 ' + this.update.run + '）');
+  this.updateText = JJMobile.el('div', 'jjm-update-text', '有新版 ' + JJMobile.version(this.update.run));
   bar.appendChild(this.updateText);
   this.updateBtn = JJMobile.button('jjm-btn jjm-btn-main', '更新', function() { self.installUpdate(); });
   bar.appendChild(this.updateBtn);
@@ -1570,7 +1575,7 @@ JJMobile.prototype.renderSettings = function(screen) {
   // about
   var ab = section('關於');
   var b = window.JJPTT_BUILD || {};
-  var buildText = b.run ? '版次 ' + b.run + (b.time ? '（' + this.shortTime(b.time) + '）' : '') : '';
+  var buildText = b.run ? JJMobile.version(parseInt(b.run, 10)) + (b.time ? '（' + this.shortTime(b.time) + '）' : '') : '';
   ab.appendChild(this.setRow('JJptt ' + (typeof JJPTT_VERSION !== 'undefined' ? JJPTT_VERSION : '') + (buildText ? '・' + buildText : ''),
                              '檢查有沒有新版，有就直接更新', function() {
     self.checkUpdate(true);
