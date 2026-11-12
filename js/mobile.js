@@ -1282,13 +1282,11 @@ JJMobile.prototype.postSheet = function(screen) {
   else this.accountSheet(start);
 };
 
-// ⇣ on an article: straight to the push box at the bottom, ready to type.
+// ⇣ on an article: straight to the push box at the bottom. No keyboard
+// until the box itself is tapped.
 JJMobile.prototype.toComposer = function(screen) {
   var c = screen.view && screen.view.querySelector('.jjm-compose');
-  if (!c) return;
-  c.scrollIntoView({ block: 'end', behavior: 'smooth' });
-  var input = c.querySelector('input');
-  if (input) setTimeout(function() { input.focus({ preventScroll: true }); }, 350);
+  if (c) c.scrollIntoView({ block: 'end', behavior: 'smooth' });
 };
 
 // After pushing: load the article again, staying at the bottom.
