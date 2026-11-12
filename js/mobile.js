@@ -2026,21 +2026,21 @@ JJMobile.prototype.lookPresets = function(pane, screen) {
     var has = !!slots[n];
     var b = JJMobile.button('jjm-chip' + (has ? '' : ' jjm-empty'), '自訂' + n + (has ? '' : '（空）'), function() {
       if (has) apply(slots[n], '自訂' + n);
-      else if (self.app.showToast) self.app.showToast('自訂' + n + ' 還沒存，先按下面的「存成自訂' + n + '」', 2500);
+      else if (self.app.showToast) self.app.showToast('自訂' + n + ' 還沒存，先按下面的「存自訂' + n + '」', 2500);
     });
     chips.appendChild(b);
   });
   box.appendChild(chips);
-  var save = el('div', 'jjm-chips');
+  var save = el('div', 'jjm-chips jjm-chips-row');
   ['1', '2'].forEach(function(n) {
-    save.appendChild(JJMobile.button('jjm-chip jjm-chip-small', '把現在的存成自訂' + n, function() {
+    save.appendChild(JJMobile.button('jjm-chip jjm-chip-small', '存自訂' + n, function() {
       slots[n] = self.getLook();
       JJMobile.store(JJMobile.LOOK_SLOTS_KEY, slots);
       if (self.app.showToast) self.app.showToast('已存成自訂' + n, 1500);
       self.reload(screen);
     }));
   });
-  save.appendChild(JJMobile.button('jjm-chip jjm-chip-small', '複製設定碼', function() {
+  save.appendChild(JJMobile.button('jjm-chip jjm-chip-small', '複製碼', function() {
     var code = 'JJLOOK' + JSON.stringify(self.getLook());
     var done = function() { if (self.app.showToast) self.app.showToast('已複製，可以貼給別人或開發者', 2000); };
     try {
@@ -2048,7 +2048,7 @@ JJMobile.prototype.lookPresets = function(pane, screen) {
       else window.prompt('複製這段：', code);
     } catch (e) { window.prompt('複製這段：', code); }
   }));
-  save.appendChild(JJMobile.button('jjm-chip jjm-chip-small', '貼上設定碼', function() {
+  save.appendChild(JJMobile.button('jjm-chip jjm-chip-small', '貼上碼', function() {
     var code = window.prompt('貼上別人給你的設定碼：', '');
     if (!code) return;
     try { apply(JSON.parse(String(code).trim().replace(/^JJLOOK/, '')), '設定碼'); }

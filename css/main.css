@@ -1812,3 +1812,7 @@ body.jj-mobile { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .jjm-looks { margin: 12px 14px 0; border: 1px solid var(--line); border-radius: 14px; gap: 8px; }
 .jjm .jjm-chip.jjm-empty { opacity: .55; }
 .jjm .jjm-chip-small { font-size: 13px; min-height: 32px; padding: 4px 10px; }
+
+/* 建議組合: 存自訂1 / 存自訂2 / 複製碼 / 貼上碼 on one line */
+.jjm-chips.jjm-chips-row { flex-wrap: nowrap; gap: 6px; }
+.jjm-chips-row .jjm-chip { flex: 1 1 0; min-width: 0; text-align: center; white-space: nowrap; padding-left: 4px; padding-right: 4px; }
