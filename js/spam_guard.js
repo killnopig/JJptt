@@ -23,12 +23,32 @@ SpamGuard.normalize = function(url) {
     .toLowerCase();
 };
 
+// an article's key: its path, without host, query or #
+SpamGuard.articleKey = function(url) {
+  return String(url || '').replace(/^https?:\/\/[^\/]+/, '').replace(/[?#].*$/, '');
+};
+
 SpamGuard.prototype.load = function() {
+  var seen;
   try {
-    return JSON.parse(lib.safeGetItem(SpamGuard.KEY) || '{}') || {};
+    seen = JSON.parse(lib.safeGetItem(SpamGuard.KEY) || '{}') || {};
   } catch (e) {
     return {};
   }
+  // one article recorded again under ?_=… (reloads after a push) counted as
+  // several articles: fold those into the article
+  for (var id in seen) {
+    for (var url in seen[id]) {
+      var arts = seen[id][url];
+      for (var a in arts) {
+        var key = SpamGuard.articleKey(a);
+        if (key === a) continue;
+        arts[key] = Math.max(arts[key] || 0, arts[a]);
+        delete arts[a];
+      }
+    }
+  }
+  return seen;
 };
 
 SpamGuard.prototype.save = function(seen) {
@@ -54,7 +74,7 @@ SpamGuard.prototype.record = function(article) {
   var now = Date.now();
   var seen = this.load();
   this.prune(seen, now);
-  var articleKey = article.url.replace(/^https?:\/\/[^\/]+/, '');
+  var articleKey = SpamGuard.articleKey(article.url);
   var touched = {};
   var add = function(id, url) {
     id = String(id || '').toLowerCase();

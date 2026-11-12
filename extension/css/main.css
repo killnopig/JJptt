@@ -1867,3 +1867,7 @@ body.jj-mobile #jjToast {
 
 /* 關於 → 接收測試版 */
 .jjm-beta { margin-top: 14px; margin-bottom: 14px; }
+
+/* your push, shown at once while www.ptt.cc catches up (reloadAfterPost) */
+.jjm .jjm-push-mine { box-shadow: inset 4px 0 0 var(--accent); }
+.jjm .jjm-push-mine .jjm-push-id { color: var(--id); font-weight: 700; }

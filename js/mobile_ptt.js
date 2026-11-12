@@ -396,9 +396,12 @@ JJPtt.prototype.toArticle = function(url) {
   var board = JJPtt.boardFromUrl(url);
   var aid = JJPtt.aidFromUrl(url);
   if (!board || !aid) return Promise.reject(new Error('看不懂這篇文章的網址'));
+  var before;
   return this.toBoard(board).then(function() {
+    // the prompt itself, newly shown (not any 「#」 already on the list)
+    before = self.screen();
     self.send('#');
-    return self.wait({ ask: /搜尋.*(文章代碼|AID)|請輸入文章代碼|#/ }, 5000, undefined, '找文章代碼');
+    return self.wait({ ask: /文章代碼|AID/ }, 5000, before, '找文章代碼');
   }).then(function() {
     self.send(aid + '\r');
     return JJPtt.sleep(500);
@@ -417,8 +420,12 @@ JJPtt.prototype.toBoard = function(board) {
   return JJPtt.sleep(200).then(function() {
     if (/【\s*主功能表\s*】|主功能表/.test(self.screen())) return self.enterFavorites();
   }).then(function() {
+    // only PTT's own prompt, newly on the screen: a board list's header
+    // says 「[s]選擇看板」 all the time, and the name typed before the prompt
+    // opens is thrown away (pushes failed with 「進 Gossiping 板」)
+    var before = self.screen();
     self.send('s');
-    return self.wait({ ask: /請輸入看板名稱|選擇看板/ }, 8000, undefined, '按 s 選看板');
+    return self.wait({ ask: /請輸入看板名稱/ }, 8000, before, '按 s 選看板');
   }).then(function() {
     self.type(board + '\r');
     var name = board.replace(/[^\w-]/g, '');

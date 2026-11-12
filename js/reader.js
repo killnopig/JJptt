@@ -378,6 +378,10 @@ PttReader.prototype.takePrefetch = function(h) {
   });
 };
 
+PttReader.articleUrl = function(url) {
+  return String(url || '').replace(/[?#].*$/, '');
+};
+
 PttReader.prototype.fetchArticle = function(url) {
   var self = this;
   return this.fetchDoc(url).then(function(doc) {
@@ -425,7 +429,10 @@ PttReader.prototype.fetchArticle = function(url) {
     var drop = body.querySelectorAll('.article-metaline, .article-metaline-right, .richcontent, .push:not([data-push-index])');
     for (var k = 0; k < drop.length; ++k) drop[k].parentNode.removeChild(drop[k]);
     PttReader.assignBlocks(body, pushes);
-    var article = { url: url, meta: meta, text: body.textContent, body: body, pushes: pushes };
+    // the article's own address: a query added to get past caches (the
+    // app reloads with ?_=time after a push) is not another article -- it
+    // was counted as one by 共伴 and 同網址洗版 and blacklisted people
+    var article = { url: PttReader.articleUrl(url), meta: meta, text: body.textContent, body: body, pushes: pushes };
     if (self.app.spamGuard) {
       try { self.app.spamGuard.record(article); } catch (e) { console.log('spam guard', e); }
     }

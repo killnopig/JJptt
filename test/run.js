@@ -17,7 +17,7 @@ global.i18n = function(k) { return (locale.zh_TW[k] && locale.zh_TW[k].message) 
 global.$ = function() { return { length: 0 }; };
 global.lib = { safeGetItem: function(k) { return global.lib.store[k] || null; },
                safeSetItem: function(k, v) { global.lib.store[k] = v; }, store: {} };
-['js/string_util.js', 'js/predefined_config.js', 'js/fact_check.js', 'js/reader.js', 'js/mobile_ptt.js', 'js/mobile.js', 'js/pref.js', 'js/spam_guard.js'].forEach(function(f) {
+['js/string_util.js', 'js/predefined_config.js', 'js/fact_check.js', 'js/reader.js', 'js/mobile_ptt.js', 'js/mobile.js', 'js/mobile_article.js', 'js/pref.js', 'js/spam_guard.js'].forEach(function(f) {
   vm.runInThisContext(fs.readFileSync(path.join(root, f), 'utf8'), { filename: f });
 });
 
@@ -313,6 +313,50 @@ test('spam: the toast names the article', function() {
   assert.ok(pref.app.toasts[0].indexOf('[Test] 文4') >= 0, pref.app.toasts[0]);
 });
 
+test('spam: one article reloaded with ?_=… (after a push) is still one article', function() {
+  lib.store = {};
+  var pref = makePref();
+  var guard = new SpamGuard(pref.app);
+  for (var i = 0; i < 6; ++i) {
+    var a = spamArticle(1);
+    a.url += '?_=' + (1000 + i);
+    guard.record(a);
+  }
+  assert.ok(!pref.isBlacklisted('spammer'));
+});
+test('spam: copies recorded before under ?_=… are folded into the article', function() {
+  lib.store = {};
+  var now = Date.now();
+  lib.store[SpamGuard.KEY] = JSON.stringify({ hiimdaniel: { 'i.mopix.cc/a.jpg': {
+    '/bbs/Gossiping/M.1.A.html': now, '/bbs/Gossiping/M.1.A.html?_=1': now, '/bbs/Gossiping/M.1.A.html?_=2': now } } });
+  var pref = makePref();
+  var guard = new SpamGuard(pref.app);
+  guard.record({ url: 'https://www.ptt.cc/bbs/Gossiping/M.1.A.html?_=3', text: '', meta: { '作者': 'op', '標題': 't', '看板': 'Gossiping' },
+                 pushes: [{ id: 'hiimdaniel', content: 'https://i.mopix.cc/a.jpg' }] });
+  assert.ok(!pref.isBlacklisted('hiimdaniel'));
+  assert.deepStrictEqual(Object.keys(guard.load().hiimdaniel['i.mopix.cc/a.jpg']), ['/bbs/Gossiping/M.1.A.html']);
+});
+test('共伴 history: an article under ?_=… is the same article; old copies folded', function() {
+  lib.store = {};
+  var h = new FactHistory();
+  var art = function(q) { return { url: 'https://www.ptt.cc/bbs/G/M.1.A.html' + q, meta: { '作者': 'op' } }; };
+  h.record(art(''), ['a', 'b'], {});
+  h.record(art('?_=1'), ['a', 'b', 'c'], {});
+  h.record(art('?_=2'), ['a', 'b', 'c', 'd'], {});
+  assert.strictEqual(h.count(), 1);
+  lib.store = {};
+  lib.store[FactHistory.KEY] = JSON.stringify({ a: { '/bbs/G/M.1.A.html': { u: 'op', p: ['a'], f: [] },
+    '/bbs/G/M.1.A.html?_=5': { u: 'op', p: ['a'], f: [] }, '/bbs/G/M.2.A.html?_=6': { u: 'op', p: ['b'], f: [] } },
+    order: ['/bbs/G/M.1.A.html', '/bbs/G/M.1.A.html?_=5', '/bbs/G/M.2.A.html?_=6'] });
+  var h2 = new FactHistory();
+  assert.deepStrictEqual(h2.load().order, ['/bbs/G/M.1.A.html', '/bbs/G/M.2.A.html']);
+  assert.deepStrictEqual(Object.keys(h2.data.a).sort(), ['/bbs/G/M.1.A.html', '/bbs/G/M.2.A.html']);
+});
+test('fetchArticle keeps the article\'s own address (no ?_= cache query)', function() {
+  assert.strictEqual(PttReader.articleUrl('https://www.ptt.cc/bbs/G/M.1.A.html?_=123'), 'https://www.ptt.cc/bbs/G/M.1.A.html');
+  assert.ok(/PttReader\.articleUrl\(url\)/.test(PttReader.prototype.fetchArticle.toString()));
+});
+
 // ---- automatic blacklist: batch, toast, permanent ---------------------------------
 
 console.log('自動黑名單');
@@ -472,6 +516,12 @@ test('version: the run from the release page, new and old wording', function() {
   assert.strictEqual(JJMobile.runFromRelease('JJptt Android 測試版 0.0.41（abc1234）'), 41);
   assert.strictEqual(JJMobile.runFromRelease('JJptt Android 1.12.0'), 12);
   assert.ok(isNaN(JJMobile.runFromRelease('nothing here')));
+});
+test('own push: found on the web page by ID and the start of the text', function() {
+  var art = { pushes: [{ id: 'other', content: '加油' }, { id: 'MikeEeee', content: '加油啦 大家' }] };
+  assert.ok(JJMobile.hasPush(art, { id: 'mikeeeee', text: '加油啦 大家' }));
+  assert.ok(!JJMobile.hasPush(art, { id: 'mikeeeee', text: '不是這句' }));
+  assert.ok(!JJMobile.hasPush({ pushes: [] }, { id: 'mikeeeee', text: '加油' }));
 });
 test('pictures: http:// asked for over https://', function() {
   assert.strictEqual(PttReader.imageSrc('http://i.imgur.com/abcdefg.jpg'), 'https://i.imgur.com/abcdefg.jpg');
@@ -982,6 +1032,20 @@ testAsync('push: s in 我的最愛 only moves the cursor onto the board -> → g
   await f.ptt.push('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html', '1', '讚');
   assert.ok(f.typed.indexOf('\x1b[C') >= 0, JSON.stringify(f.typed));
   assert.ok(f.typed.indexOf('讚\r') >= 0, JSON.stringify(f.typed));
+});
+
+testAsync('board prompt: waits for 請輸入看板名稱, not the list header\'s 「選擇看板」', async function() {
+  // straight from the list of another board, the prompt shows only after a while
+  var s = LOGIN.slice(0, 4);
+  s[4] = ['【板主:x】 看板《Other》\n[→]閱讀 [s]選擇看板\n文章列表', { 's': 'opening' }];
+  s.opening = ['【板主:x】 看板《Other》\n[→]閱讀 [s]選擇看板\n文章列表', {}, { after: 80, to: 'prompt' }];
+  s.prompt = ['【板主:x】 看板《Other》\n[→]閱讀 [s]選擇看板\n請輸入看板名稱(按空白鍵自動搜尋):', { 'Test\r': 'in' }];
+  s.in = ['【板主:y】 看板《Test》 文章選讀', {}];
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  f.typed.length = 0;
+  await f.ptt.toBoard('Test');
+  assert.deepStrictEqual(f.typed, ['s', 'Test\r']);
 });
 
 test('我的最愛 rows: board name and title; folders and lines skipped', function() {

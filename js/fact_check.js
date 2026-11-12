@@ -619,6 +619,11 @@ FactHistory.KEY = 'jjptt.factHistory';
 FactHistory.MAX_ARTICLES = 400;
 FactHistory.MAX_PUSHERS = 300;
 
+// an article's key: its path, without host, query or #
+FactHistory.keyOf = function(url) {
+  return String(url || '').replace(/^https?:\/\/[^\/]+/, '').replace(/[?#].*$/, '');
+};
+
 FactHistory.prototype.load = function() {
   if (this.data) return this.data;
   try {
@@ -627,6 +632,20 @@ FactHistory.prototype.load = function() {
     this.data = null;
   }
   if (!this.data || !this.data.a) this.data = { a: {}, order: [] };
+  // one article recorded again under ?_=… (reloads after a push) made
+  // 共伴 out of one article: those copies are folded into the article
+  var d = this.data, fixed = false, order = [];
+  d.order.forEach(function(k) {
+    var key = FactHistory.keyOf(k);
+    if (key !== k) {
+      fixed = true;
+      if (!d.a[key] && d.a[k]) { d.a[key] = d.a[k]; order.push(key); }
+      delete d.a[k];
+    } else if (order.indexOf(k) < 0) {
+      order.push(k);
+    }
+  });
+  if (fixed) { d.order = order; this.save(); }
   this.index = null;
   return this.data;
 };
@@ -656,7 +675,7 @@ FactHistory.prototype.clear = function() {
 FactHistory.prototype.record = function(article, ids, fastIds, taskIds) {
   if (!article || !article.url || !ids.length) return;
   var d = this.load();
-  var key = String(article.url).replace(/^https?:\/\/[^\/]+/, '');
+  var key = FactHistory.keyOf(article.url);
   var author = String((article.meta && article.meta['作者']) || '').split(' ')[0].toLowerCase();
   var entry = { u: author, p: ids.slice(0, FactHistory.MAX_PUSHERS), f: Object.keys(fastIds || {}) };
   if (taskIds) entry.k = Object.keys(taskIds);  // first 10 of a 10-push task article

@@ -91,6 +91,8 @@ JJMobile.prototype.fillArticle = function(screen, article) {
   }
   if (!pushList) v.appendChild(body);
   reader.loadPreviews(v);
+  // your own push just sent, until www.ptt.cc has it (reloadAfterPost)
+  pushList = this.showPendingPush(screen, article, pushList);
 
   v.appendChild(this.composer(screen));
 
@@ -174,8 +176,7 @@ JJMobile.prototype.composer = function(screen) {
       send.textContent = '送出中…';
       self.ptt.push(screen.url, kind, text).then(function() {
         input.value = '';
-        if (self.app.showToast) self.app.showToast('已送出', 1500);
-        self.reloadAfterPost(screen, { id: self.ptt.user, text: text });
+        self.reloadAfterPost(screen, { id: self.ptt.user, text: text, kind: kind });
       }).catch(function(err) {
         if (self.app.showToast) self.app.showToast(err.message, 4000);
       }).then(function() {
@@ -348,46 +349,117 @@ JJMobile.prototype.toComposer = function(screen) {
   if (c) c.scrollIntoView({ block: 'end', behavior: 'smooth' });
 };
 
-// After pushing: load the article again, staying at the bottom.
-// After pushing: reload, go to the very bottom, then check the new push is
-// there. www.ptt.cc can lag a few seconds: not there yet -> reload again
-// (a few times). Found -> highlighted just above the push box.
+// After pushing. www.ptt.cc lags behind PTT (Gossiping: a minute and
+// more), so the push is shown at once from what was sent -- PTT already
+// took it -- marked 剛送出, and the article is fetched again quietly in the
+// background (no re-drawing, the reading place stays) until the web page
+// has it too; only then is it drawn again, the push highlighted.
+JJMobile.PENDING_WAITS = [2000, 3000, 5000, 8000, 10000, 15000, 20000, 30000];  // ~1.5 minutes
+
+// Is the push (id + start of the text) among the article's last pushes?
+JJMobile.hasPush = function(article, mine) {
+  if (!article || !mine) return false;
+  var id = String(mine.id || '').toLowerCase(), text = String(mine.text || '').slice(0, 6);
+  var ps = article.pushes || [];
+  for (var i = ps.length - 1; i >= 0 && i >= ps.length - 60; --i) {
+    if (String(ps[i].id || '').toLowerCase() === id && String(ps[i].content || '').indexOf(text) >= 0) return true;
+  }
+  return false;
+};
+
+JJMobile.prototype.pendingPushRow = function(mine) {
+  var el = JJMobile.el;
+  var row = el('div', 'jjm-push jjm-push-mine');
+  var head = el('div', 'jjm-push-head');
+  var tag = mine.kind === '2' ? '噓' : mine.kind === '3' ? '→' : '推';
+  head.appendChild(el('span', 'jjm-push-tag jjm-push-' + (tag === '推' ? 'up' : tag === '噓' ? 'down' : 'arrow'), tag));
+  head.appendChild(el('span', 'jjm-push-id', mine.id));
+  head.appendChild(el('span', 'jjm-pchip jjm-pchip-grey jjm-pending-chip', mine.late ? '網頁版還沒出現' : '剛送出'));
+  var d = new Date(mine.at), p = function(n) { return (n < 10 ? '0' : '') + n; };
+  head.appendChild(el('span', 'jjm-push-time', p(d.getMonth() + 1) + '/' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes())));
+  row.appendChild(head);
+  row.appendChild(el('div', 'jjm-push-text', mine.text));
+  return row;
+};
+
+// Called from fillArticle: the pending push under the others while the web
+// page does not have it yet.
+JJMobile.prototype.showPendingPush = function(screen, article, pushList) {
+  var mine = screen.pendingPush;
+  if (!mine) return pushList;
+  if (JJMobile.hasPush(article, mine)) { screen.pendingPush = null; return pushList; }
+  if (!pushList) {
+    pushList = JJMobile.el('div', 'jjm-pushes');
+    screen.view.appendChild(pushList);
+  }
+  pushList.appendChild(this.pendingPushRow(mine));
+  return pushList;
+};
+
 JJMobile.prototype.reloadAfterPost = function(screen, mine) {
   var self = this;
+  mine.at = Date.now();
+  screen.pendingPush = mine;
+  var token = screen.pendingToken = {};
+  // 1. at once: under the other pushes, the box in view
+  var list = screen.view.querySelector('.jjm-pushes');
+  if (!list) {
+    list = JJMobile.el('div', 'jjm-pushes');
+    var box = screen.view.querySelector('.jjm-compose');
+    screen.view.insertBefore(list, box || null);
+  }
+  var row = this.pendingPushRow(mine);
+  row.classList.add('jjm-push-new');
+  list.appendChild(row);
+  var c = screen.view.querySelector('.jjm-compose');
+  if (c) c.scrollIntoView({ block: 'end', behavior: 'smooth' });
+  // 2. quietly, until www.ptt.cc has it
   var tries = 0;
-  var findMine = function() {
-    if (!mine || !mine.id) return null;
-    var id = mine.id.toLowerCase(), text = String(mine.text || '').slice(0, 6);
-    var rows = screen.view.querySelectorAll('.jjm-pushes > .jjm-push');
-    for (var i = rows.length - 1; i >= 0 && i >= rows.length - 30; --i) {
-      var who = (rows[i].querySelector('.jjm-push-id') || {}).textContent || '';
-      var said = (rows[i].querySelector('.jjm-push-text') || {}).textContent || '';
-      if (who.trim().toLowerCase() === id && said.indexOf(text) >= 0) return rows[i];
-    }
-    return null;
-  };
   var round = function() {
-    delete self.articles[screen.url];
-    // a query the page ignores: past any cache on the way
+    if (screen.pendingToken !== token || screen.pendingPush !== mine) return;  // another push / done
     var fresh = screen.url + (screen.url.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now();
     self.app.reader.fetchArticle(fresh).then(function(article) {
+      if (screen.pendingToken !== token) return;
       article.url = screen.url;
       self.articles[screen.url] = { promise: Promise.resolve(article), at: Date.now() };
+      if (!JJMobile.hasPush(article, mine)) return next();
+      screen.pendingPush = null;
       if (self.stack[self.stack.length - 1] !== screen) return;
-      // 1. reload  2. to the bottom
-      screen.view.innerHTML = '';
+      // the web page has it: drawn again, the same place kept (or the
+      // bottom, if that is where the reader was)
+      var v = screen.view;
+      var atBottom = v.scrollHeight - v.scrollTop - v.clientHeight < 400;
+      var top = v.scrollTop;
+      v.innerHTML = '';
       self.fillArticle(screen, article);
-      var c = screen.view.querySelector('.jjm-compose');
-      if (c) c.scrollIntoView({ block: 'end' });
-      else screen.view.scrollTop = screen.view.scrollHeight;
-      // 3. is the push there?
-      var row = findMine();
-      if (row) { row.classList.add('jjm-push-new'); return; }
-      if (mine && ++tries < 6) setTimeout(round, 1500);
-      else if (mine && self.app.showToast) self.app.showToast('推文已送出，網頁版還沒更新，等一下按 ⟳', 3000);
-    }).catch(function() {});
+      var rows = v.querySelectorAll('.jjm-pushes > .jjm-push');
+      var id = String(mine.id).toLowerCase(), text = String(mine.text).slice(0, 6);
+      for (var i = rows.length - 1; i >= 0 && i >= rows.length - 30; --i) {
+        var who = ((rows[i].querySelector('.jjm-push-id') || {}).textContent || '').trim().toLowerCase();
+        var said = (rows[i].querySelector('.jjm-push-text') || {}).textContent || '';
+        if (who === id && said.indexOf(text) >= 0) { rows[i].classList.add('jjm-push-new'); break; }
+      }
+      if (atBottom) {
+        var box2 = v.querySelector('.jjm-compose');
+        if (box2) box2.scrollIntoView({ block: 'end' });
+        else v.scrollTop = v.scrollHeight;
+      } else {
+        v.scrollTop = top;
+      }
+    }).catch(next);
   };
-  round();
+  var next = function() {
+    if (screen.pendingToken !== token || screen.pendingPush !== mine) return;
+    if (tries >= JJMobile.PENDING_WAITS.length) {
+      // still not on the web page: say so on the row, no toast
+      mine.late = true;
+      var chip = screen.view.querySelector('.jjm-push-mine .jjm-pending-chip');
+      if (chip) chip.textContent = '網頁版還沒出現';
+      return;
+    }
+    setTimeout(round, JJMobile.PENDING_WAITS[tries++]);
+  };
+  next();
 };
 
 JJMobile.prototype.shortTime = function(t) {
