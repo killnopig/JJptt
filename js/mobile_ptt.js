@@ -74,9 +74,14 @@ JJPtt.prototype.connected = function() {
   return !!(conn && conn.isConnected);
 };
 
-// One job at a time, in order.
+// One job at a time, in order. When one fails, the hidden screen at that
+// moment is kept (設定 → 帳號 → 最後一次 PTT 畫面) to see what PTT showed.
 JJPtt.prototype.run = function(job) {
-  var p = this.queue.then(job, job);
+  var self = this;
+  var p = this.queue.then(job, job).catch(function(err) {
+    self.lastFailure = { at: Date.now(), message: (err && err.message) || String(err), screen: self.screen() };
+    throw err;
+  });
   this.queue = p.catch(function() {});
   return p;
 };
@@ -277,9 +282,12 @@ JJPtt.prototype.toArticle = function(url) {
   var board = JJPtt.boardFromUrl(url);
   var aid = JJPtt.aidFromUrl(url);
   if (!board || !aid) return Promise.reject(new Error('看不懂這篇文章的網址'));
-  // out of an article / menu, then "s" (select board)
+  // out of an article, then "s" (select board) -- which only works in a
+  // list, not in the main menu: from there, 我的最愛 first
   if (/瀏覽 第|\(y\)回應/.test(this.screen())) this.send('q');
   return JJPtt.sleep(200).then(function() {
+    if (/【\s*主功能表\s*】|主功能表/.test(self.screen())) return self.enterFavorites();
+  }).then(function() {
     self.send('s');
     return self.wait({ ask: /請輸入看板名稱|選擇看板/ }, 8000);
   }).then(function() {
@@ -439,6 +447,21 @@ JJPtt.prototype.toMenu = function() {
   return step();
 };
 
+// From the main menu into 我的最愛. The main menu itself says 「我 的 最愛」
+// (its F item), so this waits for the board list's column header among what
+// changed. A menu letter may only move the cursor there: then → goes in.
+JJPtt.LIST_HEAD = /編號.*看\s*板|看\s*板.*類別|類別.*轉信/;
+JJPtt.prototype.enterFavorites = function() {
+  var self = this;
+  var before = this.screen();
+  this.send('f');
+  return this.wait({ list: JJPtt.LIST_HEAD }, 2500, before).catch(function() {
+    if (!/主功能表/.test(self.screen())) throw new Error('進不了我的最愛');
+    self.send('\x1b[C');
+    return self.wait({ list: JJPtt.LIST_HEAD }, 8000, before);
+  });
+};
+
 JJPtt.prototype.favorites = function() {
   var self = this;
   return this.run(function() {
@@ -469,11 +492,7 @@ JJPtt.prototype.favorites = function() {
     return self.ensureIn().then(function() {
       return self.toMenu();
     }).then(function() {
-      // the main menu itself says 「我 的 最愛」 (its F item): wait for the
-      // board list's column header instead, among what changed
-      var before = self.screen();
-      self.send('f');
-      return self.wait({ list: /編號.*看\s*板|看\s*板.*類別|類別.*轉信/ }, 10000, before);
+      return self.enterFavorites();
     }).then(function() {
       // the rows come a moment after the header: wait for the first one
       // (none within 4 s: an empty 我的最愛)

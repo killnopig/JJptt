@@ -599,7 +599,9 @@ var AID = JJPtt.aidFromUrl('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html'
 function boardScript(after) {
   var main = 4;
   var s = LOGIN.slice(0, 6);  // keeps the numbering: 6 on are added below
-  s[main] = ['【主功能表】 批踢踢實業坊', { 's': 6 }];
+  // like PTT: "s" does nothing in the main menu; 我的最愛 (a list) first
+  s[main] = ['【主功能表】 批踢踢實業坊', { 'f': 'fav' }];
+  s.fav = ['【 我 的 最愛 】\n   編號   看 板   類別   轉信  中   文   敘   述\n     1   Test   測試 ◎測試', { 's': 6 }];
   s.push(['請輸入看板名稱(按空白鍵自動搜尋):', { 'Test\r': 7 }]);                 // 6
   s.push(['請按任意鍵繼續（進板畫面）', { ' ': 8 }]);                                // 7
   s.push(['【板主:x】 看板《Test》 文章選讀', { '#': 9 }]);                        // 8
@@ -618,7 +620,7 @@ testAsync('push: to the board, the article by AID, X, 推, text, confirm', async
   await f.ptt.login('tester', 'right');
   f.typed.length = 0;
   await f.ptt.push('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html', '1', '說得好');
-  assert.deepStrictEqual(f.typed, ['s', 'Test\r', ' ', '#', AID + '\r', 'X', '1', '說得好\r', 'y\r']);
+  assert.deepStrictEqual(f.typed, ['f', 's', 'Test\r', ' ', '#', AID + '\r', 'X', '1', '說得好\r', 'y\r']);
 });
 testAsync('push: a board that does not allow it says so', async function() {
   var s = boardScript({ 'X': 11 });
@@ -644,7 +646,7 @@ testAsync('reply: y, to the board, same title, no quote, lines, Ctrl-X, save, si
   await f.ptt.login('tester', 'right');
   f.typed.length = 0;
   await f.ptt.reply('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html', '第一行\n第二行', false);
-  assert.deepStrictEqual(f.typed, ['s', 'Test\r', ' ', '#', AID + '\r', 'y', 'f\r', 'y\r', 'n\r',
+  assert.deepStrictEqual(f.typed, ['f', 's', 'Test\r', ' ', '#', AID + '\r', 'y', 'f\r', 'y\r', 'n\r',
                                    '第一行', '\r', '第二行', '\x18', 's\r', '0\r', ' ']);
 });
 
@@ -676,6 +678,27 @@ testAsync('我的最愛: main menu, f, two pages, stops at the last one', async 
   sameJson(boards.map(function(b) { return b.name; }), ['Board1', 'Board2', 'Stock']);
   assert.strictEqual(boards[2].title, '[股市] 股票板');
   sameJson(f.typed, ['f', '\x1b[6~', '\x1b[6~', '\x1b[D']);
+});
+
+testAsync('我的最愛: F only moves the menu cursor -> → goes in', async function() {
+  var head = '【 我 的 最愛 】\n   編號   看 板   類別   轉信  中   文   敘   述\n';
+  var page = head + '   1 ˇGossiping   綜合 ◎[八卦] 亂講話   爆! x';
+  var s = LOGIN.slice(0, 6);
+  s[4] = ['【主功能表】 批踢踢實業坊\n      (F)avorite     【 我 的 最愛 】', { 'f': 6 }];
+  s.push(['【主功能表】 批踢踢實業坊\n    > (F)avorite     【 我 的 最愛 】', { '\x1b[C': 7 }]);  // 6: cursor moved
+  s.push([page, { '\x1b[6~': 7, '\x1b[D': 4 }]);                                          // 7
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  var boards = await f.ptt.favorites();
+  sameJson(boards.map(function(b) { return b.name; }), ['Gossiping']);
+});
+testAsync('a failed job keeps the screen it failed on', async function() {
+  var s = LOGIN.slice(0, 6);
+  s[4] = ['【主功能表】 批踢踢實業坊', {}];  // F does nothing at all
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  await assert.rejects(f.ptt.favorites());
+  assert.ok(f.ptt.lastFailure && /主功能表/.test(f.ptt.lastFailure.screen));
 });
 
 // ---- settings defaults ----------------------------------------------------------

@@ -1390,6 +1390,16 @@ JJMobile.prototype.renderSettings = function(screen) {
   var st = this.ptt.state;
   acc.appendChild(this.setRow(st === 'in' ? '已登入 ' + this.ptt.user : '登入 PTT',
     st === 'in' ? '點這裡登出' : '登入後可以推文、回文', function() { self.accountSheet(function() { self.reload(screen); }); }));
+  if (this.ptt.lastFailure) {
+    var lf = this.ptt.lastFailure;
+    acc.appendChild(this.setRow('最後一次 PTT 畫面（除錯用）', this.shortTime(new Date(lf.at).toISOString()) + '・' + lf.message, function() {
+      var pre = JJMobile.el('pre', 'jjm-screen', lf.screen.replace(/\s+$/gm, ''));
+      var box = JJMobile.el('div', '');
+      box.appendChild(JJMobile.el('div', 'jjm-hint', '背景連線失敗時 PTT 的畫面。截圖給開發者看，就知道哪裡卡住。'));
+      box.appendChild(pre);
+      self.showSheet('最後一次 PTT 畫面', box);
+    }));
+  }
   acc.appendChild(this.localToggleRow(JJPtt.KICK_KEY, '登入時踢掉其他地方的連線', '關著 = 保留電腦或別的手機上開著的 PTT'));
 
   // reading

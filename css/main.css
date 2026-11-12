@@ -1653,6 +1653,13 @@ body.jj-mobile .jjm {
 }
 .jjm-sheet .jjm-eye.jjm-on { opacity: 1; background: rgba(156, 204, 101, .18); }
 
+/* the hidden PTT screen (settings, for debugging) */
+.jjm-screen {
+  margin: 8px 0 0; padding: 10px; border-radius: 10px; background: #000; color: #d7d7d7;
+  font-family: "Noto Sans Mono CJK TC", "MingLiU", monospace; font-size: 10.5px; line-height: 1.3;
+  white-space: pre; overflow-x: auto; max-height: 60vh;
+}
+
 /* bottom sheets */
 .jjm-shade { position: fixed; inset: 0; z-index: 4000; background: rgba(0,0,0,.55); display: flex; align-items: flex-end; }
 .jjm-sheet {
