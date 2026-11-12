@@ -108,13 +108,20 @@ JJPtt.sleep = function(ms) {
 
 // Waits until one of `cases` matches the screen; resolves with its key.
 // cases: { key: RegExp }. Rejects after `ms` (or when the connection drops).
-JJPtt.prototype.wait = function(cases, ms) {
+// With `since` (a screen() taken before typing), only lines that changed
+// since then count: what was already there (an old error...) is not PTT's
+// answer.
+JJPtt.prototype.wait = function(cases, ms, since) {
   var self = this;
   var until = Date.now() + (ms || JJPtt.TIMEOUT_MS);
+  var before = since === undefined ? null : String(since).split('\n');
   return new Promise(function(resolve, reject) {
     var tick = function() {
       if (!self.connected()) return reject(new Error('和 PTT 的連線斷了'));
       var text = self.screen();
+      if (before) {
+        text = text.split('\n').filter(function(line, i) { return line !== before[i]; }).join('\n');
+      }
       for (var k in cases) {
         if (cases[k].test(text)) return resolve(k);
       }
@@ -143,7 +150,13 @@ JJPtt.prototype.connect = function() {
   // JJptt's own auto-login and duplicate-login answer stay out: this
   // types everything itself
   if (conn) conn.loginStr = ['', '', '', ''];
-  if (this.app.buf) this.app.buf.enableDeleteDupLogin = false;
+  var buf = this.app.buf;
+  if (buf) {
+    buf.enableDeleteDupLogin = false;
+    // a new connection starts on a blank screen: nothing left over from
+    // the last one may be read as PTT's answer
+    try { if (buf.clear) buf.clear(2); } catch (e) {}
+  }
   this.app.connect('ptt.cc');
   var until = Date.now() + 20000;
   return new Promise(function(resolve, reject) {
@@ -172,16 +185,17 @@ JJPtt.prototype.doLogin = function(user, pass) {
   return this.connect().then(function() {
     return self.wait({ user: /請輸入代號/ }, 20000);
   }).then(function() {
+    var before = self.screen();
     self.type(user + '\r');
     // only once PTT really asks for the password: what is typed before that
     // is thrown away (that made right passwords fail)
-    return self.wait({ pass: /請輸入您的密碼/, nouser: /無此帳號|帳號不存在|沒有這個帳號/ }, 15000);
-  }).then(function(k) {
-    if (k === 'nouser') throw new Error('沒有這個帳號（' + user + '）');
+    return self.wait({ pass: /請輸入您的密碼/ }, 15000, before);
+  }).then(function() {
     return JJPtt.sleep(300);
   }).then(function() {
+    var before = self.screen();
     self.type(pass + '\r');
-    return self.pastLogin();
+    return self.pastLogin(before);
   }).then(function() {
     self.user = user;
     self.pass = pass;
@@ -194,7 +208,7 @@ JJPtt.prototype.doLogin = function(user, pass) {
 };
 
 // After the password: answer what PTT asks until the main menu.
-JJPtt.prototype.pastLogin = function() {
+JJPtt.prototype.pastLogin = function(before) {
   var self = this;
   // the app's own choice, off unless turned on: logging in on the phone
   // must not throw the computer's PTT off
@@ -208,10 +222,11 @@ JJPtt.prototype.pastLogin = function() {
       dup: /刪除其他重複登入的連線/,
       menu: /【\s*主功能表\s*】|主功能表/,
       hurdle: /按任意鍵|請按任意鍵|按任一鍵|您要刪除以上錯誤嘗試|尚未完成的文章|有一篇文章尚未完成/
-    }, 15000).then(function(k) {
+    }, 15000, before).then(function(k) {
+      before = undefined;  // past the password: the whole screen counts again
       if (k === 'wrong') {
         // PTT's own words, so a misread screen can be told from a typo
-        var said = (self.screen().split('\n').filter(function(l) { return /密碼不對|無此帳號|帳號不存在/.test(l); })[0] || '').trim();
+        var said = (self.screen().split('\n').filter(function(l) { return /密碼不對|無此帳號|帳號不存在/.test(l); }).pop() || '').trim();
         throw new Error('帳號或密碼錯誤' + (said ? '（PTT：' + said.slice(0, 40) + '）' : ''));
       }
       if (k === 'busy') throw new Error('PTT 現在很忙，請稍後再試');

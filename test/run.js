@@ -571,6 +571,30 @@ testAsync('login: wrong password says so and is not logged in', async function()
   assert.strictEqual(f.ptt.user, '');
 });
 
+testAsync('login: an old 「密碼不對或無此帳號」 still on the screen is not PTT\'s answer', async function() {
+  var old = '密碼不對或無此帳號。請檢查大小寫及有無輸入錯誤。';
+  var s = [
+    [old + '\n請輸入代號，或以 guest 參觀，或以 new 註冊:', { 'tester\r': 'echo' }],
+    [old + '\n請輸入代號，或以 guest 參觀，或以 new 註冊: tester\n請輸入您的密碼:', { 'right\r': 2 }],
+    ['【主功能表】 批踢踢實業坊', {}]
+  ];
+  var f = fakePtt(s);
+  f.app.buf.clear = function() {};  // the fake keeps its text, like a screen not cleared
+  ECHO[0] = old + '\n請輸入代號，或以 guest 參觀，或以 new 註冊: tester';
+  try {
+    await f.ptt.login('tester', 'right');
+  } finally {
+    ECHO[0] = '請輸入代號，或以 guest 參觀，或以 new 註冊: tester';
+  }
+  assert.strictEqual(f.ptt.state, 'in');
+});
+testAsync('login: PTT\'s 「密碼不對或無此帳號」 after the password is a wrong password, with PTT\'s words', async function() {
+  var s = LOGIN.slice();
+  s[5] = ['請輸入代號: tester\n請輸入您的密碼:\n密碼不對或無此帳號。請檢查大小寫及有無輸入錯誤。', {}];
+  var f = fakePtt(s);
+  await assert.rejects(f.ptt.login('tester', 'wrong'), /帳號或密碼錯誤（PTT：密碼不對或無此帳號/);
+});
+
 var AID = JJPtt.aidFromUrl('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html');
 function boardScript(after) {
   var main = 4;
