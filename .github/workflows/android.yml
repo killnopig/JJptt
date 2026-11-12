@@ -55,7 +55,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION="1.${GITHUB_RUN_NUMBER}.0"
+          VERSION="0.0.${GITHUB_RUN_NUMBER}"
           git tag -f android-latest
           git push -f origin android-latest
           NOTES="JJptt Android 測試版 ${VERSION}（${GITHUB_SHA::7}）

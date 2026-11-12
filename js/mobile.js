@@ -138,8 +138,8 @@ JJMobile.prototype.start = function() {
 };
 
 // ---- updating from inside the app ----------------------------------------------------
-// Versions are 1.N.0, N the GitHub Actions run (版次); the release page
-// says 「1.N.0」 and this build knows its own N
+// Versions are 0.0.N, N the GitHub Actions run (版次); the release page
+// says 「0.0.N」 and this build knows its own N
 // (build-info.js). Newer -> a bar on the home screen; one tap downloads the
 // APK (ApkUpdaterPlugin, no browser) and opens Android's installer.
 
@@ -148,7 +148,7 @@ JJMobile.RELEASE_API = 'https://api.github.com/repos/killnopig/JJptt/releases/ta
 JJMobile.RELEASE_DL = 'https://github.com/killnopig/JJptt/releases/download/android-latest/';
 
 JJMobile.version = function(run) {
-  return isNaN(run) ? '?' : '1.' + run + '.0';
+  return isNaN(run) ? '?' : '0.0.' + run;
 };
 
 JJMobile.prototype.myBuild = function() {
@@ -173,7 +173,7 @@ JJMobile.prototype.latestBuild = function() {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }).then(function(rel) {
-      var m = /\b1\.(\d+)\.0\b|第\s*(\d+)\s*次打包/.exec((rel && (rel.body || rel.name)) || '');
+      var m = /\b0\.0\.(\d+)\b|\b1\.(\d+)\.0\b/.exec((rel && (rel.body || rel.name)) || '');
       var apk = ((rel && rel.assets) || []).filter(function(a) { return /\.apk$/i.test(a.name); })[0];
       if (!m || !apk) throw new Error('看不懂下載頁');
       return { run: +(m[1] || m[2]), url: apk.browser_download_url, size: apk.size };
