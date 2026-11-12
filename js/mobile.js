@@ -1268,7 +1268,10 @@ JJMobile.prototype.renderSettings = function(screen) {
 
   // about
   var ab = section('關於');
-  ab.appendChild(this.setRow('JJptt ' + (typeof JJPTT_VERSION !== 'undefined' ? JJPTT_VERSION : ''), '檢查有沒有新版', function() {
+  var b = window.JJPTT_BUILD || {};
+  var buildText = b.run ? '第 ' + b.run + ' 次打包' + (b.time ? '（' + this.shortTime(b.time) + '）' : '') : '';
+  ab.appendChild(this.setRow('JJptt ' + (typeof JJPTT_VERSION !== 'undefined' ? JJPTT_VERSION : '') + (buildText ? '・' + buildText : ''),
+                             '檢查有沒有新版（下載頁會寫最新是第幾次打包）', function() {
     window.open('https://github.com/killnopig/JJptt/releases/tag/android-latest', '_blank');
   }));
   ab.appendChild(this.setRow('覺得好用？請我喝杯咖啡', 'Ko-fi（自願，不影響任何功能）', function() {
