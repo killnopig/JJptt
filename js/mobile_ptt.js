@@ -469,10 +469,15 @@ JJPtt.prototype.favorites = function() {
     return self.ensureIn().then(function() {
       return self.toMenu();
     }).then(function() {
+      // the main menu itself says 「我 的 最愛」 (its F item): wait for the
+      // board list's column header instead, among what changed
+      var before = self.screen();
       self.send('f');
-      return self.wait({ fav: /我的最愛|我 的 最愛/ }, 8000);
+      return self.wait({ list: /編號.*看\s*板|看\s*板.*類別|類別.*轉信/ }, 10000, before);
     }).then(function() {
-      return JJPtt.sleep(300);
+      // the rows come a moment after the header: wait for the first one
+      // (none within 4 s: an empty 我的最愛)
+      return self.wait({ row: /^\s*[>●]?\s*\d+\s+[ˇ\s]?\s*[A-Za-z][\w\-]+\s+\S/m }, 4000).catch(function() {});
     }).then(page).then(function() {
       self.send('\x1b[D');  // leave the list
       return boards;

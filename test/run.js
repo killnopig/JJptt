@@ -663,9 +663,12 @@ testAsync('我的最愛: main menu, f, two pages, stops at the last one', async 
   var page1 = head + [1, 2].map(function(i) { return '   ' + i + ' ˇBoard' + i + '      綜合 ◎[標題' + i + ']  中文' ; }).join('\n');
   var page2 = head + '   3   Stock       學術 ◎[股市] 股票板       爆! x\n   4   Folder      目錄 Σ資料夾';
   var s = LOGIN.slice(0, 6);
-  s[4] = ['【主功能表】 批踢踢實業坊', { 'f': 6 }];
+  // like the real main menu: its F item says 「我 的 最愛」; and the list
+  // shows its header first, the rows a moment later
+  s[4] = ['【主功能表】 批踢踢實業坊\n      (F)avorite     【 我 的 最愛 】', { 'f': 8 }];
   s.push([page1, { '\x1b[6~': 7 }]);              // 6
   s.push([page2, { '\x1b[6~': 7, '\x1b[D': 4 }]);  // 7: last page stays
+  s.push([head, {}, { after: 300, to: 6 }]);         // 8: header only, rows come later
   var f = fakePtt(s);
   await f.ptt.login('tester', 'right');
   f.typed.length = 0;

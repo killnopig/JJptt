@@ -491,6 +491,10 @@ JJMobile.prototype.syncFavs = function(manual) {
     boards.forEach(function(b) {
       if (!mine.some(function(f) { return f.name.toLowerCase() === b.name.toLowerCase(); })) added++;
     });
+    if (!boards.length) {
+      if (self.app.showToast) self.app.showToast('沒有讀到 PTT 我的最愛的看板（我的看板沒有改）', 3500);
+      return;
+    }
     JJMobile.store(JJMobile.FAVS_KEY, merged);
     JJMobile.store(JJMobile.SYNCED_KEY, Date.now());
     if (self.app.showToast) self.app.showToast('已同步 PTT 我的最愛：' + boards.length + ' 個看板' + (added ? '（新加 ' + added + ' 個）' : ''), 2500);
