@@ -1421,11 +1421,11 @@ body.jj-mobile .jjm {
 
 /* search box */
 .jjm-search { padding: 14px 14px 0; }
-.jjm-search input, .jjm-sheet-form input {
+.jjm-search input, .jjm-sheet-form input:not([type=checkbox]) {
   width: 100%; box-sizing: border-box; height: 50px; padding: 0 16px; border-radius: 14px;
   border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 17px; outline: none;
 }
-.jjm-search input:focus, .jjm-sheet-form input:focus { border-color: var(--accent); }
+.jjm-search input:focus, .jjm-sheet-form input:not([type=checkbox]):focus { border-color: var(--accent); }
 
 /* rows: boards and articles */
 .jjm-list { display: flex; flex-direction: column; }
@@ -1534,6 +1534,35 @@ body.jj-mobile .jjm {
 .jjm-endnav { display: flex; gap: 10px; padding: 20px 14px 8px; }
 .jjm-endnav .jjm-btn { flex: 1 1 0; }
 
+/* account button, push box */
+.jjm .jjm-acct { width: auto; padding: 0 14px; font-size: 15px; font-weight: 700; border-radius: 18px; height: 36px; line-height: 36px; margin-right: 4px; border: 1px solid var(--line); }
+.jjm .jjm-acct-in { color: var(--accent); border-color: var(--accent); }
+.jjm-compose { margin: 16px 14px 0; padding: 14px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+.jjm-kinds { align-items: center; }
+.jjm .jjm-kinds .jjm-chip { min-width: 54px; text-align: center; font-weight: 700; }
+.jjm .jjm-kind-1.jjm-on { background: #9ccc65; color: #11180a; border-color: #9ccc65; }
+.jjm .jjm-kind-2.jjm-on { background: #ef5350; color: #fff; border-color: #ef5350; }
+.jjm .jjm-kind-3.jjm-on { background: #8d958a; color: #111; border-color: #8d958a; }
+.jjm-count { margin-left: auto; font-size: 13px; color: var(--sub); }
+.jjm-count.jjm-over { color: var(--warn); font-weight: 700; }
+.jjm-compose-row { display: flex; gap: 8px; }
+.jjm-compose-row input {
+  flex: 1 1 auto; min-width: 0; height: 48px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--text); font-size: 17px; outline: none;
+}
+.jjm-compose-row input:focus { border-color: var(--accent); }
+.jjm .jjm-compose-row .jjm-btn { flex: 0 0 auto; }
+.jjm .jjm-link-btn { align-self: flex-start; color: #81d4fa; font-size: 15px; min-height: 36px; }
+.jjm-check { display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 16px; color: #d6dfc8; }
+.jjm-check input[type=checkbox] { width: 22px; height: 22px; min-height: 0; margin: 0; padding: 0; flex: 0 0 auto; }
+.jjm-check { justify-content: flex-start; }
+.jjm-form-error { color: #ff8a80; font-size: 15px; min-height: 18px; }
+.jjm-sheet .jjm-hint { color: #9aa394; font-size: 14px; padding: 2px 0; }
+.jjm-sheet-form textarea {
+  width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 14px; border: 1px solid #2a2e2a;
+  background: #141614; color: #ecefe8; font-size: 17px; line-height: 1.5; outline: none; resize: vertical;
+}
+
 /* bottom sheets */
 .jjm-shade { position: fixed; inset: 0; z-index: 4000; background: rgba(0,0,0,.55); display: flex; align-items: flex-end; }
 .jjm-sheet {
@@ -1548,7 +1577,8 @@ body.jj-mobile .jjm {
 .jjm-sheet .jjm-sheet-item { min-height: 54px; padding: 0 6px; text-align: left; font-size: 17px; border-bottom: 1px solid #2a2e2a; }
 .jjm-sheet .jjm-sheet-item:active { background: rgba(255,255,255,.06); }
 .jjm-sheet-form { display: flex; flex-direction: column; gap: 14px; }
-.jjm-sheet-form input {
+.jjm-sheet-form input[type=text], .jjm-sheet-form input[type=password],
+.jjm-sheet-form input[type=search], .jjm-sheet-form input[type=number] {
   width: 100%; box-sizing: border-box; height: 52px; padding: 0 16px; border-radius: 14px;
   border: 1px solid #2a2e2a; background: #141614; color: #ecefe8; font-size: 18px; outline: none;
 }

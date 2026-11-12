@@ -88,6 +88,16 @@ JJMobile.prototype.setup = function() {
   document.body.appendChild(this.root);
   JJMobile.isolate(this.root);
   this.app.modalShown = true;  // the terminal's key handling stays out of the way
+  // the background connection (js/mobile_ptt.js) is only for logging in and
+  // pushing: the old article view must not follow its screens
+  var reader = this.app.reader;
+  reader.onTerminalUpdate = function() {};
+  reader.schedulePrefetch = function() {};
+  this.ptt = new JJPtt(this.app);
+  this.ptt.onChange(function() {
+    var top = self.stack[self.stack.length - 1];
+    if (top) self.setBar(top);
+  });
   this.setFont(JJMobile.store(JJMobile.FONT_KEY) || 17);
 
   // the phone's back button
@@ -105,6 +115,26 @@ JJMobile.prototype.setup = function() {
 
 JJMobile.prototype.start = function() {
   this.open({ type: 'home' });
+  this.autoLogin();
+};
+
+// With a saved account, log in in the background when the app opens (the
+// settings load a moment after start).
+JJMobile.prototype.autoLogin = function() {
+  var self = this;
+  var tries = 0;
+  var check = function() {
+    var pref = self.app.pref;
+    var saved = pref && pref.logins;
+    if (saved && saved[0] && saved[1]) {
+      self.ptt.login(saved[0], saved[1]).catch(function(err) {
+        if (self.app.showToast) self.app.showToast('自動登入失敗：' + err.message, 4000);
+      });
+    } else if (++tries < 15) {
+      setTimeout(check, 200);
+    }
+  };
+  check();
 };
 
 JJMobile.prototype.setFont = function(px) {
@@ -172,8 +202,89 @@ JJMobile.prototype.setBar = function(screen) {
     add('Aa', '字的大小', function() { self.fontSheet(); });
     add('⟳', '重新整理', function() { self.reload(screen); });
   } else {
+    var st = this.ptt ? this.ptt.state : 'off';
+    var acct = add(st === 'in' ? this.ptt.user : st === 'connecting' ? '登入中…' : '登入', '帳號', function() { self.accountSheet(); });
+    acct.classList.add('jjm-acct');
+    if (st === 'in') acct.classList.add('jjm-acct-in');
     add('⚙', '設定', function() { self.openSettings(); });
   }
+};
+
+// ---- account ------------------------------------------------------------------------
+
+JJMobile.prototype.accountSheet = function(then) {
+  var self = this;
+  var el = JJMobile.el;
+  var ptt = this.ptt;
+  if (ptt.state === 'in') {
+    var box = el('div', 'jjm-sheet-list');
+    box.appendChild(el('div', 'jjm-hint', '已登入，可以推文、回文。'));
+    box.appendChild(JJMobile.button('jjm-sheet-item', '登出', function() {
+      ptt.logout();
+      var pref = self.app.pref;
+      if (pref && pref.logins && pref.logins[0]) {
+        pref.logins = ['', ''];
+        pref.setStorage({ logins: { u: '', p: '' } });
+      }
+      self.closeSheet();
+    }));
+    this.showSheet(ptt.user, box);
+    return;
+  }
+  var form = el('form', 'jjm-sheet-form');
+  var user = el('input');
+  user.type = 'text';
+  user.placeholder = 'PTT 帳號';
+  user.setAttribute('autocapitalize', 'off');
+  user.setAttribute('autocorrect', 'off');
+  user.setAttribute('autocomplete', 'username');
+  var pass = el('input');
+  pass.type = 'password';
+  pass.placeholder = '密碼';
+  pass.setAttribute('autocomplete', 'current-password');
+  var saved = this.app.pref && this.app.pref.logins;
+  if (saved && saved[0]) user.value = saved[0];
+  var remember = el('label', 'jjm-check');
+  var box2 = el('input');
+  box2.type = 'checkbox';
+  box2.checked = true;
+  remember.appendChild(box2);
+  remember.appendChild(document.createTextNode(' 記住帳號密碼，下次自動登入'));
+  var err = el('div', 'jjm-form-error');
+  var go = el('button', 'jjm-btn jjm-btn-main', '登入');
+  form.appendChild(user);
+  form.appendChild(pass);
+  form.appendChild(remember);
+  form.appendChild(err);
+  form.appendChild(go);
+  form.appendChild(el('div', 'jjm-hint', '看文章不用登入；登入後才能推文、回文。帳號密碼只存在這支手機。'));
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var u = user.value.trim(), p = pass.value;
+    if (!u || !p) {
+      err.textContent = '請輸入帳號和密碼';
+      return;
+    }
+    err.textContent = '';
+    go.disabled = true;
+    go.textContent = '登入中…';
+    ptt.login(u, p).then(function() {
+      if (box2.checked) {
+        var pref = self.app.pref;
+        pref.logins = [u, p];
+        pref.setStorage({ logins: { u: u, p: p } });
+      }
+      self.closeSheet();
+      if (self.app.showToast) self.app.showToast('已登入 ' + u, 1500);
+      if (then) then();
+    }).catch(function(e2) {
+      go.disabled = false;
+      go.textContent = '登入';
+      err.textContent = e2.message;
+    });
+  });
+  this.showSheet('登入 PTT', form);
+  setTimeout(function() { (user.value ? pass : user).focus(); }, 50);
 };
 
 JJMobile.prototype.reload = function(screen) {
@@ -597,6 +708,8 @@ JJMobile.prototype.fillArticle = function(screen, article) {
   if (!pushList) v.appendChild(body);
   reader.loadPreviews(v);
 
+  v.appendChild(this.composer(screen));
+
   // the end: previous / next in the list
   var nav = el('div', 'jjm-endnav');
   var list = screen.list;
@@ -608,6 +721,126 @@ JJMobile.prototype.fillArticle = function(screen, article) {
     nav.appendChild(JJMobile.button('jjm-btn jjm-btn-main', '下一篇 ›', function() { self.step(screen, 1); }));
   }
   v.appendChild(nav);
+};
+
+// Push box under the pushes: 推 / 噓 / →, the text (as long as PTT allows
+// on one line) and 送出; 回文 next to it.
+JJMobile.prototype.composer = function(screen) {
+  var self = this;
+  var el = JJMobile.el;
+  var box = el('form', 'jjm-compose');
+  var kinds = el('div', 'jjm-chips jjm-kinds');
+  var kind = '1';
+  [['1', '推'], ['2', '噓'], ['3', '→']].forEach(function(k) {
+    var b = JJMobile.button('jjm-chip jjm-kind-' + k[0] + (k[0] === kind ? ' jjm-on' : ''), k[1], function() {
+      kind = k[0];
+      Array.prototype.forEach.call(kinds.children, function(x) { x.classList.remove('jjm-on'); });
+      b.classList.add('jjm-on');
+    });
+    kinds.appendChild(b);
+  });
+  var count = el('span', 'jjm-count');
+  kinds.appendChild(count);
+  box.appendChild(kinds);
+  var row = el('div', 'jjm-compose-row');
+  var input = el('input');
+  input.type = 'text';
+  input.placeholder = '說點什麼…';
+  input.setAttribute('enterkeyhint', 'send');
+  row.appendChild(input);
+  var send = el('button', 'jjm-btn jjm-btn-main', '送出');
+  row.appendChild(send);
+  box.appendChild(row);
+  var reply = JJMobile.button('jjm-link-btn', '回文到看板…', function() { self.replySheet(screen); });
+  box.appendChild(reply);
+
+  var max = function() { return JJPtt.pushMaxBytes(self.ptt.user || 'abcdefghijkl'); };
+  var update = function() {
+    var left = Math.floor((max() - JJPtt.big5Length(input.value)) / 2);
+    count.textContent = '還可以打 ' + left + ' 個字';
+    count.classList.toggle('jjm-over', left < 0);
+  };
+  input.addEventListener('input', update);
+  update();
+  box.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var text = input.value.trim();
+    if (!text) return;
+    if (JJPtt.big5Length(text) > max()) {
+      if (self.app.showToast) self.app.showToast('太長了，PTT 一則推文放不下', 2500);
+      return;
+    }
+    var go = function() {
+      send.disabled = true;
+      send.textContent = '送出中…';
+      self.ptt.push(screen.url, kind, text).then(function() {
+        input.value = '';
+        if (self.app.showToast) self.app.showToast('已送出', 1500);
+        self.reloadAfterPost(screen);
+      }).catch(function(err) {
+        if (self.app.showToast) self.app.showToast(err.message, 4000);
+      }).then(function() {
+        send.disabled = false;
+        send.textContent = '送出';
+      });
+    };
+    if (self.ptt.state === 'in' || self.ptt.user) go();
+    else self.accountSheet(go);
+  });
+  return box;
+};
+
+JJMobile.prototype.replySheet = function(screen) {
+  var self = this;
+  var el = JJMobile.el;
+  var start = function() {
+    var form = el('form', 'jjm-sheet-form');
+    var area = el('textarea');
+    area.rows = 8;
+    area.placeholder = '回文內容';
+    form.appendChild(area);
+    var q = el('label', 'jjm-check');
+    var quote = el('input');
+    quote.type = 'checkbox';
+    q.appendChild(quote);
+    q.appendChild(document.createTextNode(' 引用原文'));
+    form.appendChild(q);
+    var err = el('div', 'jjm-form-error');
+    form.appendChild(err);
+    var go = el('button', 'jjm-btn jjm-btn-main', '發表回文');
+    form.appendChild(go);
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!area.value.trim()) return;
+      go.disabled = true;
+      go.textContent = '發表中…';
+      self.ptt.reply(screen.url, area.value, quote.checked).then(function() {
+        self.closeSheet();
+        if (self.app.showToast) self.app.showToast('已發表回文', 2000);
+      }).catch(function(e2) {
+        go.disabled = false;
+        go.textContent = '發表回文';
+        err.textContent = e2.message;
+      });
+    });
+    self.showSheet('回文：' + ((screen.article && screen.article.meta['標題']) || ''), form);
+    setTimeout(function() { area.focus(); }, 50);
+  };
+  if (this.ptt.state === 'in' || this.ptt.user) start();
+  else this.accountSheet(start);
+};
+
+// After pushing: load the article again, staying at the bottom.
+JJMobile.prototype.reloadAfterPost = function(screen) {
+  var self = this;
+  delete this.articles[screen.url];
+  this.getArticle(screen.url).then(function(article) {
+    if (self.stack[self.stack.length - 1] !== screen) return;
+    screen.view.innerHTML = '';
+    self.fillArticle(screen, article);
+    var c = screen.view.querySelector('.jjm-compose');
+    if (c) c.scrollIntoView({ block: 'center' });
+  }).catch(function() {});
 };
 
 JJMobile.prototype.shortTime = function(t) {

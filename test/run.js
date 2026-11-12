@@ -17,7 +17,7 @@ global.i18n = function(k) { return (locale.zh_TW[k] && locale.zh_TW[k].message) 
 global.$ = function() { return { length: 0 }; };
 global.lib = { safeGetItem: function(k) { return global.lib.store[k] || null; },
                safeSetItem: function(k, v) { global.lib.store[k] = v; }, store: {} };
-['js/predefined_config.js', 'js/fact_check.js', 'js/reader.js', 'js/pref.js', 'js/spam_guard.js'].forEach(function(f) {
+['js/predefined_config.js', 'js/fact_check.js', 'js/reader.js', 'js/mobile_ptt.js', 'js/pref.js', 'js/spam_guard.js'].forEach(function(f) {
   vm.runInThisContext(fs.readFileSync(path.join(root, f), 'utf8'), { filename: f });
 });
 
@@ -503,6 +503,117 @@ testAsync('app port: a refused connect becomes an error and a disconnect', async
   await tick(); await tick(); await tick();
   sameJson(got, [{ type: 'error', message: 'target not allowed' }]);
   assert.strictEqual(closed, 1);
+});
+
+// ---- Android app: the background PTT connection (js/mobile_ptt.js) ----------
+
+console.log('Android app (JJPtt: login / push / reply)');
+
+// A fake PTT: a list of [screen text, { keys typed -> next screen index }].
+// Keys typed are recorded; `typed` joins send() and type().
+function fakePtt(script) {
+  var at = 0, typed = [];
+  var app = {
+    pref: { values: {} },
+    buf: { rows: 1, cols: 80, getRowText: function() { return script[at][0]; } },
+    conn: {
+      isConnected: false,
+      send: function(k) { typed.push(k); move(k); },
+      convSend: function(k) { typed.push(k); move(k); },
+      disconnect: function() { this.isConnected = false; }
+    },
+    connect: function() { var c = this.conn; setTimeout(function() { c.isConnected = true; }, 5); }
+  };
+  function move(k) {
+    var next = script[at][1] && script[at][1][k];
+    if (next !== undefined) at = next;
+  }
+  var ptt = new JJPtt(app);
+  return { ptt: ptt, typed: typed, app: app };
+}
+JJPtt.STEP_MS = 2;
+JJPtt.sleep = function() { return Promise.resolve(); };
+
+test('AID from the web address (known pair M.1451110159.A.379 = 1MVYyFDv)', function() {
+  assert.strictEqual(JJPtt.aidFromUrl('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html'), '1MVYyFDv');
+  assert.strictEqual(JJPtt.aidFromUrl('https://www.ptt.cc/bbs/Test/index.html'), '');
+  assert.strictEqual(JJPtt.boardFromUrl('https://www.ptt.cc/bbs/Gossiping/M.1.A.1.html'), 'Gossiping');
+});
+
+var LOGIN = [
+  ['請輸入代號，或以 guest 參觀，或以 new 註冊:', { 'tester\r': 1 }],
+  ['請輸入您的密碼:', { 'right\r': 2, 'wrong\r': 5 }],
+  ['您想刪除其他重複登入的連線嗎？[Y/n]', { 'n\r': 3 }],
+  ['請按任意鍵繼續', { ' ': 4 }],
+  ['【主功能表】 批踢踢實業坊', {}],
+  ['密碼不對喔！請輸入代號:', {}]
+];
+
+testAsync('login: account, password, keeps the other login, any key, main menu', async function() {
+  var f = fakePtt(LOGIN);
+  await f.ptt.login('tester', 'right');
+  assert.deepStrictEqual(f.typed, ['tester\r', 'right\r', 'n\r', ' ']);
+  assert.strictEqual(f.ptt.state, 'in');
+  assert.strictEqual(f.ptt.user, 'tester');
+});
+testAsync('login: wrong password says so and is not logged in', async function() {
+  var f = fakePtt(LOGIN);
+  await assert.rejects(f.ptt.login('tester', 'wrong'), /帳號或密碼錯誤/);
+  assert.notStrictEqual(f.ptt.state, 'in');
+  assert.strictEqual(f.ptt.user, '');
+});
+
+var AID = JJPtt.aidFromUrl('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html');
+function boardScript(after) {
+  var main = 4;
+  var s = LOGIN.slice(0, 6);  // keeps the numbering: 6 on are added below
+  s[main] = ['【主功能表】 批踢踢實業坊', { 's': 6 }];
+  s.push(['請輸入看板名稱(按空白鍵自動搜尋):', { 'Test\r': 7 }]);                 // 6
+  s.push(['請按任意鍵繼續（進板畫面）', { ' ': 8 }]);                                // 7
+  s.push(['【板主:x】 看板《Test》 文章選讀', { '#': 9 }]);                        // 8
+  s.push(['搜尋文章代碼(AID): #', {}]);                                            // 9
+  s[9][1][AID + '\r'] = 10;
+  s.push(['【板主:x】 看板《Test》 ●', after]);                                     // 10
+  return s;
+}
+
+testAsync('push: to the board, the article by AID, X, 推, text, confirm', async function() {
+  var s = boardScript({ 'X': 11 });
+  s.push(['您覺得這篇文章 1.值得推薦 2.給它噓聲 3.只加→註解 [1]', { '1': 12 }]);    // 11
+  s.push(['推 tester:', { '說得好\r': 13 }]);                                       // 12
+  s.push(['確定[y/N]:', { 'y\r': 8 }]);                                             // 13
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  f.typed.length = 0;
+  await f.ptt.push('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html', '1', '說得好');
+  assert.deepStrictEqual(f.typed, ['s', 'Test\r', ' ', '#', AID + '\r', 'X', '1', '說得好\r', 'y\r']);
+});
+testAsync('push: a board that does not allow it says so', async function() {
+  var s = boardScript({ 'X': 11 });
+  s.push(['本板禁止推薦', {}]);
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  await assert.rejects(f.ptt.push('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html', '1', 'x'), /不能推文/);
+});
+testAsync('push: not logged in -> asks to log in', async function() {
+  var f = fakePtt(LOGIN);
+  await assert.rejects(f.ptt.push('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html', '1', 'x'), /請先登入/);
+});
+testAsync('reply: y, to the board, same title, no quote, lines, Ctrl-X, save, signature', async function() {
+  var s = boardScript({ 'y': 11 });
+  s.push(['▲ 回應至 (F)看板 (M)作者信箱 (B)二者皆是 (Q)取消？[F]', { 'f\r': 12 }]);  // 11
+  s.push(['採用原標題[Y/n]?', { 'y\r': 13 }]);                                       // 12
+  s.push(['請問要引用原文嗎(Y/N/All/Repost/1-9)?[Y]', { 'n\r': 14 }]);               // 13
+  s.push(['【 編輯文章 】 (^X)檔案處理', { '\x18': 15 }]);                           // 14
+  s.push(['檔案處理: (S)存檔 (L)站內信 (A)放棄', { 's\r': 16 }]);                   // 15
+  s.push(['請選擇簽名檔 (1-9, 0=不加 x=隨機)[0]:', { '0\r': 17 }]);                 // 16
+  s.push(['順利貼出佈告，請按任意鍵繼續', { ' ': 8 }]);                              // 17
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  f.typed.length = 0;
+  await f.ptt.reply('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html', '第一行\n第二行', false);
+  assert.deepStrictEqual(f.typed, ['s', 'Test\r', ' ', '#', AID + '\r', 'y', 'f\r', 'y\r', 'n\r',
+                                   '第一行', '\r', '第二行', '\x18', 's\r', '0\r', ' ']);
 });
 
 // ---- settings defaults ----------------------------------------------------------
