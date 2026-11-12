@@ -215,17 +215,23 @@ JJPtt.prototype.doLogin = function(user, pass) {
     return self.wait({ pass: /請輸入您的密碼/ }, 15000, before).catch(at('等密碼欄'));
   }).then(function() {
     mark('密碼欄出現');
-    return JJPtt.sleep(300);
+    return JJPtt.sleep(100);
   }).then(function() {
     var before = self.screen();
     self.type(pass + '\r');
-    return self.pastLogin(before, mark).catch(at('密碼送出後'));
+    // logged in as soon as PTT takes the password: the app says so right
+    // away; the screens after it are cleared while nobody waits on them
+    var accepted = function() {
+      mark('密碼通過');
+      self.user = user;
+      self.pass = pass;
+      self.setState('in');
+    };
+    return self.pastLogin(before, mark, accepted).catch(at('密碼送出後'));
   }).then(function() {
-    mark('到主選單');
-    self.user = user;
-    self.pass = pass;
-    self.setState('in');
+    mark('畫面都過了');
   }).catch(function(err) {
+    if (self.state === 'in') return;  // already in: a screen left over is no failure
     // dropped: the top bar must not stay on 「登入中…」
     self.disconnect();
     self.setState('off');
@@ -237,35 +243,46 @@ JJPtt.prototype.doLogin = function(user, pass) {
 // Where a login can end besides the main menu (an account's own setting).
 JJPtt.LANDED = /【\s*(分類看板|看板列表|我\s*的\s*最愛|熱門看板)\s*】|看板《[^》]+》|文章選讀/;
 
-JJPtt.prototype.pastLogin = function(before, mark) {
+JJPtt.prototype.pastLogin = function(before, mark, accepted) {
   var self = this;
   // the app's own choice, off unless turned on: logging in on the phone
   // must not throw the computer's PTT off
   var dupAnswer = JJPtt.kickOthers() ? 'y\r' : 'n\r';
   var until = Date.now() + 25000;
+  var isIn = false;
   var step = function() {
-    if (Date.now() > until) return Promise.reject(new Error('登入逾時，請再試一次'));
+    if (Date.now() > until) return isIn ? Promise.resolve() : Promise.reject(new Error('登入逾時，請再試一次'));
     return self.wait({
       wrong: /密碼不對|無此帳號|帳號不存在/,
       busy: /系統過載|請稍後再來|登入太頻繁/,
       dup: /刪除其他重複登入的連線/,
+      hurdle: /按任意鍵|請按任意鍵|按任一鍵|您要刪除以上錯誤嘗試|尚未完成的文章|有一篇文章尚未完成/,
       menu: /【\s*主功能表\s*】|主功能表/,
-      // some accounts start somewhere else: 【分類看板】, 我的最愛, a board
+      // some accounts start somewhere else: 【分類看板】, 我的最愛, a board,
+      // or an article (an announcement shown after login)
       list: JJPtt.LANDED,
-      hurdle: /按任意鍵|請按任意鍵|按任一鍵|您要刪除以上錯誤嘗試|尚未完成的文章|有一篇文章尚未完成/
-    }, 15000, before).then(function(k) {
+      article: /瀏覽\s*第\s*\d+\/\d+\s*頁|\(y\)回應/
+    }, isIn ? 3000 : 15000, before).catch(function(err) {
+      // in, and nothing more that this knows: wherever it stopped is fine
+      if (isIn) return 'quiet';
+      throw err;
+    }).then(function(k) {
       before = undefined;  // past the password: the whole screen counts again
-      if (k === 'wrong') {
+      if (k === 'wrong' && !isIn) {
         // PTT's own words, so a misread screen can be told from a typo
         var said = (self.screen().split('\n').filter(function(l) { return /密碼不對|無此帳號|帳號不存在/.test(l); }).pop() || '').trim();
         throw new Error('帳號或密碼錯誤' + (said ? '（PTT：' + said.slice(0, 40) + '）' : ''));
       }
-      if (k === 'busy') throw new Error('PTT 現在很忙，請稍後再試');
-      if (k === 'menu' || k === 'list') return null;
+      if (k === 'busy' && !isIn) throw new Error('PTT 現在很忙，請稍後再試');
+      if (!isIn && k !== 'wrong' && k !== 'busy') {
+        isIn = true;
+        if (accepted) accepted();
+      }
+      if (k === 'menu' || k === 'list' || k === 'article' || k === 'quiet') return null;
       if (mark) mark(k === 'dup' ? '重複登入的問題' : '按任意鍵等畫面');
       if (k === 'dup') self.send(dupAnswer);
       else self.passHurdle();
-      return JJPtt.sleep(400).then(step);
+      return JJPtt.sleep(150).then(step);
     });
   };
   return step();

@@ -578,6 +578,21 @@ testAsync('login: an account that starts in 【分類看板】 is logged in', as
   await f.ptt.login('tester', 'right');
   assert.strictEqual(f.ptt.state, 'in');
 });
+testAsync('login: PTT opening an article after login (an announcement) is logged in', async function() {
+  var s = LOGIN.slice();
+  s[4] = ['※ [本文轉錄自 NTU_Service 看板]\n連署結束時間\n  瀏覽 第 1/2 頁 ( 71%)  目前顯示: 第 04~25 行 (y)回應(X)推文', {}];
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  assert.strictEqual(f.ptt.state, 'in');
+});
+testAsync('login: in as soon as PTT takes the password, even if a later screen is unknown', async function() {
+  var s = LOGIN.slice();
+  s[4] = ['某個 App 不認得的畫面', {}];
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  assert.strictEqual(f.ptt.state, 'in');
+  assert.strictEqual(f.ptt.user, 'tester');
+});
 testAsync('login: an old 「密碼不對或無此帳號」 still on the screen is not PTT\'s answer', async function() {
   var old = '密碼不對或無此帳號。請檢查大小寫及有無輸入錯誤。';
   var s = [
