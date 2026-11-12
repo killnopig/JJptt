@@ -742,7 +742,7 @@ locale.en_US = {
     "message": "Rest on a list row this long before loading it (ms, 0 = at once)"
   },
   "options_factFloodRun": {
-    "message": "Flood blacklist: an account pushing many times in a row in one article is tagged and put on the blacklist for 24 hours"
+    "message": "Flood blacklist: an account pushing many times in a row in one article is tagged and put on the blacklist for 24 hours; [公告] / [測試] (announcement / test) articles do not count"
   },
   "options_factFloodRunMin": {
     "message": "Pushes in a row"

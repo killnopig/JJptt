@@ -99,6 +99,22 @@ PttChromePref.prototype = {
     if (this.app.reader) this.app.reader.rerender();
   },
 
+  // Takes people off the automatic blacklist who got there for 連推 in a
+  // [公告] / [測試] article (before that stopped counting). True if any.
+  dropExemptFlood: function() {
+    if (typeof FactCheck === 'undefined' || !FactCheck.floodRunExempt) return false;
+    var dropped = false;
+    for (var id in this.tempBlacklistInfo) {
+      var info = this.tempBlacklistInfo[id];
+      if (info && info.kind === 'flood' && FactCheck.floodRunExempt(info.title)) {
+        delete this.tempBlacklist[id];
+        delete this.tempBlacklistInfo[id];
+        dropped = true;
+      }
+    }
+    return dropped;
+  },
+
   pruneFloodExempt: function() {
     var now = Date.now();
     for (var id in this.floodExempt) {
@@ -854,6 +870,11 @@ PttChromePref.prototype = {
     if (msg.data && msg.data.values && msg.data.values.factReportExpanded === true &&
         this.values.factReportCollapsed !== false) {
       this.values.factReportCollapsed = false;  // was "expanded by default"
+    }
+    if (msg.data && msg.data.values && this.dropExemptFlood()) {
+      this.values.tempBlacklist = JSON.stringify(this.tempBlacklist);
+      this.values.tempBlacklistInfo = JSON.stringify(this.tempBlacklistInfo);
+      this.setStorage({ values: { tempBlacklist: this.values.tempBlacklist, tempBlacklistInfo: this.values.tempBlacklistInfo } });
     }
     if (msg.data && msg.data.logins) {
       var data = msg.data.logins;

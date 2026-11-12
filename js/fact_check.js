@@ -95,6 +95,12 @@ FactCheck.chains = function(indices, pushes) {
 
 // Push indices split where other lines ("※ 編輯" ...) come between pushes
 // (push.block, set when the article is loaded; all one block without it).
+// 連推 does not count in [公告] / [測試] articles (also "Re: [公告] ..."):
+// announcements and test posts are where people chat or try things out.
+FactCheck.floodRunExempt = function(title) {
+  return /^\s*(?:(?:Re|Fw):\s*)?\[\s*(?:公告|測試)\s*\]/i.test(String(title || ''));
+};
+
 FactCheck.blocks = function(pushes) {
   var out = [], last;
   for (var i = 0; i < pushes.length; ++i) {
@@ -400,7 +406,8 @@ FactCheck.prototype.analyze = function(article) {
   //    (others may cut in for up to 2 floors, within 2 minutes) instead of
   //    strictly unbroken; the author replying in their own article doesn't
   //    count; nobody the user took off the blacklist is put back within 24 h.
-  if (this.opt('factFloodRun')) {
+  //    Not in [公告] / [測試] articles: people chat or try things out there.
+  if (this.opt('factFloodRun') && !FactCheck.floodRunExempt(article.meta && article.meta['標題'])) {
     var floodMin = this.opt('factFloodRunMin');
     var self7 = this, flooders = {};
     var useChain7 = this.opt('factFloodRunChain'), keep7 = this.opt('factFloodRunKeepRemoved');

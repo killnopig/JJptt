@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.33.0',
+    date: '2026-11-12',
+    changes: [
+      '連推黑名單：[公告]、[測試] 文章（含 Re: 回文）不再算連推，不標「連推N」也不加入黑名單；之前因為在這些文章連推而被自動加入黑名單的人，更新後打開 JJptt 就會自動移除'
+    ]
+  },
+  {
     version: '1.32.1',
     date: '2026-11-12',
     changes: [
