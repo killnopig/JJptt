@@ -296,6 +296,17 @@ JJMobile.prototype.autoLogin = function() {
 
 // 介面文字大小: the home screen, settings, sheets and the top bar, scaled
 // (articles and lists have their own sizes).
+// What the top bar shows once logged in: the account, just 👤, or a name
+// of one's own (設定 → 帳號) -- for screenshots and people looking over.
+JJMobile.ACCT_SHOW_KEY = 'jjptt.m.acctShow';
+JJMobile.ACCT_NAME_KEY = 'jjptt.m.acctName';
+JJMobile.acctLabel = function(user) {
+  var how = JJMobile.store(JJMobile.ACCT_SHOW_KEY) || 'id';
+  if (how === 'hide') return '👤';
+  if (how === 'custom') return String(JJMobile.store(JJMobile.ACCT_NAME_KEY) || '').trim() || '👤';
+  return user;
+};
+
 JJMobile.FACT_SHORT = 'FACT';  // Facts, Accuracy, Credibility & Truth = 真.事實查核中心
 JJMobile.UI_KEY = 'jjptt.m.uiZoom';
 JJMobile.FLOOR_KEY = 'jjptt.m.floorColor';
@@ -438,7 +449,7 @@ JJMobile.prototype.setBar = function(screen) {
   } else {
     add('⌕', '找看板', function() { self.boardSheet(); });
     var st = this.ptt ? this.ptt.state : 'off';
-    var acct = add(st === 'in' ? this.ptt.user : st === 'connecting' ? '登入中…' : '登入', '帳號', function() { self.accountSheet(); });
+    var acct = add(st === 'in' ? JJMobile.acctLabel(this.ptt.user) : st === 'connecting' ? '登入中…' : '登入', '帳號', function() { self.accountSheet(); });
     acct.classList.add('jjm-acct');
     if (st === 'in') acct.classList.add('jjm-acct-in');
     add('⚙', '設定', function() { self.open({ type: 'settings' }); });
@@ -1718,6 +1729,32 @@ JJMobile.prototype.renderSettings = function(screen) {
     }));
   }
   acc.appendChild(this.localToggleRow(JJPtt.KICK_KEY, '登入時踢掉其他地方的連線', '關著 = 保留電腦或別的手機上開著的 PTT'));
+  // the top bar's account button
+  var show = el('div', 'jjm-set jjm-set-col');
+  show.appendChild(el('div', 'jjm-set-title', '上方顯示的帳號'));
+  show.appendChild(el('div', 'jjm-set-sub', '截圖或旁人看得到螢幕時，可以不露出帳號'));
+  var showChips = el('div', 'jjm-chips');
+  var nameBox = el('input');
+  nameBox.type = 'text';
+  nameBox.maxLength = 12;
+  nameBox.placeholder = '自訂名稱，例如 我';
+  nameBox.value = JJMobile.store(JJMobile.ACCT_NAME_KEY) || '';
+  var how = JJMobile.store(JJMobile.ACCT_SHOW_KEY) || 'id';
+  nameBox.style.display = how === 'custom' ? '' : 'none';
+  [['id', '顯示帳號'], ['hide', '隱藏（👤）'], ['custom', '自訂名稱']].forEach(function(o) {
+    var b = JJMobile.button('jjm-chip' + (how === o[0] ? ' jjm-on' : ''), o[1], function() {
+      JJMobile.store(JJMobile.ACCT_SHOW_KEY, o[0]);
+      Array.prototype.forEach.call(showChips.children, function(x) { x.classList.remove('jjm-on'); });
+      b.classList.add('jjm-on');
+      nameBox.style.display = o[0] === 'custom' ? '' : 'none';
+      if (o[0] === 'custom') nameBox.focus();
+    });
+    showChips.appendChild(b);
+  });
+  nameBox.addEventListener('input', function() { JJMobile.store(JJMobile.ACCT_NAME_KEY, nameBox.value); });
+  show.appendChild(showChips);
+  show.appendChild(nameBox);
+  acc.appendChild(show);
 
   // reading
   var rd = section('general', '閱讀');

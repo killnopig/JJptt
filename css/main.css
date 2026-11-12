@@ -1801,3 +1801,9 @@ body.jj-mobile { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* the push just sent, for a moment */
 @keyframes jjm-flash { from { background: rgba(156, 204, 101, .35); } to { background: transparent; } }
 .jjm .jjm-push-new { animation: jjm-flash 2.5s ease-out; }
+
+/* a text box inside a settings row (自訂名稱) */
+.jjm .jjm-set input[type=text] {
+  width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px 12px; border-radius: 12px;
+  border: 1px solid #2a2e2a; background: #141614; color: #ecefe8; font-size: 16px; outline: none;
+}
