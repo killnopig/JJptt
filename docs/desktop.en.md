@@ -1,4 +1,4 @@
-# JJptt for the desktop (Chrome extension)
+# JJptt Chrome extension
 
 [中文](desktop.md) | **English** | [日本語](desktop.ja.md)
 
@@ -6,7 +6,7 @@
 
 ## Installation (about 5 minutes, once)
 
-JJptt on the desktop is a Chrome extension plus a small local helper program for the connection. Both are needed.
+The JJptt Chrome extension comes with a small local helper program for the connection. Both are needed.
 Works with desktop Chrome, Edge, Brave, Arc and Vivaldi; on a phone, use the [Android app](android.en.md).
 
 If you'd rather not use Git, download `JJptt-extension-<version>.zip` (the unzipped `extension` folder is what step 4 asks for) and `JJptt-native-host-<version>.zip` (unzip and run the installer inside) from [Releases](https://github.com/killnopig/JJptt/releases/latest). Installed from zip, the one-click update doesn't work and new versions must be downloaded again; the `git clone` way below updates with one click.
@@ -99,7 +99,7 @@ For example overlapping text, things out of place, or a setting that doesn't cha
 Open `chrome://extensions` → "Details" on the JJptt card → scroll to "Source"; that path without the final `/extension` is the folder.
 
 **Syncing to another computer**
-設定 → 同步、備份與更新 (Sync, backup and update) → 「連結 Google 帳號」 (Link Google account), or 「匯出設定檔」 (Export settings) and on the other computer 「從檔案匯入」 (Import from file). IDs and passwords are not synced.
+設定 → 同步、備份與更新 (Sync, backup and update) → 「連結 Google 帳號」 (Link Google account), or 「匯出設定檔」 (Export settings) and on the other computer 「從檔案匯入」 (Import from file). IDs and passwords are not synced. What moves and what doesn't: [Moving your settings](settings-file.en.md).
 
 **Uninstalling**
 Remove JJptt at `chrome://extensions`, then the local helper: on a Mac run `sh ~/JJptt/native-host/install.sh --uninstall` in Terminal, on Windows double-click `native-host\uninstall.bat`. Finally delete the `JJptt` folder.

@@ -2,7 +2,7 @@
 
 [中文](README.md) | **English** | [日本語](README.ja.md)
 
-[![Get the Android app](https://img.shields.io/badge/Android-Download%20APK-3DDC84?logo=android&logoColor=white)](https://github.com/killnopig/JJptt/releases/tag/android-stable) [![Desktop](https://img.shields.io/badge/Chrome-Extension-4285F4?logo=googlechrome&logoColor=white)](docs/desktop.en.md) [![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/killnopig)
+[![Get the Android app](https://img.shields.io/badge/Android-Download%20APK-3DDC84?logo=android&logoColor=white)](https://github.com/killnopig/JJptt/releases/tag/android-stable) [![Chrome extension](https://img.shields.io/badge/Chrome-Extension-4285F4?logo=googlechrome&logoColor=white)](docs/desktop.en.md) [![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/killnopig)
 
 ## Who is steering the thread? JJptt shows you at a glance.
 
@@ -24,7 +24,7 @@
 | 🔒 **Direct, no middleman** | Connects straight to ptt.cc, no relay server; your ID and password stay on your own computer or phone |
 | 📖 **Actually readable** | Images, videos and news cards inside the article; previous and next articles loaded ahead, so they open instantly |
 | 🎨 **Pushes at a glance** | Floor numbers, country flags, shared IPs and repeat pushers each get a colour; fade or hide your blacklist; posting the same URL around gets blocked for 24 hours |
-| 🔄 **Settings travel with you** | Settings exported from the desktop import straight into the app; save a layout as a code and share it |
+| 🔄 **Settings travel with you** | Settings exported from the Chrome extension import straight into the app; save a layout as a code and share it |
 
 ## 📱 Android app
 
@@ -32,7 +32,7 @@
 >
 > 👉 **[The Android app and download](docs/android.en.md)**: screenshots, download and updates, plans for an iPhone version
 
-## 💻 Desktop (Chrome extension)
+## 💻 Chrome extension
 
 The PTT terminal's font and feel, plus reading mode and FACT. Works in Chrome, Edge, Brave, Arc and Vivaldi; about 5 minutes to set up.
 
@@ -44,7 +44,7 @@ The PTT terminal's font and feel, plus reading mode and FACT. Works in Chrome, E
 - **Gets out of your way**: newest articles on top, Z search fills in the push count, select text to ask AI.
 - **Settings travel with you**: Google Drive sync or export to a file; new versions install with one click and restart by themselves.
 
-**[Desktop install and use](docs/desktop.en.md)**
+**[Chrome extension: install and use](docs/desktop.en.md)**
 
 <sub>Demo screens; articles, accounts and IPs are fictional.</sub>
 
@@ -69,9 +69,19 @@ The PTT terminal's font and feel, plus reading mode and FACT. Works in Chrome, E
 
 ## Get JJptt
 
-- **Desktop (Chrome extension)**: Chrome, Edge, Brave, Arc, Vivaldi — about 5 minutes to set up → [Desktop install and use](docs/desktop.en.md)
+- **Chrome extension**: Chrome, Edge, Brave, Arc, Vivaldi — about 5 minutes to set up → [Chrome extension: install and use](docs/desktop.en.md)
 - **Android app**: download and install, nothing else needed → [The Android app and download](docs/android.en.md)
 - **iPhone**: not yet — [why, and how to help](docs/android.en.md#about-an-ios-version)
+
+## 📚 Guides
+
+| Guide | What's in it |
+|---|---|
+| [Android app](docs/android.en.md) | What the app does, screenshots, download and updates, plans for an iPhone version |
+| [Chrome extension](docs/desktop.en.md) | Installing (about 5 minutes), first use, updating, common questions |
+| [FACT (真.事實查核中心)](docs/fact.en.md) | How each detection rule decides, the automatic blacklist, undoing a mistake |
+| [Moving your settings](docs/settings-file.en.md) | Moving settings between computer and phone, a new phone, your own backup, what moves and what doesn't |
+| [Changelog](CHANGELOG.md) | What changed in each version (in Chinese) |
 
 ## Development
 

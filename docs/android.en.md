@@ -12,7 +12,7 @@ JJptt now has an Android app. It connects to PTT by itself — no local helper t
 - **Push, reply, post**: your push shows up the moment PTT takes it (marked 「剛送出」, "just sent") — no waiting for the web page to catch up.
 - **Easy reading**: images and news cards inside the article; previous / next can float on the left or right edge for one-handed reading; your PTT favourites sync in one tap.
 - **Your layout**: text size, line spacing and push style, with a live preview on top; save a layout as a code and share it with friends.
-- **Same settings as the desktop**: a settings file exported from the extension imports straight into the app.
+- **Same settings as the Chrome extension**: a settings file exported from the extension imports straight into the app, and the other way round ([how](settings-file.en.md)).
 - **Your account stays safe**: the password is encrypted with an Android Keystore key on the phone and never backed up to the cloud.
 - **Ask AI, share, in one tap**: select a passage and ask AI "is this true?", or hand the whole article to ChatGPT, Claude, Perplexity, Grok or Copilot; copy the article's address in one tap, or open it in the browser.
 

@@ -78,6 +78,16 @@
 
 安裝教學、第一次使用、怎麼更新、常見問題、為什麼要有閱讀模式、進階設定，都搬到了 [擴充功能版說明](docs/desktop.md)。
 
+## 📚 說明文件
+
+| 文件 | 寫了什麼 |
+|---|---|
+| [Android App](docs/android.md) | App 能做什麼、截圖、下載與更新、iPhone 版的計畫 |
+| [Chrome 擴充功能版](docs/desktop.md) | 安裝教學（約 5 分鐘）、第一次使用、怎麼更新、常見問題 |
+| [FACT 真.事實查核中心](docs/fact.md) | 每一條偵測規則怎麼判斷、自動黑名單、誤判怎麼撤銷 |
+| [把設定搬到另一台](docs/settings-file.md) | 電腦和手機互搬設定、換手機、自己備份，哪些會搬哪些不會 |
+| [更新紀錄](CHANGELOG.md) | 每一版改了什麼 |
+
 ## 開發
 
 JJptt fork 自 [iamchucky/PttChrome](https://github.com/iamchucky/PttChrome)（GPL-2.0）。原版要靠已停用的 Chrome App 開 TCP 連線；JJptt 的擴充功能版改用本機小程式直接連線，另外也有網站版，透過自己的 Cloudflare Worker 轉接站（`worker/`）連到 PTT。兩種都預設走 SSH，加密在瀏覽器裡完成。

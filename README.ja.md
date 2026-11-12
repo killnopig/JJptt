@@ -2,7 +2,7 @@
 
 [中文](README.md) | [English](README.en.md) | **日本語**
 
-[![Android アプリをダウンロード](https://img.shields.io/badge/Android-APK%20%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89-3DDC84?logo=android&logoColor=white)](https://github.com/killnopig/JJptt/releases/tag/android-stable) [![パソコン版](https://img.shields.io/badge/Chrome-%E6%8B%A1%E5%BC%B5%E6%A9%9F%E8%83%BD-4285F4?logo=googlechrome&logoColor=white)](docs/desktop.ja.md) [![Ko-fi](https://img.shields.io/badge/Ko--fi-%E3%82%B3%E3%83%BC%E3%83%92%E3%83%BC%E3%82%92%E3%81%8A%E3%81%94%E3%82%8B-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/killnopig)
+[![Android アプリをダウンロード](https://img.shields.io/badge/Android-APK%20%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89-3DDC84?logo=android&logoColor=white)](https://github.com/killnopig/JJptt/releases/tag/android-stable) [![Chrome 拡張機能版](https://img.shields.io/badge/Chrome-%E6%8B%A1%E5%BC%B5%E6%A9%9F%E8%83%BD-4285F4?logo=googlechrome&logoColor=white)](docs/desktop.ja.md) [![Ko-fi](https://img.shields.io/badge/Ko--fi-%E3%82%B3%E3%83%BC%E3%83%92%E3%83%BC%E3%82%92%E3%81%8A%E3%81%94%E3%82%8B-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/killnopig)
 
 ## 誰が世論を誘導している？ JJptt ならひと目でわかる。
 
@@ -24,7 +24,7 @@
 | 🔒 **直接接続、第三者を介さない** | ptt.cc に直接つなぎ、中継サーバーはなし；IDとパスワードは自分のパソコンかスマホにだけ残ります |
 | 📖 **読みやすい** | 画像・動画・ニュースカードを本文の中に表示；前後の記事は先読みしておくので、すぐに開きます |
 | 🎨 **プッシュがひと目でわかる** | 階数、国旗、同じIP、何度もプッシュする人を色分け；ブラックリストは薄く表示か非表示、同じURLを貼り回る人は24時間自動ブロック |
-| 🔄 **設定を持ち運べる** | パソコン版で書き出した設定をそのままアプリに読み込み；整えたレイアウトは設定コードにして友だちと共有 |
+| 🔄 **設定を持ち運べる** | Chrome 拡張機能版で書き出した設定をそのままアプリに読み込み；整えたレイアウトは設定コードにして友だちと共有 |
 
 ## 📱 Android アプリ
 
@@ -32,7 +32,7 @@
 >
 > 👉 **[Android アプリの紹介とダウンロード](docs/android.ja.md)**：スクリーンショット、ダウンロードと更新方法、iPhone 版の予定
 
-## 💻 パソコン版（Chrome 拡張機能）
+## 💻 Chrome 拡張機能版
 
 PTTのターミナルのフォントと手触りはそのままに、閲覧モードと FACT を追加。Chrome、Edge、Brave、Arc、Vivaldi で使え、約5分で準備完了です。
 
@@ -44,7 +44,7 @@ PTTのターミナルのフォントと手触りはそのままに、閲覧モ�
 - **使うほど快適**：最新の記事を一番上に、Z検索にプッシュ数を自動入力、文字を選べばAIに聞けます。
 - **設定を持ち運べる**：Google Drive で同期、ファイルに書き出し。新しいバージョンはワンクリックで自動更新・自動再起動。
 
-**[パソコン版のインストールと使い方](docs/desktop.ja.md)**
+**[Chrome 拡張機能版のインストールと使い方](docs/desktop.ja.md)**
 
 <sub>デモ画面です。記事・アカウント・IPはすべて架空のものです。</sub>
 
@@ -69,9 +69,19 @@ PTTのターミナルのフォントと手触りはそのままに、閲覧モ�
 
 ## ダウンロード
 
-- **パソコン版（Chrome 拡張機能）**：Chrome、Edge、Brave、Arc、Vivaldi、約5分で準備完了 → [パソコン版のインストールと使い方](docs/desktop.ja.md)
+- **Chrome 拡張機能版**：Chrome、Edge、Brave、Arc、Vivaldi、約5分で準備完了 → [Chrome 拡張機能版のインストールと使い方](docs/desktop.ja.md)
 - **Android アプリ**：ダウンロードしてインストールするだけ → [Android アプリの紹介とダウンロード](docs/android.ja.md)
 - **iPhone**：まだありません——[理由と応援のしかた](docs/android.ja.md#ios-版について)
+
+## 📚 説明書
+
+| 説明書 | 内容 |
+|---|---|
+| [Android アプリ](docs/android.ja.md) | アプリでできること、スクリーンショット、ダウンロードと更新、iPhone 版の予定 |
+| [Chrome 拡張機能版](docs/desktop.ja.md) | インストール（約5分）、はじめての使い方、更新方法、よくある質問 |
+| [FACT（真.事實查核中心）](docs/fact.ja.md) | 各検出ルールの判定方法、自動ブラックリスト、誤判定の取り消し |
+| [設定を別の端末へ](docs/settings-file.ja.md) | パソコンとスマホの間で設定を移す、機種変更、自分でバックアップ、移るもの・移らないもの |
+| [更新履歴](CHANGELOG.md) | 各バージョンの変更点（中国語） |
 
 ## 開発
 

@@ -99,10 +99,10 @@ Besides the automatic rules you keep three lists yourself:
 
 | | Detection rules, thresholds | Automatic blacklist, lists |
 |---|---|---|
-| **Desktop** | Right-click → 設定 (Settings) →「真.事實查核中心」→ 自動偵測 (detection) | 名單 (lists), at the top of the same page |
+| **Chrome extension** | Right-click → 設定 (Settings) →「真.事實查核中心」→ 自動偵測 (detection) | 名單 (lists), at the top of the same page |
 | **Android app** | 設定 →「真.事實查核」 | 設定 →「黑名單」→ 自動黑名單 |
 
-A settings file exported from the extension imports straight into the app, lists and rules included (not your ID or password).
+The rules and lists you set up on your computer can be saved as a file and moved to your phone (or the other way round), with no need to set them up again: [Moving your settings](settings-file.en.md).
 
 ## Questions
 

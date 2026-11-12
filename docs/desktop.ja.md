@@ -1,4 +1,4 @@
-# JJptt パソコン版（Chrome 拡張機能）
+# JJptt Chrome 拡張機能版
 
 [中文](desktop.md) | [English](desktop.en.md) | **日本語**
 
@@ -99,7 +99,7 @@ cd %USERPROFILE% && git clone https://github.com/killnopig/JJptt.git
 `chrome://extensions` → JJptt カードの「詳細」→ 下の「ソース」を見ます。そのパスから最後の `/extension` を除いたものがフォルダです。
 
 **別のパソコンと同期したい**
-設定 → 同步、備份與更新（同期・バックアップ・更新）→「連結 Google 帳號」（Google アカウントを連携）、または「匯出設定檔」（設定を書き出し）してもう一台で「從檔案匯入」（ファイルから読み込み）。IDとパスワードは同期されません。
+設定 → 同步、備份與更新（同期・バックアップ・更新）→「連結 Google 帳號」（Google アカウントを連携）、または「匯出設定檔」（設定を書き出し）してもう一台で「從檔案匯入」（ファイルから読み込み）。IDとパスワードは同期されません。何が一緒に移るかは [設定を別の端末へ](settings-file.ja.md) を見てください。
 
 **アンインストールするには**
 `chrome://extensions` で JJptt を削除し、ローカルヘルパーも削除します：Mac はターミナルで `sh ~/JJptt/native-host/install.sh --uninstall` を実行、Windows は `native-host\uninstall.bat` をダブルクリック。最後に `JJptt` フォルダを削除します。
