@@ -658,13 +658,13 @@ locale.en_US = {
     "message": "Articles needed"
   },
   "options_factFastPush": {
-    "message": "Fast pushes within a few minutes of posting (marked stronger when the article is too long to have been read)"
+    "message": "Fast pushes within a few minutes of posting (marked stronger when the article is too long to have been read; not the author)"
   },
   "options_factFastMinutes": {
     "message": "Fast push window (minutes; PTT push times only have minutes)"
   },
   "options_factBurst": {
-    "message": "Bursts: many pushes in a minute or two after/before a quiet stretch"
+    "message": "Bursts: many pushes in a minute or two in a quiet thread (after a quiet stretch, or before one when it was quiet before too); a thread that is busy all along does not count"
   },
   "options_factBurstMin": {
     "message": "Pushes needed for a burst"
@@ -679,7 +679,7 @@ locale.en_US = {
     "message": "Run length of 推 for boosting"
   },
   "options_factCanned": {
-    "message": "Canned pushes: different accounts saying nearly the same thing within a short time (quotes of the title/article and copy chains excluded) and also showing another sign (fast, burst, boosting, same network, data centre) are tagged red; look-alikes without other signs get a grey 同梗 tag"
+    "message": "Canned pushes: different accounts saying nearly the same thing within a short time (quotes of the title/article and copy chains excluded) with at least two of them also showing another sign (fast, burst, boosting, same network, data centre) are tagged red; look-alikes without other signs get a grey 同梗 tag"
   },
   "options_factCannedMin": {
     "message": "Accounts needed for a group"

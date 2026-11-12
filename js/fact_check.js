@@ -164,32 +164,39 @@ FactCheck.prototype.analyze = function(article) {
   var times = pushes.map(function(p) { return FactCheck.pushTime(p.time, post); });
   var ids = pushes.map(function(p) { return String(p.id || '').toLowerCase(); });
 
-  // 1. 秒推 / 黃金 3 分鐘定調部隊
-  if (this.opt('factFastPush') && post) {
+  var authorId = String((article.meta && article.meta['作者']) || '').split(' ')[0].toLowerCase();
+  var postMinute = post ? Math.floor(post / 60000) * 60000 : 0;
+
+  // 1. 秒推 / 黃金 3 分鐘定調部隊. Not the author (補充 right after posting is
+  //    normal). Worked out even with the rule off: 首殺班底 and the history
+  //    need it, the switch only hides the tags.
+  this.lastFastIds = {};
+  if (post) {
+    var showFast = this.opt('factFastPush');
     var limit = this.opt('factFastMinutes');
     var chars = FactCheck.bodyChars(article.text);
     var readMin = chars / 500;  // about 500 Chinese characters a minute
-    var postMinute = Math.floor(post / 60000) * 60000;
     var fastIds = {};
     for (i = 0; i < n; ++i) {
-      if (!times[i]) continue;
+      if (!times[i] || ids[i] === authorId) continue;
       var mins = (times[i] - postMinute) / 60000;
       if (mins < 0 || mins > limit) continue;
       var tooFast = readMin > Math.max(1, mins + 1);  // could not have read it yet
-      add(i, tooFast ? '秒推‧沒讀完' : '秒推', tooFast ? 'warn' : 'note');
+      if (showFast) add(i, tooFast ? '秒推‧沒讀完' : '秒推', tooFast ? 'warn' : 'note');
       fastIds[ids[i]] = true;
     }
     var fastCount = Object.keys(fastIds).length;
-    if (fastCount) {
+    if (showFast && fastCount) {
       report.push('秒推：發文 ' + limit + ' 分鐘內 ' + fastCount + ' 人推文' +
                   (readMin > 2 ? '（內文約 ' + chars + ' 字，正常要讀 ' + Math.round(readMin) + ' 分鐘）' : ''));
     }
     this.lastFastIds = fastIds;
-  } else {
-    this.lastFastIds = {};
   }
 
-  // 2. 脈衝式群聚: minutes with many pushes after (or before) a quiet stretch
+  // 2. 脈衝式群聚: many pushes in a minute or two, right after a quiet
+  //    stretch -- or followed by one, when it was quiet before too (a busy
+  //    thread that just stops is not a wave). Before the first push the
+  //    quiet runs from the post time; after the last one, up to now.
   if (this.opt('factBurst')) {
     var burstMin = this.opt('factBurstMin'), quiet = this.opt('factQuietMin');
     var byMinute = {}, minutes = [];
@@ -209,16 +216,25 @@ FactCheck.prototype.analyze = function(article) {
         end = j + 1;
       }
       if (group.length < burstMin) continue;
-      var before = j > 0 ? (minutes[j] - minutes[j - 1]) / 60000 : Infinity;
-      var after = end + 1 < minutes.length ? (minutes[end + 1] - minutes[end]) / 60000 : Infinity;
-      if (before < quiet && after < quiet) continue;  // just a busy thread
+      var first = j === 0, last = end + 1 >= minutes.length;
+      // minutes with nobody pushing just before / after
+      var before = !first ? (minutes[j] - minutes[j - 1]) / 60000 - 1 :
+                   postMinute ? (minutes[j] - postMinute) / 60000 : 0;
+      var after = !last ? (minutes[end + 1] - minutes[end]) / 60000 - 1 :
+                  Math.floor((Date.now() - minutes[end]) / 60000) - 1;
+      // how many pushes in the `quiet` minutes before the wave
+      var prior = 0;
+      for (var pk = j - 1; pk >= 0 && minutes[j] - minutes[pk] <= quiet * 60000; --pk) prior += byMinute[minutes[pk]].length;
+      var quietBefore = before >= quiet;
+      var quietAfter = after >= quiet && prior < burstMin / 2;
+      if (!quietBefore && !quietAfter) continue;  // just a busy thread
       wave++;
       for (var g = 0; g < group.length; ++g) add(group[g], '脈衝' + wave, 'warn');
       var d = new Date(minutes[j]);
       report.push('脈衝 ' + wave + '：' + d.getHours() + ':' + ('0' + d.getMinutes()).slice(-2) +
                   ' 起 ' + (end > j ? 2 : 1) + ' 分鐘內湧入 ' + group.length + ' 則' +
-                  (before !== Infinity && before >= quiet ? '，之前 ' + Math.round(before) + ' 分鐘沒人推' : '') +
-                  (after !== Infinity && after >= quiet ? '，之後 ' + Math.round(after) + ' 分鐘沒人推' : ''));
+                  (quietBefore ? (first ? '，發文後 ' + Math.round(before) + ' 分鐘都沒人推' : '，之前 ' + Math.round(before) + ' 分鐘沒人推') : '') +
+                  (after >= quiet ? (last ? '，之後到現在沒人推' : '，之後 ' + Math.round(after) + ' 分鐘沒人推') : ''));
       j = end;
     }
   }
@@ -352,8 +368,10 @@ FactCheck.prototype.analyze = function(article) {
 
   // 6. 門檻推文: pushed just past the list's push-count threshold (~10) right after posting, then nobody,
   //    and the first 10 are bare short 推
+  //    (worked out with the rule off too: 門檻班底 and the history need it)
   this.lastTaskIds = null;
-  if (this.opt('factTask') && post) {
+  var showTask = this.opt('factTask');
+  if (post) {
     var tMin = this.opt('factTaskMin'), tMax = this.opt('factTaskMax');
     var win = this.opt('factTaskWindow') * 60000, quietMs = this.opt('factTaskQuietHours') * 3600000;
     var shortLen = this.opt('factTaskShort');
@@ -368,10 +386,10 @@ FactCheck.prototype.analyze = function(article) {
     if (n >= tMin && n <= tMax && allIn && pure && Date.now() - lastT >= quietMs) {
       this.lastTaskIds = {};
       for (i = 0; i < head.length; ++i) {
-        add(i, '門檻推文', 'warn');
+        if (showTask) add(i, '門檻推文', 'warn');
         this.lastTaskIds[ids[i]] = true;
       }
-      report.push('疑似門檻推文：推文剛好衝到 ' + n + ' 推（過了列表顯示推文數的門檻）就停，全部在發文 ' + this.opt('factTaskWindow') + ' 分鐘內，之後 ' +
+      if (showTask) report.push('疑似門檻推文：推文剛好衝到 ' + n + ' 推（過了列表顯示推文數的門檻）就停，全部在發文 ' + this.opt('factTaskWindow') + ' 分鐘內，之後 ' +
                   Math.floor((Date.now() - lastT) / 3600000) + ' 小時以上沒人推；前 ' + head.length + ' 推都是 ' + shortLen + ' 字以內的純推');
     }
   }
@@ -463,16 +481,18 @@ FactCheck.prototype.analyze = function(article) {
   }
 
   // 罐頭 last: a batch of look-alike pushes only counts as canned (red,
-  // in the report) when its accounts also show another sign (fast push,
-  // burst, boosting, same network, data centre); otherwise it is a meme
-  // and gets a grey 同梗 tag.
+  // in the report) when at least two of its accounts also show another sign
+  // (fast push, burst, boosting, same network, data centre) -- one early
+  // pusher in a meme is not enough; otherwise it gets a grey 同梗 tag.
   if (cannedGroups && cannedGroups.length) {
     var strongSign = /^(秒推|脈衝|補血|同網段|機房|同機房)/;
     var label = 0;
     cannedGroups.forEach(function(g) {
-      var strong = g.batch.length && g.batch.some(function(k) {
-        return tags[k].some(function(t) { return strongSign.test(t.t); });
+      var strongAcc = {};
+      g.batch.forEach(function(k) {
+        if (tags[k].some(function(t) { return strongSign.test(t.t); })) strongAcc[ids[k]] = true;
       });
+      var strong = Object.keys(strongAcc).length >= 2;
       if (!strong) {
         g.all.forEach(function(k) { add(k, '同梗', 'grey'); });
         return;

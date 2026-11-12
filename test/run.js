@@ -75,7 +75,7 @@ function analyze(art, values, pref) {
   global.setTimeout = function(fn) { timers.push(fn); };
   try { var r = fc.analyze(art); } finally { global.setTimeout = real; }
   timers.forEach(function(fn) { fn(); });
-  return { report: r.report, tags: r.tags, pref: pref,
+  return { report: r.report, tags: r.tags, pref: pref, fc: fc,
            floodLine: r.report.filter(function(t) { return /^連續推文/.test(t); })[0] || '' };
 }
 
@@ -306,6 +306,130 @@ test('make permanent: moves from the temporary list to the blacklist', function(
   assert.ok(!('aaa' in r.pref.tempBlacklistInfo));
   assert.ok(r.pref.blacklistedUserIds.aaa);
   assert.ok(r.pref.isBlacklisted('aaa'));
+});
+
+// ---- single-article rules: 脈衝, 罐頭, 秒推, 門檻 ----------------------------------
+
+console.log('脈衝 / 罐頭 / 秒推 / 門檻');
+
+// pushes at "11/12 10:MM", `count` per minute for the given minutes
+function steady(fromMin, toMin, perMin, prefix) {
+  var out = [];
+  for (var m = fromMin; m <= toMin; ++m) {
+    for (var k = 0; k < perMin; ++k) out.push(push((prefix || 'u') + m + '_' + k, m));
+  }
+  return out;
+}
+function bursts(r) { return r.report.filter(function(t) { return /^脈衝/.test(t); }); }
+// Date.now() fixed at 11/12 hh:mm (local time, like the push times)
+function at(hh, mm, fn) {
+  var real = Date.now;
+  Date.now = function() { return new Date(2026, 10, 12, hh, mm).getTime(); };
+  try { return fn(); } finally { Date.now = real; }
+}
+
+test('脈衝: a steady busy thread has none (not at the start, not at the end)', function() {
+  at(12, 0, function() {
+    assert.deepStrictEqual(bursts(analyze(article(steady(0, 20, 4)))), []);
+  });
+});
+test('脈衝: a busy thread being read live has none in its newest minute', function() {
+  at(10, 20, function() {
+    assert.deepStrictEqual(bursts(analyze(article(steady(0, 20, 4)))), []);
+  });
+});
+test('脈衝: a wave after 5+ quiet minutes is caught', function() {
+  var ps = steady(0, 3, 1, 'a').concat(many('w', 8, 12));
+  var b = bursts(analyze(article(ps)));
+  assert.strictEqual(b.length, 1);
+  assert.ok(/之前 8 分鐘沒人推/.test(b[0]), b[0]);
+});
+test('脈衝: nobody for 8 minutes after posting, then a wave', function() {
+  var b = bursts(analyze(article(many('w', 8, 8))));
+  assert.strictEqual(b.length, 1);
+  assert.ok(/發文後 8 分鐘都沒人推/.test(b[0]), b[0]);
+});
+test('脈衝: lots of pushes right after posting is 秒推, not a wave', function() {
+  at(12, 0, function() {
+    assert.deepStrictEqual(bursts(analyze(article(many('w', 8, 0).concat(steady(1, 6, 2))))), []);
+  });
+});
+test('脈衝: a quiet thread, a wave, then nobody until now is caught', function() {
+  // 2 pushes in the 5 minutes before, so not quiet *before* the wave
+  var ps = [push('a', 5), push('b', 7)].concat(many('w', 8, 9));
+  at(12, 0, function() {
+    var b = bursts(analyze(article(ps)));
+    assert.strictEqual(b.length, 1);
+    assert.ok(/之後到現在沒人推/.test(b[0]), b[0]);
+  });
+  at(10, 11, function() {  // still going on: not known yet
+    assert.deepStrictEqual(bursts(analyze(article(ps))), []);
+  });
+});
+
+function meme(fastCount) {
+  // 6 accounts saying nearly the same thing, spread out (not 接龍);
+  // the first `fastCount` of them push within 2 minutes of the post
+  var ps = [], ends = ['哈', '啦', '欸', '喔', '耶', '嗎'];
+  for (var i = 0; i < 6; ++i) {
+    var p = push('m' + i, i < fastCount ? 1 : 4 + i);
+    p.content = '政府真的是爛到不行了吧' + ends[i];
+    ps.push(p);
+    ps.push(push('f' + i, i < fastCount ? 1 : 4 + i));
+  }
+  return ps;
+}
+function cannedTags(r) {
+  var out = {};
+  r.tags.forEach(function(ts) { ts.forEach(function(t) { if (/^(罐頭|同梗)/.test(t.t)) out[t.t] = (out[t.t] || 0) + 1; }); });
+  return out;
+}
+test('罐頭: a meme with only one early pusher stays grey 同梗', function() {
+  var r = analyze(article(meme(1)));
+  assert.deepStrictEqual(cannedTags(r), { '同梗': 6 });
+  assert.ok(!r.report.some(function(t) { return /^罐頭/.test(t); }));
+});
+test('罐頭: two accounts with another sign make it 罐頭', function() {
+  var r = analyze(article(meme(2)));
+  assert.ok(cannedTags(r)['罐頭A'] >= 5, JSON.stringify(cannedTags(r)));
+  assert.ok(r.report.some(function(t) { return /^罐頭A/.test(t); }));
+});
+
+test('秒推: the author adding a note right after posting is not 秒推', function() {
+  var r = analyze(article([push('op', 0), push('x', 1)], 'op'));
+  assert.deepStrictEqual(r.tags[0], []);
+  assert.ok(r.tags[1].some(function(t) { return t.t === '秒推'; }));
+  assert.ok(!('op' in r.fc.lastFastIds));
+});
+test('秒推 off: no tags, but still worked out for 首殺班底 / history', function() {
+  var r = analyze(article([push('x', 1)]), { factFastPush: false });
+  assert.deepStrictEqual(r.tags[0], []);
+  assert.ok(!r.report.some(function(t) { return /^秒推/.test(t); }));
+  assert.ok(r.fc.lastFastIds.x);
+});
+test('首殺班底 works with 秒推 off', function() {
+  lib.store = {};
+  var pref = makePref({ factFastPush: false, factSquadMin: 3 });
+  var fc = new FactCheck(pref.app);
+  fc.history = new FactHistory();
+  var r;
+  for (var i = 1; i <= 3; ++i) {
+    var a = article([push('fan', 1), push('x' + i, 30)], 'op');
+    a.url = 'https://www.ptt.cc/bbs/Test/M.' + i + '.A.html';
+    r = fc.analyze(a);
+  }
+  assert.ok(r.tags[0].some(function(t) { return t.t === '首殺班底'; }), JSON.stringify(r.tags[0]));
+});
+test('門檻推文 off: no tags, but the first 10 are still remembered for 門檻班底', function() {
+  var ps = [];
+  for (var i = 0; i < 10; ++i) { var p = push('c' + i, 1); p.content = '推'; ps.push(p); }
+  at(14, 0, function() {
+    var r = analyze(article(ps), { factTask: false });
+    assert.ok(!r.tags.some(function(ts) { return ts.some(function(t) { return t.t === '門檻推文'; }); }));
+    assert.ok(r.fc.lastTaskIds && r.fc.lastTaskIds.c0);
+    var on = analyze(article(ps));
+    assert.ok(on.tags[0].some(function(t) { return t.t === '門檻推文'; }));
+  });
 });
 
 // ---- settings defaults ----------------------------------------------------------
