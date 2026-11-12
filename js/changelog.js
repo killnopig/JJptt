@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.33.3',
+    date: '2026-11-13',
+    changes: [
+      '圖示換成跟 Android App 一樣的 Game Boy 主機：工具列、擴充功能頁和分頁上的小圖示都換了'
+    ]
+  },
+  {
     version: '1.33.2',
     date: '2026-11-12',
     changes: [
