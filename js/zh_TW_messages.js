@@ -433,7 +433,7 @@ locale.zh_TW = {
     "message": "已連結的 Google 帳號："
   },
   "drive_status_notConfigured": {
-    "message": "尚未設定 Google 用戶端 ID（見 README）"
+    "message": "尚未設定 Google 用戶端 ID（見 docs/desktop.md 的「自己 fork 時的 Google 同步設定」）"
   },
   "drive_status_off": {
     "message": "未啟用"

@@ -4,7 +4,7 @@
 // synced.
 //
 // Setup: create an OAuth client (type "Web application") in Google Cloud and
-// put its client ID below. See README for the exact steps.
+// put its client ID below. See docs/desktop.md (Google 同步設定) for the steps.
 function DriveSync(app) {
   this.app = app;
   this.pushTimer = null;

@@ -436,7 +436,7 @@ locale.en_US = {
     "message": "Linked Google account: "
   },
   "drive_status_notConfigured": {
-    "message": "Google client ID not set up yet (see README)"
+    "message": "Google client ID not set up yet (see \"Google sync for your own fork\" in docs/desktop.en.md)"
   },
   "drive_status_off": {
     "message": "Off"
