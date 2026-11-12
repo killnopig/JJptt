@@ -1525,16 +1525,45 @@ JJMobile.prototype.renderSettings = function(screen) {
     v.appendChild(el('div', 'jjm-loading', '設定還在載入，請稍候再開'));
     return;
   }
-  var section = function(title, note) {
-    v.appendChild(el('div', 'jjm-section', title));
-    if (note) v.appendChild(el('div', 'jjm-hint', note));
+  // tabs like the extension's settings page (一般 / 版面 / 黑名單 / … / 關於):
+  // one part at a time instead of one long page; the tab is remembered
+  var TABS = [['general', '一般'], ['layout', '版面'], ['lists', '黑名單'], ['fact', '事實查核'],
+              ['account', '帳號'], ['about', '關於']];
+  var cur = screen.tab;
+  if (!cur) { try { cur = window.localStorage.getItem('jjptt.m.setTab'); } catch (e) {} }
+  if (!TABS.some(function(t) { return t[0] === cur; })) cur = 'general';
+  var tabBar = el('div', 'jjm-tabs');
+  v.appendChild(tabBar);
+  var panes = {};
+  TABS.forEach(function(t) {
+    var pane = el('div', 'jjm-pane');
+    pane.style.display = t[0] === cur ? '' : 'none';
+    panes[t[0]] = pane;
+    tabBar.appendChild(JJMobile.button('jjm-tab' + (t[0] === cur ? ' jjm-on' : ''), t[1], function(e) {
+      screen.tab = t[0];
+      try { window.localStorage.setItem('jjptt.m.setTab', t[0]); } catch (e2) {}
+      Array.prototype.forEach.call(tabBar.children, function(b) { b.classList.remove('jjm-on'); });
+      e.currentTarget.classList.add('jjm-on');
+      Object.keys(panes).forEach(function(k) { panes[k].style.display = k === t[0] ? '' : 'none'; });
+      v.scrollTop = 0;
+    }));
+  });
+  TABS.forEach(function(t) { v.appendChild(panes[t[0]]); });
+  setTimeout(function() {
+    var on = tabBar.querySelector('.jjm-on');
+    if (on && on.scrollIntoView) on.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }, 0);
+  var section = function(tab, title, note) {
+    var pane = panes[tab];
+    pane.appendChild(el('div', 'jjm-section', title));
+    if (note) pane.appendChild(el('div', 'jjm-hint', note));
     var box = el('div', 'jjm-group');
-    v.appendChild(box);
+    pane.appendChild(box);
     return box;
   };
 
   // account
-  var acc = section('帳號');
+  var acc = section('account', '帳號');
   var st = this.ptt.state;
   acc.appendChild(this.setRow(st === 'in' ? '已登入 ' + this.ptt.user : '登入 PTT',
     st === 'in' ? '點這裡登出' : '登入後可以推文、回文、發文', function() { self.accountSheet(function() { self.reload(screen); }); }));
@@ -1562,11 +1591,12 @@ JJMobile.prototype.renderSettings = function(screen) {
   acc.appendChild(this.localToggleRow(JJPtt.KICK_KEY, '登入時踢掉其他地方的連線', '關著 = 保留電腦或別的手機上開著的 PTT'));
 
   // reading
-  var rd = section('閱讀');
+  var rd = section('general', '閱讀');
   rd.appendChild(this.numberRow('readerPrefetchCount', '先讀好接下來幾篇', '0 = 不預先讀取，最多 10', 0, 10));
   rd.appendChild(this.toggleRow('readerPrefetchImages', '預先讀取時連圖片一起下載', '換篇更快，但流量多很多'));
   rd.appendChild(this.toggleRow('readerLowResImages', '用低解析度圖片', '載入快、省流量；點圖片看原圖'));
   rd.appendChild(this.toggleRow('readerGroupRuns', '同一個人的連續推文排在一起', '被別人插話打斷的也排回一起，樓層照舊'));
+  var lay = section('layout', '文章與列表');
   var fontRow = el('div', 'jjm-set');
   fontRow.appendChild(el('div', 'jjm-set-title', '字的大小'));
   var fonts = el('div', 'jjm-chips');
@@ -1579,18 +1609,18 @@ JJMobile.prototype.renderSettings = function(screen) {
     fonts.appendChild(b);
   });
   fontRow.appendChild(fonts);
-  rd.appendChild(fontRow);
-  this.pushLookRows(rd);
-  this.listLookRows(rd);
+  lay.appendChild(fontRow);
+  this.pushLookRows(lay);
+  this.listLookRows(lay);
 
   // search
-  var se = section('搜尋');
+  var se = section('general', '搜尋');
   var sw = this.localToggleRow(JJMobile.SEARCH_PUSH_KEY, '看板搜尋預設用推文數篩選', '打開搜尋就選好「推文數 ≥」並填好下面的數字', true);
   se.appendChild(sw);
   se.appendChild(this.numberRow('pushFilterDefault', '推文數預設', '只看推文數至少這麼多的文章', 1, 999));
 
   // lists
-  var ls = section('名單');
+  var ls = section('lists', '名單');
   ls.appendChild(this.choiceRow('blacklistMode', '黑名單的人', [[0, '淡化'], [1, '隱藏'], [2, '不管']]));
   ls.appendChild(this.listRow('黑名單', Object.keys(pref.blacklistedUserIds || {}), {},
     function(id) { self.app.doAddBlacklistUserId(id); }, function(id) { self.app.doRemoveBlacklistUserId(id); }, screen));
@@ -1606,7 +1636,7 @@ JJMobile.prototype.renderSettings = function(screen) {
     function(id) { self.app.doSetUserNote(id); }, function(id) { self.app.doRemoveUserNote(id); }, screen));
 
   // fact check (from the extension's settings page)
-  var fc = section('真.事實查核中心', '只是疑點，不代表一定是網軍。');
+  var fc = section('fact', '真.事實查核中心', '只是疑點，不代表一定是網軍。');
   this.factRows(fc, screen);
   if (pref.values.aiService !== undefined && typeof PREF_OPTIONS !== 'undefined' && PREF_OPTIONS.aiService) {
     fc.appendChild(this.choiceRow('aiService', '「請 AI 分析」用哪一個',
@@ -1614,7 +1644,7 @@ JJMobile.prototype.renderSettings = function(screen) {
   }
 
   // about
-  var ab = section('關於');
+  var ab = section('about', '關於');
   var b = window.JJPTT_BUILD || {};
   var buildText = b.run ? JJMobile.version(parseInt(b.run, 10)) + (b.time ? '（' + this.shortTime(b.time) + '）' : '') : '';
   ab.appendChild(this.setRow('JJptt ' + (typeof JJPTT_VERSION !== 'undefined' ? JJPTT_VERSION : '') + (buildText ? '・' + buildText : ''),
