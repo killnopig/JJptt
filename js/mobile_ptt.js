@@ -117,7 +117,7 @@ JJPtt.sleep = function(ms) {
 // With `since` (a screen() taken before typing), only lines that changed
 // since then count: what was already there (an old error...) is not PTT's
 // answer.
-JJPtt.prototype.wait = function(cases, ms, since) {
+JJPtt.prototype.wait = function(cases, ms, since, label) {
   var self = this;
   var until = Date.now() + (ms || JJPtt.TIMEOUT_MS);
   var before = since === undefined ? null : String(since).split('\n');
@@ -131,7 +131,7 @@ JJPtt.prototype.wait = function(cases, ms, since) {
       for (var k in cases) {
         if (cases[k].test(text)) return resolve(k);
       }
-      if (Date.now() > until) return reject(new Error('PTT 沒有回應，請再試一次'));
+      if (Date.now() > until) return reject(new Error('PTT 沒有回應' + (label ? '（' + label + '）' : '') + '，請再試一次'));
       setTimeout(tick, JJPtt.STEP_MS);
     };
     tick();
@@ -355,7 +355,7 @@ JJPtt.prototype.toArticle = function(url) {
   if (!board || !aid) return Promise.reject(new Error('看不懂這篇文章的網址'));
   return this.toBoard(board).then(function() {
     self.send('#');
-    return self.wait({ ask: /搜尋.*(文章代碼|AID)|請輸入文章代碼|#/ }, 5000);
+    return self.wait({ ask: /搜尋.*(文章代碼|AID)|請輸入文章代碼|#/ }, 5000, undefined, '找文章代碼');
   }).then(function() {
     self.send(aid + '\r');
     return JJPtt.sleep(500);
@@ -375,14 +375,14 @@ JJPtt.prototype.toBoard = function(board) {
     if (/【\s*主功能表\s*】|主功能表/.test(self.screen())) return self.enterFavorites();
   }).then(function() {
     self.send('s');
-    return self.wait({ ask: /請輸入看板名稱|選擇看板/ }, 8000);
+    return self.wait({ ask: /請輸入看板名稱|選擇看板/ }, 8000, undefined, '按 s 選看板');
   }).then(function() {
     self.type(board + '\r');
     var boardRe = new RegExp('看板《' + board.replace(/[^\w-]/g, '') + '》', 'i');
     var until = Date.now() + 15000;
     var step = function() {
       if (Date.now() > until) return Promise.reject(new Error('進不了 ' + board + ' 板'));
-      return self.wait({ list: boardRe, hurdle: /按任意鍵|請按任意鍵|按任一鍵/, none: /無此看板|沒有這個看板/ }, 10000).then(function(k) {
+      return self.wait({ list: boardRe, hurdle: /按任意鍵|請按任意鍵|按任一鍵/, none: /無此看板|沒有這個看板/ }, 10000, undefined, '進 ' + board + ' 板').then(function(k) {
         if (k === 'none') throw new Error('沒有 ' + board + ' 這個看板');
         if (k === 'list') return null;
         self.send(' ');
@@ -427,7 +427,7 @@ JJPtt.prototype.typeAndSave = function(lines, endWithNewline) {
   });
   return JJPtt.sleep(300).then(function() {
     self.send('\x18');
-    return self.wait({ save: /檔案處理|\(S\)存檔/ }, 8000);
+    return self.wait({ save: /檔案處理|\(S\)存檔/ }, 8000, undefined, '存檔');
   }).then(function() {
     self.send('s\r');
     return self.answerUntil({
@@ -460,22 +460,22 @@ JJPtt.prototype.push = function(url, kind, text) {
       self.send('X');
       return self.wait({
         choose: /值得推薦|給它噓聲|只加.*註解|1\.\s*值得/,
-        input: /(推|噓|→)\s*\w+\s*:/,
+        input: /(推|噓|→)\s*\w+\s*[:：]/,
         no: /禁止推薦|不能推薦|無法推文|禁止推文|您不能|已被鎖定|權限不足/,
         wait: /推文間隔|請稍候|太快/
-      }, 8000);
+      }, 8000, undefined, '按 X 推文');
     }).then(function(k) {
       if (k === 'no') throw new Error('這個板或這篇文章不能推文');
       if (k === 'wait') throw new Error('推文太快了，等一下再試');
       if (k === 'choose') {
         self.send(kind === '2' ? '2' : kind === '3' ? '3' : '1');
-        return self.wait({ input: /(推|噓|→)\s*\w+\s*:/, no: /禁止|不能|無法/ }, 6000);
+        return self.wait({ input: /(推|噓|→)\s*\w+\s*[:：]/, no: /禁止|不能|無法/ }, 6000, undefined, '選推噓後等輸入框');
       }
       return k;
     }).then(function(k) {
       if (k === 'no') throw new Error('這篇文章不能用這種方式推文');
       self.type(text + '\r');
-      return self.wait({ confirm: /確定\s*\[y\/N\]|確定要/i, done: /文章選讀|看板《/ }, 8000);
+      return self.wait({ confirm: /確定\s*\[y\/N\]|確定要/i, done: /文章選讀|看板《/ }, 8000, undefined, '送出推文');
     }).then(function(k) {
       if (k === 'confirm') self.send('y\r');
       return JJPtt.sleep(600);
@@ -643,7 +643,7 @@ JJPtt.prototype.enterFavorites = function() {
   return this.wait({ list: JJPtt.LIST_HEAD }, 2500, before).catch(function() {
     if (!/主功能表/.test(self.screen())) throw new Error('進不了我的最愛');
     self.send('\x1b[C');
-    return self.wait({ list: JJPtt.LIST_HEAD }, 8000, before);
+    return self.wait({ list: JJPtt.LIST_HEAD }, 8000, before, '進我的最愛');
   });
 };
 

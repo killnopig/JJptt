@@ -1529,7 +1529,7 @@ body.jj-mobile .jjm {
 .jjm .jjm-push-id[style*="--jj-repeat"] { color: var(--jj-repeat); }
 .jjm .jjm-push-id:active { background: rgba(255,255,255,.08); }
 .jjm-push-time { margin-left: auto; font-size: 13px; }
-.jjm-push-floor { font-size: 12px; color: #6f776b; min-width: 36px; text-align: right; }
+.jjm-push-floor { font-size: 12px; color: var(--jjm-floor, #6f776b); min-width: 36px; text-align: right; }
 .jjm-push-text { white-space: pre-wrap; word-break: break-word; line-height: calc(1.25em + var(--jjm-pgap, 10px) * .4); margin: calc(var(--jjm-pgap, 10px) * .3) 0 0 30px; color: var(--text); }
 .jjm-push-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: calc(4px + var(--jjm-pgap, 10px) * .3) 0 0 30px; }
 .jjm-pchip { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #2a2e2a; color: #c5ccc0; }

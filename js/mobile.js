@@ -122,6 +122,7 @@ JJMobile.prototype.setup = function() {
   });
   this.setFont(JJMobile.store(JJMobile.FONT_KEY) || 17);
   this.setUiZoom(JJMobile.store(JJMobile.UI_KEY) || 1);
+  this.setFloorColor(JJMobile.store(JJMobile.FLOOR_KEY));
   this.setFontOf('push', JJMobile.store(JJMobile.FONT_PARTS.push.key));
   this.setFontOf('list', JJMobile.store(JJMobile.FONT_PARTS.list.key));
   this.setPushStyle();
@@ -294,7 +295,17 @@ JJMobile.prototype.autoLogin = function() {
 
 // 介面文字大小: the home screen, settings, sheets and the top bar, scaled
 // (articles and lists have their own sizes).
+JJMobile.FACT_SHORT = '真查';
 JJMobile.UI_KEY = 'jjptt.m.uiZoom';
+JJMobile.FLOOR_KEY = 'jjptt.m.floorColor';
+JJMobile.FLOOR_COLORS = [['灰（預設）', ''], ['白', '#e8ece4'], ['黃', '#ffd54f'], ['綠', '#9ccc65'],
+                         ['藍', '#64b5f6'], ['紫', '#ba68c8'], ['紅', '#ef5350']];
+JJMobile.prototype.setFloorColor = function(c) {
+  this.floorColor = c || '';
+  if (c) this.root.style.setProperty('--jjm-floor', c);
+  else this.root.style.removeProperty('--jjm-floor');
+  JJMobile.store(JJMobile.FLOOR_KEY, c || null);
+};
 JJMobile.prototype.setUiZoom = function(z) {
   this.uiZoom = z || 1;
   this.root.style.setProperty('--jjm-ui', String(this.uiZoom));
@@ -1020,6 +1031,11 @@ JJMobile.prototype.fillArticle = function(screen, article) {
         var rep = reader.factReportNode(article);
         if (rep) {
           rep.classList.add('jjm-fact');
+          // short on a phone: 「真查」 = 真.事實查核中心 (設定 → 事實查核 says so)
+          var ft = rep.querySelector('.jjt-fact-title');
+          if (ft) ft.textContent = JJMobile.FACT_SHORT;
+          var fa = rep.querySelector('.jjt-fact-ai');
+          if (fa) fa.textContent = 'AI 分析';
           v.appendChild(body);
           v.appendChild(rep);
         }
@@ -1681,7 +1697,8 @@ JJMobile.prototype.renderSettings = function(screen) {
     function(id) { self.app.doSetUserNote(id); }, function(id) { self.app.doRemoveUserNote(id); }, screen));
 
   // fact check (from the extension's settings page)
-  var fc = section('fact', '真.事實查核中心', '只是疑點，不代表一定是網軍。');
+  var fc = section('fact', '真.事實查核中心（文章裡簡稱「' + JJMobile.FACT_SHORT + '」）',
+                   '文章推文上方那一條「' + JJMobile.FACT_SHORT + '」就是真.事實查核中心的報告。只是疑點，不代表一定是網軍。');
   this.factRows(fc, screen);
   if (pref.values.aiService !== undefined && typeof PREF_OPTIONS !== 'undefined' && PREF_OPTIONS.aiService) {
     fc.appendChild(this.choiceRow('aiService', '「請 AI 分析」用哪一個',
@@ -1858,6 +1875,20 @@ JJMobile.prototype.layoutPane = function(pane, screen) {
       line.appendChild(cb);
       line.appendChild(el('span', 'jjm-switch'));
       box.appendChild(line);
+      var fl = el('div', 'jjm-set jjm-set-col');
+      fl.appendChild(el('div', 'jjm-set-title', '樓層的顏色'));
+      var fchips = el('div', 'jjm-chips');
+      JJMobile.FLOOR_COLORS.forEach(function(c) {
+        var b = JJMobile.button('jjm-chip' + ((self.floorColor || '') === c[1] ? ' jjm-on' : ''), c[0], function() {
+          self.setFloorColor(c[1]);
+          Array.prototype.forEach.call(fchips.children, function(x) { x.classList.remove('jjm-on'); });
+          b.classList.add('jjm-on');
+        });
+        if (c[1]) b.style.color = c[1];
+        fchips.appendChild(b);
+      });
+      fl.appendChild(fchips);
+      box.appendChild(fl);
     }, JJMobile.demoPushes],
     ['boards', '看板列表', function(box) {
       var perRow = el('div', 'jjm-set jjm-set-col');
