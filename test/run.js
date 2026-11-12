@@ -432,6 +432,79 @@ test('門檻推文 off: no tags, but the first 10 are still remembered for 門�
   });
 });
 
+// ---- Android app: the PttSocket plugin as a native-messaging port -----------
+
+console.log('Android app (lib.openAppPort)');
+
+// js/app_conn.js in a context of its own (it makes its own `lib`), with a
+// fake Capacitor + PttSocket plugin
+function appContext() {
+  var listeners = {}, calls = [];
+  var plugin = {
+    addListener: function(name, fn) { listeners[name] = fn; return Promise.resolve({ remove: function() { delete listeners[name]; } }); },
+    connect: function(o) { calls.push(['connect', o]); return Promise.resolve(); },
+    send: function(o) { calls.push(['send', o.data]); return Promise.resolve(); },
+    close: function() { calls.push(['close']); return Promise.resolve(); }
+  };
+  var ctx = { console: console, setTimeout: setTimeout, Promise: Promise, btoa: btoa, atob: atob };
+  ctx.window = ctx;
+  ctx.Capacitor = { isNativePlatform: function() { return true; }, Plugins: { PttSocket: plugin } };
+  vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(root, 'js/app_conn.js'), 'utf8'), ctx);
+  return { lib: ctx.lib, listeners: listeners, calls: calls, plugin: plugin };
+}
+// objects from the other context have other prototypes: compare contents
+function sameJson(a, b) { assert.strictEqual(JSON.stringify(a), JSON.stringify(b)); }
+function tick() { return new Promise(function(r) { setImmediate(r); }); }
+var asyncTests = [];
+function testAsync(name, fn) { asyncTests.push([name, fn]); }
+
+testAsync('app: detected; can read www.ptt.cc', async function() {
+  var a = appContext();
+  assert.ok(a.lib.isApp());
+  assert.ok(a.lib.canReadPttWeb());
+  assert.ok(!a.lib.isExtension());
+});
+testAsync('app port: connect waits for the listeners, then data and close come through', async function() {
+  var a = appContext();
+  var port = a.lib.openAppPort(), got = [], closed = 0;
+  port.onMessage.addListener(function(m) { got.push(m); });
+  port.onDisconnect.addListener(function() { closed++; });
+  port.postMessage({ type: 'connect', host: 'ptt.cc', port: 22 });
+  await tick(); await tick();
+  sameJson(a.calls[0], ['connect', { host: 'ptt.cc', port: 22 }]);
+  ['connected', 'data', 'error', 'closed'].forEach(function(n) { assert.ok(a.listeners[n], n + ' listener'); });
+  a.listeners.connected({});
+  a.listeners.data({ data: 'aGk=' });
+  port.postMessage({ type: 'send', data: 'eA==' });
+  a.listeners.closed({});
+  a.listeners.closed && a.listeners.closed({});  // only once
+  sameJson(got, [{ type: 'connected' }, { type: 'data', data: 'aGk=' }]);
+  sameJson(a.calls[1], ['send', 'eA==']);
+  assert.strictEqual(closed, 1);
+});
+testAsync('app port: closing on purpose closes the socket and reports nothing', async function() {
+  var a = appContext();
+  var port = a.lib.openAppPort(), closed = 0;
+  port.onDisconnect.addListener(function() { closed++; });
+  await tick();
+  port.disconnect();
+  sameJson(a.calls, [['close']]);
+  assert.strictEqual(closed, 0);
+  assert.strictEqual(Object.keys(a.listeners).length, 0);
+});
+testAsync('app port: a refused connect becomes an error and a disconnect', async function() {
+  var a = appContext();
+  a.plugin.connect = function() { return Promise.reject(new Error('target not allowed')); };
+  var port = a.lib.openAppPort(), got = [], closed = 0;
+  port.onMessage.addListener(function(m) { got.push(m); });
+  port.onDisconnect.addListener(function() { closed++; });
+  port.postMessage({ type: 'connect', host: 'evil.example', port: 22 });
+  await tick(); await tick(); await tick();
+  sameJson(got, [{ type: 'error', message: 'target not allowed' }]);
+  assert.strictEqual(closed, 1);
+});
+
 // ---- settings defaults ----------------------------------------------------------
 
 console.log('settings');
@@ -463,5 +536,11 @@ test('the settings page does not wipe the temporary blacklist list', function() 
   assert.ok(skip >= 0 && wipe > skip, '#opt_tempBlacklist is emptied before the skip check');
 });
 
-console.log('\n' + passed + ' passed, ' + failed + ' failed');
-process.exit(failed ? 1 : 0);
+(async function() {
+  for (var i = 0; i < asyncTests.length; ++i) {
+    try { await asyncTests[i][1](); passed++; console.log('  ok  ' + asyncTests[i][0]); }
+    catch (e) { failed++; console.log('  FAIL ' + asyncTests[i][0] + '\n       ' + e.message); }
+  }
+  console.log('\n' + passed + ' passed, ' + failed + ' failed');
+  process.exit(failed ? 1 : 0);
+})();
