@@ -378,15 +378,37 @@ JJPtt.prototype.toBoard = function(board) {
     return self.wait({ ask: /請輸入看板名稱|選擇看板/ }, 8000, undefined, '按 s 選看板');
   }).then(function() {
     self.type(board + '\r');
-    var boardRe = new RegExp('看板《' + board.replace(/[^\w-]/g, '') + '》', 'i');
-    var until = Date.now() + 15000;
+    var name = board.replace(/[^\w-]/g, '');
+    var boardRe = new RegExp('看板《' + name + '》', 'i');
+    // in 我的最愛 / 看板列表, s only moves the cursor onto the board: → goes in
+    var cursorRe = new RegExp('^\\s*>\\s*\\d+\\s+[ˇ∨\\s]?\\s*' + name + '\\s', 'mi');
+    var until = Date.now() + 15000, moved = 0;
     var step = function() {
-      if (Date.now() > until) return Promise.reject(new Error('進不了 ' + board + ' 板'));
-      return self.wait({ list: boardRe, hurdle: /按任意鍵|請按任意鍵|按任一鍵/, none: /無此看板|沒有這個看板/ }, 10000, undefined, '進 ' + board + ' 板').then(function(k) {
+      if (Date.now() > until) return Promise.reject(new Error('PTT 沒有回應（進 ' + board + ' 板），請再試一次'));
+      return self.wait({
+        none: /無此看板|沒有這個看板/,
+        hurdle: /按任意鍵|請按任意鍵|按任一鍵/,
+        // the board's own article list (its header names the 板主); a
+        // board list's header can name the board under the cursor too
+        inboard: /【\s*板主|文章選讀/,
+        cursor: cursorRe
+      }, 10000, undefined, '進 ' + board + ' 板').then(function(k) {
         if (k === 'none') throw new Error('沒有 ' + board + ' 這個看板');
-        if (k === 'list') return null;
-        self.send(' ');
-        return JJPtt.sleep(400).then(step);
+        if (k === 'inboard') {
+          if (boardRe.test(self.screen())) return null;
+          // still the board we came from: wait for the new one
+          if (cursorRe.test(self.screen()) && moved < 2) { moved++; self.send('\x1b[C'); }
+          return JJPtt.sleep(200).then(step);
+        }
+        var before = self.screen();
+        if (k === 'cursor') {
+          if (moved >= 2) return JJPtt.sleep(200).then(step);
+          moved++;
+          self.send(moved === 1 ? '\x1b[C' : '\r');
+        } else {
+          self.send(' ');
+        }
+        return self.settle(before, 1500).then(step);
       });
     };
     return step();

@@ -773,6 +773,22 @@ testAsync('post: needs a title and text', async function() {
   await assert.rejects(f.ptt.post('Test', '', '標題', '  '), /沒有內容/);
 });
 
+testAsync('push: s in 我的最愛 only moves the cursor onto the board -> → goes in', async function() {
+  var s = boardScript({ 'X': 11 });
+  // like the real PTT: after s + name, the cursor is on the board, not in it
+  s[6] = ['請輸入看板名稱(按空白鍵自動搜尋):', { 'Test\r': 'cur' }];
+  s.cur = ['【看板列表】   批踢踢實業坊\n   編號   看 板   類別   轉信  中   文   敘   述\n     1   MyFavFolder 目錄 □MLB\n>    2 ˇTest       測試 ◎測試', { '\x1b[C': 7 }];
+  s.push(['您覺得這篇文章 1.值得推薦 2.給它噓聲 3.只加→註解 [1]', { '1': 12 }]);    // 11
+  s.push(['推 tester:', { '讚\r': 13 }]);                                          // 12
+  s.push(['確定[y/N]:', { 'y\r': 8 }]);                                             // 13
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  f.typed.length = 0;
+  await f.ptt.push('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html', '1', '讚');
+  assert.ok(f.typed.indexOf('\x1b[C') >= 0, JSON.stringify(f.typed));
+  assert.ok(f.typed.indexOf('讚\r') >= 0, JSON.stringify(f.typed));
+});
+
 test('我的最愛 rows: board name and title; folders and lines skipped', function() {
   var b = JJPtt.parseBoardRow('     3 ˇGossiping    綜合 ◎[八卦] 亂講話                  爆! 板主a/板主b');
   assert.strictEqual(b.name, 'Gossiping');
