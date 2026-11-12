@@ -1226,7 +1226,10 @@ TermView.prototype = {
     // board that opens on a page of pinned posts only): nothing on screen
     // shows it and → would open the 公告, so move it up to the newest
     // article (from a page of pinned posts only, onto the page before).
-    if (pinnedAt > 0 && st.fill !== 'up') {
+    // Not in the Android app: its hidden terminal jumps to a pinned post
+    // with #AID on purpose (to push on a 公告), and ↑ would move it off.
+    var inApp = typeof lib !== 'undefined' && lib.isApp && lib.isApp();
+    if (pinnedAt > 0 && st.fill !== 'up' && !inApp) {
       var now = Date.now();
       if (!st.unpinAt || now - st.unpinAt > 600) {
         st.unpinAt = now;

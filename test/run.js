@@ -1299,6 +1299,16 @@ test('cursor on a hidden pinned post: moved up to the newest article, not left t
     var sent2 = [];
     listView(only, sent2).updateListMap();
     assert.deepStrictEqual(sent2, ['\x1b[A'], 'one ↑ goes to the page before');
+    // the app's hidden terminal jumped to a 公告 with #AID to push on it: leave it there
+    var isApp = global.lib.isApp;
+    global.lib.isApp = function() { return true; };
+    try {
+      var sent3 = [];
+      listView(rows, sent3, { board: 'Gossiping|文章列表', cache: {}, fill: 'done' }).updateListMap();
+      assert.deepStrictEqual(sent3, [], 'no keys in the app');
+    } finally {
+      global.lib.isApp = isApp;
+    }
   } finally {
     console.log = log;
   }
