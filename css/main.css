@@ -1762,3 +1762,6 @@ body.jj-mobile { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* fact-check chips on the account's line */
 .jjm-push-head .jjm-push-chips-inline { display: inline-flex; flex-wrap: nowrap; gap: 4px; margin: 0; min-width: 0; overflow: hidden; flex: 0 1 auto; }
 .jjm-push-chips-inline .jjm-pchip { font-size: 11px; padding: 1px 6px; line-height: 1.5; white-space: nowrap; }
+
+/* 發信站 / 文章網址 / 編輯 / -- : half the size and line height of the text */
+.jjm-body .jjt-line.jjm-sys { font-size: .5em; line-height: 1.35; min-height: 0; color: var(--sub); }
