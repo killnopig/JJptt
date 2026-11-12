@@ -1157,7 +1157,7 @@ JJMobile.prototype.composer = function(screen) {
       self.ptt.push(screen.url, kind, text).then(function() {
         input.value = '';
         if (self.app.showToast) self.app.showToast('已送出', 1500);
-        self.reloadAfterPost(screen);
+        self.reloadAfterPost(screen, { id: self.ptt.user, text: text });
       }).catch(function(err) {
         if (self.app.showToast) self.app.showToast(err.message, 4000);
       }).then(function() {
@@ -1331,16 +1331,45 @@ JJMobile.prototype.toComposer = function(screen) {
 };
 
 // After pushing: load the article again, staying at the bottom.
-JJMobile.prototype.reloadAfterPost = function(screen) {
+// After pushing: reload, go to the very bottom, then check the new push is
+// there. www.ptt.cc can lag a few seconds: not there yet -> reload again
+// (a few times). Found -> highlighted just above the push box.
+JJMobile.prototype.reloadAfterPost = function(screen, mine) {
   var self = this;
-  delete this.articles[screen.url];
-  this.getArticle(screen.url).then(function(article) {
-    if (self.stack[self.stack.length - 1] !== screen) return;
-    screen.view.innerHTML = '';
-    self.fillArticle(screen, article);
-    var c = screen.view.querySelector('.jjm-compose');
-    if (c) c.scrollIntoView({ block: 'center' });
-  }).catch(function() {});
+  var tries = 0;
+  var findMine = function() {
+    if (!mine || !mine.id) return null;
+    var id = mine.id.toLowerCase(), text = String(mine.text || '').slice(0, 6);
+    var rows = screen.view.querySelectorAll('.jjm-pushes > .jjm-push');
+    for (var i = rows.length - 1; i >= 0 && i >= rows.length - 30; --i) {
+      var who = (rows[i].querySelector('.jjm-push-id') || {}).textContent || '';
+      var said = (rows[i].querySelector('.jjm-push-text') || {}).textContent || '';
+      if (who.trim().toLowerCase() === id && said.indexOf(text) >= 0) return rows[i];
+    }
+    return null;
+  };
+  var round = function() {
+    delete self.articles[screen.url];
+    // a query the page ignores: past any cache on the way
+    var fresh = screen.url + (screen.url.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now();
+    self.app.reader.fetchArticle(fresh).then(function(article) {
+      article.url = screen.url;
+      self.articles[screen.url] = { promise: Promise.resolve(article), at: Date.now() };
+      if (self.stack[self.stack.length - 1] !== screen) return;
+      // 1. reload  2. to the bottom
+      screen.view.innerHTML = '';
+      self.fillArticle(screen, article);
+      var c = screen.view.querySelector('.jjm-compose');
+      if (c) c.scrollIntoView({ block: 'end' });
+      else screen.view.scrollTop = screen.view.scrollHeight;
+      // 3. is the push there?
+      var row = findMine();
+      if (row) { row.classList.add('jjm-push-new'); return; }
+      if (mine && ++tries < 6) setTimeout(round, 1500);
+      else if (mine && self.app.showToast) self.app.showToast('推文已送出，網頁版還沒更新，等一下按 ⟳', 3000);
+    }).catch(function() {});
+  };
+  round();
 };
 
 JJMobile.prototype.shortTime = function(t) {
