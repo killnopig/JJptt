@@ -99,7 +99,7 @@ cd %USERPROFILE% && git clone https://github.com/killnopig/JJptt.git
 打開 `chrome://extensions` → JJptt 卡片的「詳細資料」→ 往下找「來源」，那個路徑去掉最後的 `/extension` 就是。
 
 **想同步到另一台電腦**
-設定 → 同步、備份與更新 → 「連結 Google 帳號」，或「匯出設定檔」再到另一台「從檔案匯入」。帳號密碼不會同步；哪些會帶過去見 [設定檔說明](settings-file.md)。
+設定 → 同步、備份與更新 → 「連結 Google 帳號」，或「匯出設定檔」再到另一台「從檔案匯入」。帳號密碼不會同步；哪些會跟著搬見 [把設定搬到另一台](settings-file.md)。
 
 **怎麼移除**
 在 `chrome://extensions` 移除 JJptt，再移除本機小程式：Mac 在終端機執行 `sh ~/JJptt/native-host/install.sh --uninstall`，Windows 雙擊 `native-host\uninstall.bat`。最後刪掉 `JJptt` 資料夾。
