@@ -548,6 +548,13 @@ test('pictures: http:// asked for over https://', function() {
 
 // ---- Android app: the PttSocket plugin as a native-messaging port -----------
 
+test('the tab says JJptt (not ptt.cc), and its icons are the Game Boy ones', function() {
+  var src = fs.readFileSync(path.join(root, 'js/pttchrome.js'), 'utf8') + fs.readFileSync(path.join(root, 'js/term_view.js'), 'utf8');
+  assert.ok(!/document\.title = (url|self\.connectedUrl\.site|app\.connectedUrl\.site)/.test(src));
+  var logo = fs.readFileSync(path.join(root, 'icon/logo.png'));
+  assert.ok(logo.equals(fs.readFileSync(path.join(root, 'icon/logo_connect.png'))));
+});
+
 console.log('Android app (lib.openAppPort)');
 
 // js/app_conn.js in a context of its own (it makes its own `lib`), with a
@@ -1273,6 +1280,28 @@ test('a page without pinned posts is shown as PTT draws it', function() {
   var v = listView(listScreen(range(780688, 780707), 0, 780700), []);
   v.updateListMap();
   assert.deepStrictEqual(shownNums(v), range(780688, 780707));
+});
+
+test('cursor on a hidden pinned post: moved up to the newest article, not left to open the 公告', function() {
+  var log = console.log; console.log = function() {};
+  try {
+    // ↓ past the last article: PTT's cursor is on the 2nd of 3 hidden ★ rows
+    var rows = listScreen(range(780705, 780724), 0, 0);
+    rows[20] = '   ★    11/12 mod      □ [公告] 板規';
+    rows[21] = '>  ★    11/12 mod      □ [公告] 置底';
+    rows[22] = '   ★    11/12 mod      □ [公告] 活動';
+    var sent = [];
+    listView(rows, sent, { board: 'Gossiping|文章列表', cache: {}, fill: 'done' }).updateListMap();
+    assert.deepStrictEqual(sent, ['\x1b[A\x1b[A'], 'two ↑ reach the last article');
+    // a board that opens on a page of pinned posts only (it looked blank)
+    var only = listScreen([], 0, 0);
+    for (var p = 0; p < 4; ++p) only[3 + p] = (p === 0 ? '>' : ' ') + '  ★    11/12 mod      □ [公告] ' + p;
+    var sent2 = [];
+    listView(only, sent2).updateListMap();
+    assert.deepStrictEqual(sent2, ['\x1b[A'], 'one ↑ goes to the page before');
+  } finally {
+    console.log = log;
+  }
 });
 
 (async function() {

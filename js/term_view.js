@@ -1167,11 +1167,15 @@ TermView.prototype = {
       st = this.pinFillState = { board: listKey, cache: {}, fill: 'start' };
       entered = true;
     }
-    var normal = [], pinnedCount = 0, selRow = -1, selNum = 0, minNum = 0, maxNum = 0;
+    var normal = [], pinnedCount = 0, pinnedAt = -1, selRow = -1, selNum = 0, minNum = 0, maxNum = 0;
     for (var r = first; r <= last; ++r) {
       var text = buf.getRowText(r, 0, buf.cols);
       if (!text.trim()) continue;
-      if (/^.{0,8}★/.test(text)) { pinnedCount++; continue; }  // ★ pinned post
+      if (/^.{0,8}★/.test(text)) {  // ★ pinned post
+        pinnedCount++;
+        if (pinnedAt < 0 && /^[>●]/.test(text)) pinnedAt = pinnedCount;  // PTT's cursor is on it
+        continue;
+      }
       normal.push(r);
       var m = /^.\s*(\d+)\s/.exec(text);
       if (!m) continue;
@@ -1218,6 +1222,19 @@ TermView.prototype = {
 
     if (!this.conn) return;
     var conn = this.conn;
+    // PTT's cursor on a hidden pinned post (↓ past the last article, or a
+    // board that opens on a page of pinned posts only): nothing on screen
+    // shows it and → would open the 公告, so move it up to the newest
+    // article (from a page of pinned posts only, onto the page before).
+    if (pinnedAt > 0 && st.fill !== 'up') {
+      var now = Date.now();
+      if (!st.unpinAt || now - st.unpinAt > 600) {
+        st.unpinAt = now;
+        console.log('JJptt list: cursor on a hidden pinned post, ↑ x' + pinnedAt + ' to the newest article');
+        conn.send(new Array(pinnedAt + 1).join('\x1b[A'));
+      }
+      return;
+    }
     if (st.fill === 'start') {
       st.fill = 'done';
       if (entered && pinnedCount && minNum > 1 && before.length < room) {
@@ -1757,10 +1774,10 @@ TermView.prototype = {
       this.titleTimer = null;
     }
     this.titleTimer = setTimer(true, function() {
-      if (document.title == app.connectedUrl.site) {
+      if (document.title == 'JJptt') {
         document.title = title + ' ' + app.waterball.message;
       } else {
-        document.title = app.connectedUrl.site;
+        document.title = 'JJptt';
       }
     }, 1500);
     var options = {

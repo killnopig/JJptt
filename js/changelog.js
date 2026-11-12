@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.33.4',
+    date: '2026-11-13',
+    changes: [
+      '修正：勾「文章列表隱藏 ★ 置底公告」時，在最新一篇再按 ↓（或進到一頁全是置底公告的看板）會看到空白畫面，按 → 進去卻是置底公告；現在游標會自動回到最新一篇文章',
+      '分頁的標題從「ptt.cc」改成「JJptt」；分頁的小圖示也換成 Game Boy（連線中是彩色，斷線時變灰）'
+    ]
+  },
+  {
     version: '1.33.3',
     date: '2026-11-13',
     changes: [

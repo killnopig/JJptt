@@ -156,7 +156,7 @@ pttchrome.App = function(onInitializedCallback, options) {
     if (self.view.titleTimer) {
       self.view.titleTimer.cancel();
       self.view.titleTimer = null;
-      document.title = self.connectedUrl.site;
+      document.title = 'JJptt';
       self.view.notif.close();
     }
   }, false);
@@ -236,7 +236,7 @@ pttchrome.App.prototype.connect = function(url) {
   var self = this;
   var port = 23;
   var splits = url.split(/:/g);
-  document.title = url;
+  document.title = 'JJptt';  // the tab says JJptt, not ptt.cc
   if (splits.length == 2) {
     url = splits[0];
     port = parseInt(splits[1]);
