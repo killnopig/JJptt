@@ -523,6 +523,12 @@ test('repeat pushers: the app CSS uses the colour PushInsights sets (--jj-rp)', 
   assert.ok(!/--jj-repeat/.test(css), 'no rule waits for a --jj-repeat nobody sets');
   assert.ok(/setProperty\('--jj-rp'/.test(fs.readFileSync(path.join(root, 'js/push_insights.js'), 'utf8')));
 });
+test('article swipe keeps text selectable (Hammer must not set user-select: none)', function() {
+  var src = fs.readFileSync(path.join(root, 'js/mobile_article.js'), 'utf8');
+  var m = /new Hammer\.Manager\(screen\.view, \{([\s\S]*?)\}\);/.exec(src);
+  assert.ok(m, 'swipe set up with Hammer.Manager');
+  assert.ok(/userSelect:\s*'auto'/.test(m[1]) && /touchCallout:\s*'default'/.test(m[1]), 'selection and long-press menu kept');
+});
 test('ask AI about the article: title, its own address, the text before 發信站', function() {
   var q = JJMobile.articleForAi({ url: 'https://www.ptt.cc/bbs/G/M.1.A.html?_=9', meta: { '標題': '[問卦] 標題' },
     text: '第一行\n第二行\n※ 發信站: 批踢踢實業坊(ptt.cc), 來自: 1.2.3.4\n推 x: y' });

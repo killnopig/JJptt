@@ -546,7 +546,13 @@ JJMobile.prototype.swipeArticles = function(screen) {
   var self = this;
   if (typeof Hammer === 'undefined' || !screen.list) return;
   var ham = new Hammer.Manager(screen.view, {
-    recognizers: [[Hammer.Pan, { direction: Hammer.DIRECTION_HORIZONTAL, threshold: 20 }]]
+    recognizers: [[Hammer.Pan, { direction: Hammer.DIRECTION_HORIZONTAL, threshold: 20 }]],
+    // Hammer's defaults put user-select: none and touch-callout: none on the
+    // article, so a long press could not select text (問 AI, copy); keep the
+    // phone's own selection, and leave vertical scrolling to the phone
+    touchAction: 'pan-y',
+    cssProps: { userSelect: 'auto', touchSelect: 'auto', touchCallout: 'default', userDrag: 'auto',
+                contentZooming: 'none', tapHighlightColor: 'rgba(0,0,0,0)' }
   });
   ham.on('panend', function(ev) {
     if (Math.abs(ev.deltaX) < 90 || Math.abs(ev.deltaX) < Math.abs(ev.deltaY) * 2) return;
