@@ -585,6 +585,17 @@ testAsync('login: PTT opening an article after login (an announcement) is logged
   await f.ptt.login('tester', 'right');
   assert.strictEqual(f.ptt.state, 'in');
 });
+testAsync('login: the 重複登入 question stays on the screen and is answered once', async function() {
+  var s = LOGIN.slice();
+  var q = '您想刪除其他重複登入的連線嗎？[Y/n]';
+  s[2] = [q, { 'n\r': 6 }];
+  s.push([q + ' n\n正在更新與同步線上使用者及好友名單', {}, { after: 60, to: 3 }]);  // 6: still there for a moment
+  s[3] = ['請按任意鍵繼續', { ' ': 4, 'n\r': 99 }];
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  sameJson(f.typed.filter(function(k) { return k === 'n\r'; }), ['n\r']);
+  assert.strictEqual(f.ptt.state, 'in');
+});
 testAsync('login: from where PTT put us, ← until the main menu', async function() {
   var s = LOGIN.slice();
   s[4] = ['  瀏覽 第 1/2 頁 ( 71%)  目前顯示: 第 04~25 行 (y)回應(X)推文', { '\x1b[D': 6 }];

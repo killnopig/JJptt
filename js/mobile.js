@@ -121,6 +121,7 @@ JJMobile.prototype.setup = function() {
     }
   });
   this.setFont(JJMobile.store(JJMobile.FONT_KEY) || 17);
+  this.setUiZoom(JJMobile.store(JJMobile.UI_KEY) || 1);
   this.setFontOf('push', JJMobile.store(JJMobile.FONT_PARTS.push.key));
   this.setFontOf('list', JJMobile.store(JJMobile.FONT_PARTS.list.key));
   this.setPushStyle();
@@ -291,6 +292,15 @@ JJMobile.prototype.autoLogin = function() {
   check();
 };
 
+// 介面文字大小: the home screen, settings, sheets and the top bar, scaled
+// (articles and lists have their own sizes).
+JJMobile.UI_KEY = 'jjptt.m.uiZoom';
+JJMobile.prototype.setUiZoom = function(z) {
+  this.uiZoom = z || 1;
+  this.root.style.setProperty('--jjm-ui', String(this.uiZoom));
+  JJMobile.store(JJMobile.UI_KEY, this.uiZoom);
+};
+
 JJMobile.prototype.setFontOf = function(which, px) {
   if (which === 'text') return this.setFont(px);
   var f = JJMobile.FONT_PARTS[which];
@@ -339,6 +349,7 @@ JJMobile.prototype.open = function(screen) {
   var top = this.stack[this.stack.length - 1];
   if (top) top.view.style.display = 'none';
   screen.view = JJMobile.el('div', 'jjm-view');
+  screen.view.setAttribute('data-type', screen.type);
   this.views.appendChild(screen.view);
   this.stack.push(screen);
   this.render(screen);
@@ -1645,45 +1656,7 @@ JJMobile.prototype.renderSettings = function(screen) {
   rd.appendChild(this.toggleRow('readerPrefetchImages', '預先讀取時連圖片一起下載', '換篇更快，但流量多很多'));
   rd.appendChild(this.toggleRow('readerLowResImages', '用低解析度圖片', '載入快、省流量；點圖片看原圖'));
   rd.appendChild(this.toggleRow('readerGroupRuns', '同一個人的連續推文排在一起', '被別人插話打斷的也排回一起，樓層照舊'));
-  var lay = section('layout', '文章與列表');
-  ['text', 'push', 'list'].forEach(function(which) {
-    var fontRow = el('div', 'jjm-set jjm-set-col');
-    fontRow.appendChild(el('div', 'jjm-set-title', JJMobile.FONT_PARTS[which].title + '的字大小'));
-    var fonts = el('div', 'jjm-chips');
-    var now = which === 'text' ? self.fontPx : (self.fonts || {})[which] || null;
-    var opts = [['小', 15], ['中', 17], ['大', 19], ['特大', 22]];
-    if (which !== 'text') opts.unshift(['跟內文一樣', null]);
-    opts.forEach(function(f) {
-      var b = JJMobile.button('jjm-chip' + (now === f[1] ? ' jjm-on' : ''), f[0], function() {
-        self.setFontOf(which, f[1]);
-        Array.prototype.forEach.call(fonts.children, function(x) { x.classList.remove('jjm-on'); });
-        b.classList.add('jjm-on');
-      });
-      fonts.appendChild(b);
-    });
-    fontRow.appendChild(fonts);
-    lay.appendChild(fontRow);
-  });
-  var perRow = el('div', 'jjm-set jjm-set-col');
-  perRow.appendChild(el('div', 'jjm-set-title', '我的最愛每一頁幾個看板'));
-  perRow.appendChild(el('div', 'jjm-set-sub', '超過就分成 我的最愛1、我的最愛2…'));
-  var perChips = el('div', 'jjm-chips');
-  var perNow = +JJMobile.store(JJMobile.TAB_SIZE_KEY) || JJMobile.TAB_SIZE;
-  [10, 15, 20, 30].forEach(function(n) {
-    var b = JJMobile.button('jjm-chip' + (perNow === n ? ' jjm-on' : ''), n + ' 個', function() {
-      JJMobile.store(JJMobile.TAB_SIZE_KEY, n);
-      JJMobile.store(JJMobile.TAB_KEY, null);
-      if (self.stack[0] && self.stack[0].type === 'home') self.stack[0].tab = null;
-      Array.prototype.forEach.call(perChips.children, function(x) { x.classList.remove('jjm-on'); });
-      b.classList.add('jjm-on');
-      self.homeDirty = true;
-    });
-    perChips.appendChild(b);
-  });
-  perRow.appendChild(perChips);
-  lay.appendChild(perRow);
-  this.pushLookRows(lay);
-  this.listLookRows(lay);
+  this.layoutPane(panes.layout, screen);
 
   // search
   var se = section('general', '搜尋');
@@ -1720,72 +1693,113 @@ JJMobile.prototype.renderSettings = function(screen) {
   // about
   var ab = section('about', '關於');
   var b = window.JJPTT_BUILD || {};
-  ab.appendChild(this.setRow('版本 ' + JJMobile.version(parseInt(b.run, 10)),
-                             b.time ? '打包時間 ' + this.shortTime(b.time) : '', function() {}));
-  ab.appendChild(this.setRow('檢查並自動更新', '有新版就直接下載，接著會跳出 Android 的安裝畫面，按「更新」就裝好（設定和登入都會保留）', function() {
-    self.checkUpdate(true);
-  }));
-  ab.appendChild(this.setRow('覺得好用？請我喝杯咖啡', 'Ko-fi（自願，不影響任何功能）', function() {
-    window.open('https://ko-fi.com/killnopig', '_blank');
-  }));
+  var verRow = el('div', 'jjm-set');
+  var verText = el('div', 'jjm-set-text');
+  verText.appendChild(el('div', 'jjm-set-title', '版本 ' + JJMobile.version(parseInt(b.run, 10))));
+  if (b.time) verText.appendChild(el('div', 'jjm-set-sub', '打包時間 ' + this.shortTime(b.time)));
+  verRow.appendChild(verText);
+  ab.appendChild(verRow);
+  var upd = JJMobile.button('jjm-btn jjm-btn-main jjm-wide', '⟳ 檢查並自動更新', function() { self.checkUpdate(true); });
+  panes.about.insertBefore(upd, ab);
+  panes.about.insertBefore(el('div', 'jjm-hint', '有新版就直接下載，接著會跳出 Android 的安裝畫面，按「更新」就裝好（設定和登入都會保留）。'), ab);
+  var cafe = JJMobile.button('jjm-btn jjm-wide jjm-btn-coffee', '☕ 覺得好用？請我喝杯咖啡', function() {
+    if (window.confirm('要打開 Ko-fi 贊助頁面嗎？（自願，不影響任何功能）')) window.open('https://ko-fi.com/killnopig', '_blank');
+  });
+  panes.about.appendChild(cafe);
+  panes.about.appendChild(el('div', 'jjm-hint', '會先問一次再打開 Ko-fi，不會誤按就扣款。'));
   ab.appendChild(this.setRow('原始碼與回報問題', 'GitHub', function() {
     window.open('https://github.com/killnopig/JJptt', '_blank');
   }));
 };
 
-// 推文間距 slider, one-line switch and a preview of a few pushes that
-// follows them (and the text size) as they change.
-JJMobile.prototype.pushLookRows = function(box) {
+// ---- 版面: sub-tabs, each with a live demo on top -------------------------------------
+// 文章列表 / 內文 / 推文 / 看板列表: what is changed below shows in the demo
+// above at once.
+
+JJMobile.prototype.fontChips = function(which) {
   var self = this;
   var el = JJMobile.el;
   var row = el('div', 'jjm-set jjm-set-col');
+  row.appendChild(el('div', 'jjm-set-title', '字的大小'));
+  var chips = el('div', 'jjm-chips');
+  var now = which === 'text' ? self.fontPx : (self.fonts || {})[which] || null;
+  var opts = [['小', 15], ['中', 17], ['大', 19], ['特大', 22]];
+  if (which !== 'text') opts.unshift(['同內文', null]);
+  opts.forEach(function(f) {
+    var b = JJMobile.button('jjm-chip' + (now === f[1] ? ' jjm-on' : ''), f[0], function() {
+      self.setFontOf(which, f[1]);
+      Array.prototype.forEach.call(chips.children, function(x) { x.classList.remove('jjm-on'); });
+      b.classList.add('jjm-on');
+    });
+    chips.appendChild(b);
+  });
+  row.appendChild(chips);
+  return row;
+};
+
+JJMobile.prototype.slider = function(title, sub, min, max, value, words, onInput) {
+  var el = JJMobile.el;
+  var row = el('div', 'jjm-set jjm-set-col');
   var head = el('div', 'jjm-set-head');
-  head.appendChild(el('div', 'jjm-set-title', '推文間距'));
+  head.appendChild(el('div', 'jjm-set-title', title));
   var val = el('span', 'jjm-set-val');
   head.appendChild(val);
   row.appendChild(head);
+  if (sub) row.appendChild(el('div', 'jjm-set-sub', sub));
   var range = el('input', 'jjm-range');
   range.type = 'range';
-  range.min = 0;
-  range.max = 24;
+  range.min = min;
+  range.max = max;
   range.step = 2;
-  range.value = this.pushGap;
-  var show = function() {
-    var g = +range.value;
-    val.textContent = g <= 2 ? '最緊' : g <= 6 ? '緊' : g <= 12 ? '標準' : g <= 18 ? '鬆' : '最鬆';
-  };
+  range.value = value;
+  var show = function() { val.textContent = words(+range.value); };
   show();
-  range.addEventListener('input', function() {
-    self.setPushStyle(+range.value, self.pushInline);
-    show();
-  });
+  range.addEventListener('input', function() { onInput(+range.value); show(); });
   row.appendChild(range);
-  box.appendChild(row);
+  return row;
+};
 
-  var line = el('label', 'jjm-set jjm-toggle');
-  var t = el('div', 'jjm-set-text');
-  t.appendChild(el('div', 'jjm-set-title', '帳號和推文排在同一行'));
-  t.appendChild(el('div', 'jjm-set-sub', '比較緊湊，一個畫面看得到更多推文'));
-  line.appendChild(t);
-  var cb = el('input');
-  cb.type = 'checkbox';
-  cb.checked = this.pushInline;
-  cb.addEventListener('change', function() { self.setPushStyle(self.pushGap, cb.checked); });
-  line.appendChild(cb);
-  line.appendChild(el('span', 'jjm-switch'));
-  box.appendChild(line);
+JJMobile.demoList = function() {
+  var el = JJMobile.el;
+  var frame = el('div', 'jjm-list');
+  [['爆', 'hot', '[新聞] 颱風明天登陸 北部可能停班停課', 'reporter01', '11/12'],
+   ['15', '10', '[問卦] 有沒有便利商店咖啡越來越貴的八卦？', 'coffee99', '11/12'],
+   ['3', '1', '[爆卦] 這個標題比較長，看看兩行的時候間距長怎樣好不好讀', 'longtitle', '11/12']
+  ].forEach(function(e) {
+    var r = el('div', 'jjm-row jjm-article');
+    r.appendChild(el('div', 'jjm-article-title', e[2]));
+    var meta = el('div', 'jjm-article-meta');
+    meta.appendChild(el('span', 'jjm-nrec jjm-nrec-' + e[1], e[0]));
+    meta.appendChild(el('span', 'jjm-author', e[3]));
+    meta.appendChild(el('span', 'jjm-date', e[4]));
+    r.appendChild(meta);
+    frame.appendChild(r);
+  });
+  return frame;
+};
 
-  // preview: what an article's pushes look like with these settings
-  var pv = el('div', 'jjm-set jjm-set-col');
-  pv.appendChild(el('div', 'jjm-set-sub', '預覽（字的大小、間距改了會跟著變）'));
-  var frame = el('div', 'jjm-preview jjm-reading');
-  var sample = [
-    ['推', 'up', 'kitten5566', '這篇整理得很清楚，推', '11/12 10:21', 12, []],
-    ['→', 'arrow', 'kitten5566', '補充一下：官方今天也有發新聞稿', '11/12 10:22', 13, []],
-    ['噓', 'down', 'troll0607', '又在帶風向', '11/12 10:22', 14, [['秒推', 'warn'], ['同IP：bot1、bot2', 'warn']]],
-    ['推', 'up', 'neko_neko', '樓上的 IP 跟另外兩個人一樣欸', '11/12 10:25', 15, [['觀察', 'watch']]]
-  ];
-  sample.forEach(function(s) {
+JJMobile.demoText = function() {
+  var el = JJMobile.el;
+  var frame = el('div', 'jjm-reading');
+  var head = el('div', 'jjm-head');
+  head.appendChild(el('h1', 'jjm-head-title', '[心得] 第一次用手機看 PTT 的感想'));
+  frame.appendChild(head);
+  var body = el('div', 'jjm-body');
+  ['以前都用電腦連，', '這次試了手機 App，', '字的大小可以自己調，', '看久了眼睛比較不累。'].forEach(function(t) {
+    body.appendChild(el('div', 'jjt-line', t));
+  });
+  frame.appendChild(body);
+  return frame;
+};
+
+JJMobile.demoPushes = function() {
+  var el = JJMobile.el;
+  var frame = el('div', 'jjm-reading');
+  [['推', 'up', 'kitten5566', '這篇整理得很清楚，推', '11/12 10:21', 12, []],
+   ['→', 'arrow', 'kitten5566', '補充一下：官方今天也有發新聞稿', '11/12 10:22', 13, []],
+   ['噓', 'down', 'troll0607', '又在帶風向', '11/12 10:22', 14, [['秒推', 'warn']]],
+   ['推', 'up', 'neko_neko', '樓上的 IP 跟另外兩個人一樣欸', '11/12 10:25', 15, [['觀察', 'watch']]]
+  ].forEach(function(s) {
     var p = el('div', 'jjm-push');
     if (s[6].length) p.setAttribute('data-level', s[6][0][1]);
     var h = el('div', 'jjm-push-head');
@@ -1802,54 +1816,115 @@ JJMobile.prototype.pushLookRows = function(box) {
     }
     frame.appendChild(p);
   });
-  pv.appendChild(frame);
-  box.appendChild(pv);
+  return frame;
 };
 
-// 列表間距 slider with a preview of a board's article list.
-JJMobile.prototype.listLookRows = function(box) {
+JJMobile.prototype.demoBoards = function() {
+  var frame = JJMobile.el('div', 'jjm-list');
+  frame.appendChild(this.boardRow('Gossiping', '[八卦] 亂講話', ''));
+  frame.appendChild(this.boardRow('C_Chat', '[希洽] 閒聊', ''));
+  frame.appendChild(this.boardRow('Stock', '[股票]', ''));
+  // a demo: tapping a row goes nowhere
+  Array.prototype.forEach.call(frame.children, function(r) { r.style.pointerEvents = 'none'; });
+  return frame;
+};
+
+JJMobile.prototype.layoutPane = function(pane, screen) {
   var self = this;
   var el = JJMobile.el;
-  var row = el('div', 'jjm-set jjm-set-col');
-  var head = el('div', 'jjm-set-head');
-  head.appendChild(el('div', 'jjm-set-title', '列表間距'));
-  var val = el('span', 'jjm-set-val');
-  head.appendChild(val);
-  row.appendChild(head);
-  row.appendChild(el('div', 'jjm-set-sub', '看板列表、文章列表每一列的上下空間'));
-  var range = el('input', 'jjm-range');
-  range.type = 'range';
-  range.min = 2;
-  range.max = 24;
-  range.step = 2;
-  range.value = this.listGap;
-  var show = function() {
-    var g = +range.value;
-    val.textContent = g <= 4 ? '最緊' : g <= 8 ? '緊' : g <= 14 ? '標準' : g <= 19 ? '鬆' : '最鬆';
+  var gapWord = function(lo) {
+    return function(g) { return g <= lo ? '最緊' : g <= lo + 4 ? '緊' : g <= lo + 10 ? '標準' : g <= lo + 16 ? '鬆' : '最鬆'; };
   };
-  show();
-  range.addEventListener('input', function() {
-    self.setListGap(+range.value);
-    show();
+  var SUBS = [
+    ['list', '文章列表', function(box) {
+      box.appendChild(self.fontChips('list'));
+      box.appendChild(self.slider('間距', '每一篇文章上下的空間（看板列表也一樣）', 2, 24, self.listGap, gapWord(4),
+        function(v) { self.setListGap(v); }));
+    }, JJMobile.demoList],
+    ['text', '內文', function(box) {
+      box.appendChild(self.fontChips('text'));
+    }, JJMobile.demoText],
+    ['push', '推文', function(box) {
+      box.appendChild(self.fontChips('push'));
+      box.appendChild(self.slider('間距', '', 0, 24, self.pushGap, gapWord(2),
+        function(v) { self.setPushStyle(v, self.pushInline); }));
+      var line = el('label', 'jjm-set jjm-toggle');
+      var t = el('div', 'jjm-set-text');
+      t.appendChild(el('div', 'jjm-set-title', '帳號和推文排在同一行'));
+      t.appendChild(el('div', 'jjm-set-sub', '比較緊湊，一個畫面看得到更多推文'));
+      line.appendChild(t);
+      var cb = el('input');
+      cb.type = 'checkbox';
+      cb.checked = self.pushInline;
+      cb.addEventListener('change', function() { self.setPushStyle(self.pushGap, cb.checked); });
+      line.appendChild(cb);
+      line.appendChild(el('span', 'jjm-switch'));
+      box.appendChild(line);
+    }, JJMobile.demoPushes],
+    ['boards', '看板列表', function(box) {
+      var perRow = el('div', 'jjm-set jjm-set-col');
+      perRow.appendChild(el('div', 'jjm-set-title', '我的最愛每一頁幾個看板'));
+      perRow.appendChild(el('div', 'jjm-set-sub', '超過就分成 我的最愛1、我的最愛2…'));
+      var perChips = el('div', 'jjm-chips');
+      var perNow = +JJMobile.store(JJMobile.TAB_SIZE_KEY) || JJMobile.TAB_SIZE;
+      [10, 15, 20, 30].forEach(function(n) {
+        var b = JJMobile.button('jjm-chip' + (perNow === n ? ' jjm-on' : ''), n + ' 個', function() {
+          JJMobile.store(JJMobile.TAB_SIZE_KEY, n);
+          JJMobile.store(JJMobile.TAB_KEY, null);
+          if (self.stack[0] && self.stack[0].type === 'home') self.stack[0].tab = null;
+          Array.prototype.forEach.call(perChips.children, function(x) { x.classList.remove('jjm-on'); });
+          b.classList.add('jjm-on');
+          self.homeDirty = true;
+        });
+        perChips.appendChild(b);
+      });
+      perRow.appendChild(perChips);
+      box.appendChild(perRow);
+      box.appendChild(self.slider('間距', '每一個看板上下的空間（文章列表也一樣）', 2, 24, self.listGap, gapWord(4),
+        function(v) { self.setListGap(v); }));
+    }, function() { return self.demoBoards(); }],
+    ['ui', '介面文字', function(box) {
+      var row = el('div', 'jjm-set jjm-set-col');
+      row.appendChild(el('div', 'jjm-set-title', '介面文字大小'));
+      row.appendChild(el('div', 'jjm-set-sub', '首頁、設定、說明文字和跳出來的視窗；文章和列表在前面幾個分頁調'));
+      var chips = el('div', 'jjm-chips');
+      [['標準', 1], ['大', 1.1], ['更大', 1.2], ['特大', 1.3]].forEach(function(z) {
+        var b = JJMobile.button('jjm-chip' + ((self.uiZoom || 1) === z[1] ? ' jjm-on' : ''), z[0], function() {
+          self.setUiZoom(z[1]);
+          Array.prototype.forEach.call(chips.children, function(x) { x.classList.remove('jjm-on'); });
+          b.classList.add('jjm-on');
+        });
+        chips.appendChild(b);
+      });
+      row.appendChild(chips);
+      box.appendChild(row);
+    }, function() {
+      var d = el('div', 'jjm-group jjm-demo-ui');
+      d.appendChild(self.setRow('同 IP 多帳號', '不同帳號用同一個 IP 推文時標示（這是說明文字）', function() {}));
+      return d;
+    }]
+  ];
+  var cur = screen.layoutTab || 'list';
+  var bar = el('div', 'jjm-subtabs');
+  pane.appendChild(bar);
+  var demo = el('div', 'jjm-demo');
+  pane.appendChild(demo);
+  var box = el('div', 'jjm-group');
+  pane.appendChild(box);
+  var show = function(id) {
+    screen.layoutTab = id;
+    var sub = SUBS.filter(function(x) { return x[0] === id; })[0];
+    Array.prototype.forEach.call(bar.children, function(b, i) { b.classList.toggle('jjm-on', SUBS[i][0] === id); });
+    demo.innerHTML = '';
+    demo.appendChild(el('div', 'jjm-demo-label', '示範（下面改了這裡馬上變）'));
+    demo.appendChild(sub[3]());
+    box.innerHTML = '';
+    sub[2](box);
+  };
+  SUBS.forEach(function(x) {
+    bar.appendChild(JJMobile.button('jjm-chip', x[1], function() { show(x[0]); }));
   });
-  row.appendChild(range);
-  var frame = el('div', 'jjm-preview jjm-list');
-  [['爆', 'hot', '[新聞] 颱風明天登陸 北部可能停班停課', 'reporter01', '11/12'],
-   ['15', '10', '[問卦] 有沒有便利商店咖啡越來越貴的八卦？', 'coffee99', '11/12'],
-   ['3', '1', '[爆卦] 這個標題比較長，看看兩行的時候間距長怎樣好不好讀', 'longtitle', '11/12']
-  ].forEach(function(e) {
-    var r = el('div', 'jjm-row jjm-article');
-    r.appendChild(el('div', 'jjm-article-title', e[2]));
-    var meta = el('div', 'jjm-article-meta');
-    meta.appendChild(el('span', 'jjm-nrec jjm-nrec-' + e[1], e[0]));
-    meta.appendChild(el('span', 'jjm-author', e[3]));
-    meta.appendChild(el('span', 'jjm-date', e[4]));
-    r.appendChild(meta);
-    frame.appendChild(r);
-  });
-  row.appendChild(el('div', 'jjm-set-sub', '預覽'));
-  row.appendChild(frame);
-  box.appendChild(row);
+  show(cur);
 };
 
 JJMobile.prototype.setRow = function(title, sub, onTap) {

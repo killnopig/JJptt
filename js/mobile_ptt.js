@@ -17,7 +17,7 @@ function JJPtt(app) {
   this.listeners = [];
 }
 
-JJPtt.STEP_MS = 100;
+JJPtt.STEP_MS = 50;
 JJPtt.KICK_KEY = 'jjptt.m.kickOthers';
 
 JJPtt.kickOthers = function() {
@@ -138,6 +138,25 @@ JJPtt.prototype.wait = function(cases, ms, since) {
   });
 };
 
+// Instead of a fixed pause after a key: as soon as the screen has changed
+// from `prev` and stopped changing (PTT draws in pieces), or after `ms`.
+// Resolves true when it changed.
+JJPtt.prototype.settle = function(prev, ms) {
+  var self = this;
+  var until = Date.now() + (ms || 1000);
+  return new Promise(function(resolve) {
+    var last = null;
+    var tick = function() {
+      var now = self.screen();
+      if (now !== prev && now === last) return resolve(true);
+      if (Date.now() > until) return resolve(now !== prev);
+      last = now;
+      setTimeout(tick, JJPtt.STEP_MS);
+    };
+    setTimeout(tick, JJPtt.STEP_MS);
+  });
+};
+
 // Screens PTT puts in the way, and the key that gets past each.
 JJPtt.HURDLES = [
   [/按任意鍵繼續|請按任意鍵|按任一鍵/, ' '],
@@ -253,10 +272,12 @@ JJPtt.prototype.pastLogin = function(before, mark, accepted) {
   // must not throw the computer's PTT off
   var dupAnswer = JJPtt.kickOthers() ? 'y\r' : 'n\r';
   var until = Date.now() + 25000;
-  var isIn = false;
+  var isIn = false, dupDone = false;
+  // only lines that changed since the last key count: an answered question
+  // stays on the screen (that answered 「重複登入」 thirty times)
   var step = function() {
     if (Date.now() > until) return isIn ? Promise.resolve() : Promise.reject(new Error('登入逾時，請再試一次'));
-    return self.wait({
+    var cases = {
       wrong: /密碼不對|無此帳號|帳號不存在/,
       busy: /系統過載|請稍後再來|登入太頻繁/,
       dup: /刪除其他重複登入的連線/,
@@ -266,12 +287,13 @@ JJPtt.prototype.pastLogin = function(before, mark, accepted) {
       // or an article (an announcement shown after login)
       list: JJPtt.LANDED,
       article: /瀏覽\s*第\s*\d+\/\d+\s*頁|\(y\)回應/
-    }, isIn ? 3000 : 15000, before).catch(function(err) {
+    };
+    if (dupDone) delete cases.dup;
+    return self.wait(cases, isIn ? 3000 : 15000, before).catch(function(err) {
       // in, and nothing more that this knows: wherever it stopped is fine
       if (isIn) return 'quiet';
       throw err;
     }).then(function(k) {
-      before = undefined;  // past the password: the whole screen counts again
       if (k === 'wrong' && !isIn) {
         // PTT's own words, so a misread screen can be told from a typo
         var said = (self.screen().split('\n').filter(function(l) { return /密碼不對|無此帳號|帳號不存在/.test(l); }).pop() || '').trim();
@@ -284,9 +306,10 @@ JJPtt.prototype.pastLogin = function(before, mark, accepted) {
       }
       if (k === 'menu' || k === 'list' || k === 'article' || k === 'quiet') return null;
       if (mark) mark(k === 'dup' ? '重複登入的問題' : '按任意鍵等畫面');
-      if (k === 'dup') self.send(dupAnswer);
-      else self.passHurdle();
-      return JJPtt.sleep(150).then(step);
+      before = self.screen();
+      if (k === 'dup') { dupDone = true; self.send(dupAnswer); }
+      else if (!self.passHurdle()) self.send(' ');
+      return self.settle(before, 1500).then(step);
     });
   };
   return step();
@@ -603,9 +626,8 @@ JJPtt.prototype.toMenu = function() {
     if (++tries > 12) return Promise.reject(new Error('回不到 PTT 主選單'));
     if (/確定要離開|您確定要離開|離開.*嗎/.test(text)) self.send('n\r');
     else if (/按任意鍵|請按任意鍵|按任一鍵/.test(text)) self.send(' ');
-    else if (/刪除其他重複登入的連線/.test(text)) self.send(JJPtt.kickOthers() ? 'y\r' : 'n\r');
     else self.send('\x1b[D');
-    return JJPtt.sleep(350).then(step);
+    return self.settle(text, 800).then(step);
   };
   return step();
 };
@@ -665,23 +687,29 @@ JJPtt.prototype.favorites = function() {
         var first = read();
         if (first === lastFirst || ++pages > 30) return Promise.resolve({ boards: boards, folders: folders });
         lastFirst = first;
+        var prev = self.screen();
         self.send('\x1b[6~');  // page down
-        return JJPtt.sleep(500).then(page);
+        // no change: that was the last page
+        return self.settle(prev, 900).then(function(moved) {
+          return moved ? page() : { boards: boards, folders: folders };
+        });
       };
       return page();
     };
     // into folder number n (jump to it, →), read it, ← back out. A folder
     // that can't be opened is left out, not the whole sync.
     var readFolder = function(f) {
+      var prev = self.screen();
       self.type(String(f.n) + '\r');
-      return JJPtt.sleep(600).then(function() {
+      return self.settle(prev, 600).then(function() {
         var at = self.screen();
         self.send('\x1b[C');
-        return JJPtt.sleep(900).then(function() {
-          if (self.screen() === at) return [];
+        return self.settle(at, 1500).then(function(entered) {
+          if (!entered) return [];
           return readList(f.title).then(function(r) {
+            var inside = self.screen();
             self.send('\x1b[D');
-            return JJPtt.sleep(700).then(function() { return r.boards; });
+            return self.settle(inside, 1000).then(function() { return r.boards; });
           });
         });
       });
