@@ -1871,3 +1871,8 @@ body.jj-mobile #jjToast {
 /* your push, shown at once while www.ptt.cc catches up (reloadAfterPost) */
 .jjm .jjm-push-mine { box-shadow: inset 4px 0 0 var(--accent); }
 .jjm .jjm-push-mine .jjm-push-id { color: var(--id); font-weight: 700; }
+
+/* a long chip (同機房:DigitalOcean) must not push the time onto two lines:
+   the time and floor keep their width, the chips give way */
+.jjm-push-head .jjm-push-time, .jjm-push-head .jjm-push-floor { white-space: nowrap; flex: 0 0 auto; }
+.jjm-push-head .jjm-push-chips-inline .jjm-pchip { overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
