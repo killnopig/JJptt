@@ -1,5 +1,7 @@
 # JJptt
 
+**中文** | [English](README.en.md) | [日本語](README.ja.md)
+
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-%E8%AB%8B%E6%88%91%E5%96%9D%E6%9D%AF%E5%92%96%E5%95%A1-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/killnopig)
 
 **在瀏覽器裡上 PTT，順手把帶風向的抓出來。**
@@ -13,6 +15,8 @@
 - **設定帶著走**：Google Drive 同步、匯出成檔案；有新版按一下就自動更新、自動重開。
 
 免費、開源（GPL-2.0），不上架、不收集任何資料。
+
+📱 **手機也能用了**：[JJptt Android App](#android-app) 正式版已發布，直接連 PTT、不用裝任何東西。
 
 ![閱讀模式：保留終端機外觀，圖片直接顯示在內文裡](docs/images/reader.png)
 
@@ -37,10 +41,43 @@
 - 預先讀取預設連圖片一起下載（設定 → 一般 →「預先讀取時連圖片一起下載」）：換篇最快，但流量會多很多——上下 5 篇時，每換一篇大約多下載 10 篇（一直往同一個方向看時是前進方向 10 篇、回頭 3 篇）的文字和它們的所有圖片；取消勾選就只抓文字。
 - 用手機熱點或流量有限時：取消「預先讀取時連圖片一起下載」、勾「閱讀模式用低解析度圖片」、把「預先讀取上下幾篇」調成 0 或 1，或暫時關掉閱讀模式。
 
+## Android App
+
+![JJptt Android：上 PTT，順手抓出帶風向的](docs/images/android-cover.png)
+
+JJptt 也有 Android App 了：App 自己連 PTT，不用裝本機小程式，也不經任何轉接站。
+
+- **真.事實查核中心**：秒推、同網段、機房 IP……直接標在推文旁邊，還能一鍵交給 AI 判讀。
+- **推文、回文、發文**：推完馬上看到自己的推文（標「剛送出」），不用等網頁版更新。
+- **好讀、好翻**：圖片、新聞卡片夾在內文裡；上一篇／下一篇可以浮在左右兩側，單手就能翻；我的最愛一鍵從 PTT 同步。
+- **版面隨你調**：字級、行距、推文樣式都能改，上方即時預覽；調好的版面可以存成設定碼分享給朋友。
+- **跟電腦版共用設定**：擴充功能匯出的設定檔，手機可以直接匯入。
+- **帳號安全**：密碼用 Android 的金鑰加密保存在手機裡，不會備份到雲端。
+
+![真.事實查核中心：一分鐘內五個人都說「真的超好喝」？標出來給你看](docs/images/android-fact.png)
+
+### 下載與更新
+
+1. 用手機打開 [JJptt Android 正式版下載頁](https://github.com/killnopig/JJptt/releases/tag/android-stable)，點 `JJptt.apk` 下載（約 10 MB）。
+2. 打開下載的檔案安裝。第一次會要你允許「安裝不明來源的應用程式」。
+3. 之後有新版：App 裡 **設定 → 關於 →「檢查並自動更新」**，按一下就好，設定和登入都會保留。
+
+想搶先試還在測試的修改：設定 → 關於 → 打開「**接收測試版**」。
+
+支援 Android 7.0 以上；沒有上架 Google Play，請從上面的下載頁安裝。
+
+### 關於 iOS 版
+
+很多人問有沒有 iPhone 版，其實我也很想做。程式大部分可以沿用，但 iOS App 要上架，得先加入 Apple 的開發者計畫（每年 99 美元），也需要一支 iPhone 來測試直連 PTT 和推文這些功能。
+
+JJptt 一直是免費、沒有廣告的業餘專案，這筆費用目前還沒有著落。如果你覺得 JJptt 好用，也願意幫忙促成 iOS 版，歡迎到 [Ko-fi 請我喝杯咖啡](https://ko-fi.com/killnopig)——金額不拘、完全自由，不影響任何功能。湊到開發者帳號的費用我就開工，進度會再跟大家分享。
+
+<sub>宣傳圖裡的文章、帳號和 IP 都是示範用的虛構資料。</sub>
+
 ## 安裝教學（約 5 分鐘，只要做一次）
 
-JJptt 是 Chrome 擴充功能，加上一個連線用的「本機小程式」。兩個都裝好才能用。
-支援電腦版的 Chrome、Edge、Brave、Arc、Vivaldi；手機不行。
+這段是電腦版：JJptt 是 Chrome 擴充功能，加上一個連線用的「本機小程式」。兩個都裝好才能用。
+支援電腦版的 Chrome、Edge、Brave、Arc、Vivaldi；手機請用上面的 [Android App](#android-app)。
 
 不想用 Git 的話，也可以到 [Releases](https://github.com/killnopig/JJptt/releases/latest) 下載 `JJptt-extension-版本.zip`（解壓縮後的 `extension` 資料夾就是步驟 4 要選的）和 `JJptt-native-host-版本.zip`（解壓縮後執行裡面的安裝檔）。用 zip 安裝的話「立即更新」不能用，新版要重新下載；下面用 `git clone` 的方式可以一鍵更新。
 
@@ -189,6 +226,8 @@ npm run build
 `npm run build` 會打包網站並複製到 `extension/`。發佈新版本：在 `js/changelog.js` 最上面加一筆（版本號、日期、改了什麼），再 `npm run build`，版本號會自動寫進 `package.json`、`extension/manifest.json` 和 `CHANGELOG.md`。
 
 `npm test` 跑自動測試（只要 Node，不用另外裝套件），測試在 `test/run.js`：事實查核的連推規則、臨時黑名單、同網址洗版，以及每條規則在設定頁和中英文說明都有沒有漏掉。
+
+Android App 在 `mobile/`（Capacitor）；在那裡 `npm run build` 會把打包好的網頁複製進 App。每次推到 `mobile` 分支，CI 會自動建置並簽章（`.github/workflows/android.yml`），測試過的版本再手動發成正式版（`.github/workflows/android-stable.yml`）。
 
 本機小程式的原始碼在 `native-host/main.go`，改完用 `sh native-host/build.sh` 重新編譯所有平台的執行檔（需要 Go）。
 
