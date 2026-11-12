@@ -2,7 +2,7 @@
 
 **中文** | [English](README.en.md) | [日本語](README.ja.md)
 
-[![下載 Android App](https://img.shields.io/badge/Android-%E4%B8%8B%E8%BC%89%20APK-3DDC84?logo=android&logoColor=white)](https://github.com/killnopig/JJptt/releases/tag/android-stable) [![電腦版](https://img.shields.io/badge/Chrome-%E6%93%B4%E5%85%85%E5%8A%9F%E8%83%BD-4285F4?logo=googlechrome&logoColor=white)](docs/desktop.md) [![Ko-fi](https://img.shields.io/badge/Ko--fi-%E8%AB%8B%E6%88%91%E5%96%9D%E6%9D%AF%E5%92%96%E5%95%A1-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/killnopig)
+[![下載 Android App](https://img.shields.io/badge/Android-%E4%B8%8B%E8%BC%89%20APK-3DDC84?logo=android&logoColor=white)](https://github.com/killnopig/JJptt/releases/tag/android-stable) [![Chrome 擴充功能版](https://img.shields.io/badge/Chrome-%E6%93%B4%E5%85%85%E5%8A%9F%E8%83%BD-4285F4?logo=googlechrome&logoColor=white)](docs/desktop.md) [![Ko-fi](https://img.shields.io/badge/Ko--fi-%E8%AB%8B%E6%88%91%E5%96%9D%E6%9D%AF%E5%92%96%E5%95%A1-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/killnopig)
 
 ## PTT 上誰在帶風向？JJptt 讓你一眼看穿。
 
@@ -24,7 +24,7 @@
 | 🔒 **直連、不經手** | 直接連 ptt.cc，沒有轉接站；帳號密碼只存在你自己的電腦或手機 |
 | 📖 **真的好讀** | 圖片、影片、新聞卡片直接夾在內文裡；上下篇預先讀好，秒開 |
 | 🎨 **推文一目了然** | 樓層、國旗、同 IP、同一人推了幾次各自上色；黑名單淡化或隱藏，同一網址到處貼自動封鎖 24 小時 |
-| 🔄 **設定帶著走** | 電腦版匯出的設定，手機直接匯入；調好的版面存成設定碼，分享給朋友 |
+| 🔄 **設定帶著走** | 擴充功能版匯出的設定，手機直接匯入；調好的版面存成設定碼，分享給朋友 |
 
 ## 📱 Android App
 
@@ -32,7 +32,7 @@
 >
 > 👉 **[Android App 介紹與下載](docs/android.md)**：截圖、下載與更新方式、iPhone 版的計畫
 
-## 💻 電腦版（Chrome 擴充功能）
+## 💻 Chrome 擴充功能版
 
 保留 PTT 終端機的字型與手感，再加上閱讀模式和事實查核。Chrome、Edge、Brave、Arc、Vivaldi 都能用，約 5 分鐘裝好。
 
@@ -44,7 +44,7 @@
 - **越用越順手**：最新文章排最上面、Z 搜尋自動帶推文數、選字就能問 AI。
 - **設定帶著走**：Google Drive 同步、匯出成檔案；有新版按一下就自動更新、自動重開。
 
-**[電腦版安裝與使用說明](docs/desktop.md)**
+**[擴充功能版安裝與使用說明](docs/desktop.md)**
 
 <sub>以上畫面皆為示範，文章、帳號與 IP 都是虛構的。</sub>
 
@@ -72,11 +72,11 @@
 
 ## 下載安裝
 
-- **電腦版（Chrome 擴充功能）**：Chrome、Edge、Brave、Arc、Vivaldi，約 5 分鐘裝好 → [電腦版安裝與使用說明](docs/desktop.md)
+- **Chrome 擴充功能版**：Chrome、Edge、Brave、Arc、Vivaldi，約 5 分鐘裝好 → [擴充功能版安裝與使用說明](docs/desktop.md)
 - **Android App**：直接下載安裝，不用裝其他東西 → [Android App 介紹與下載](docs/android.md)
 - **iPhone**：還沒有，[原因和怎麼幫忙](docs/android.md#關於-ios-版)
 
-安裝教學、第一次使用、怎麼更新、常見問題、為什麼要有閱讀模式、進階設定，都搬到了 [電腦版說明](docs/desktop.md)。
+安裝教學、第一次使用、怎麼更新、常見問題、為什麼要有閱讀模式、進階設定，都搬到了 [擴充功能版說明](docs/desktop.md)。
 
 ## 開發
 
