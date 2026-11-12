@@ -188,27 +188,35 @@ JJPtt.prototype.login = function(user, pass) {
 JJPtt.prototype.doLogin = function(user, pass) {
   var self = this;
   if (this.state === 'in' && this.connected() && user === this.user) return Promise.resolve();
+  // which step was waited on, for the message when PTT does not answer
+  var at = function(step) {
+    return function(err) {
+      if (err && /沒有回應/.test(err.message)) err.message = 'PTT 沒有回應（' + step + '），請再試一次';
+      throw err;
+    };
+  };
   return this.connect().then(function() {
-    return self.wait({ user: /請輸入代號/ }, 20000);
+    return self.wait({ user: /請輸入代號/ }, 20000).catch(at('等帳號欄'));
   }).then(function() {
     var before = self.screen();
     self.type(user + '\r');
     // only once PTT really asks for the password: what is typed before that
     // is thrown away (that made right passwords fail)
-    return self.wait({ pass: /請輸入您的密碼/ }, 15000, before);
+    return self.wait({ pass: /請輸入您的密碼/ }, 15000, before).catch(at('等密碼欄'));
   }).then(function() {
     return JJPtt.sleep(300);
   }).then(function() {
     var before = self.screen();
     self.type(pass + '\r');
-    return self.pastLogin(before);
+    return self.pastLogin(before).catch(at('密碼送出後'));
   }).then(function() {
     self.user = user;
     self.pass = pass;
     self.setState('in');
   }).catch(function(err) {
-    self.setState(self.connected() ? 'connecting' : 'off');
+    // dropped: the top bar must not stay on 「登入中…」
     self.disconnect();
+    self.setState('off');
     throw err;
   });
 };
