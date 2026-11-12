@@ -1667,7 +1667,7 @@ JJMobile.prototype.renderSettings = function(screen) {
   }
   // tabs like the extension's settings page (一般 / 版面 / 黑名單 / … / 關於):
   // one part at a time instead of one long page; the tab is remembered
-  var TABS = [['general', '一般'], ['layout', '版面'], ['lists', '黑名單'], ['fact', '事實查核'],
+  var TABS = [['general', '一般'], ['layout', '版面'], ['lists', '黑名單'], ['fact', '真.事實查核'],
               ['account', '帳號'], ['about', '關於']];
   var cur = screen.tab;
   if (!cur) { try { cur = window.localStorage.getItem('jjptt.m.setTab'); } catch (e) {} }
@@ -1831,7 +1831,7 @@ JJMobile.prototype.renderSettings = function(screen) {
     function(id) { self.app.doSetUserNote(id); }, function(id) { self.app.doRemoveUserNote(id); }, screen));
 
   // fact check (from the extension's settings page)
-  var fc = section('fact', 'FACT 真.事實查核中心', '文章推文上方那一條「FACT」。標出來的只是疑點，不代表一定是網軍。');
+  var fc = section('fact', '真.事實查核中心 FACT', '文章推文上方那一條「FACT」。標出來的只是疑點，不代表一定是網軍。');
   this.factRows(fc, screen);
   if (pref.values.aiService !== undefined && typeof PREF_OPTIONS !== 'undefined' && PREF_OPTIONS.aiService) {
     fc.appendChild(this.choiceRow('aiService', '「請 AI 分析」用哪一個',
