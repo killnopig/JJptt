@@ -211,8 +211,9 @@ pttchrome.App = function(onInitializedCallback, options) {
     self.pref.getStorage();
   });
 
-  // init touch only if chrome is higher than version 36
-  if (this.chromeVersion && this.chromeVersion >= 37) {
+  // init touch only if chrome is higher than version 36 (the Android app has
+  // its own gestures, js/mobile.js)
+  if (this.chromeVersion && this.chromeVersion >= 37 && !lib.isApp()) {
     this.touch = new pttchrome.TouchController(this);
   }
 };
@@ -1247,7 +1248,8 @@ pttchrome.App.prototype.onPrefChange = function(pref, name) {
       this.onPrefChange(pref, 'useMouseBrowsing');
       break;
     case 'useMouseBrowsing':
-      var useMouseBrowsing = pref.get(name);
+      // the app always has it: tapping a row goes there (js/mobile.js)
+      var useMouseBrowsing = pref.get(name) || lib.isApp();
       this.CmdHandler.setAttribute('useMouseBrowsing', useMouseBrowsing?'1':'0');
       this.buf.useMouseBrowsing = useMouseBrowsing;
 

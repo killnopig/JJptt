@@ -1371,24 +1371,47 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 
 
 /* ---- JJptt on phones (Android app: body.jj-mobile, js/mobile.js) ---- */
-#jjKeyBar, #jjReaderNav { display: none; }
-body.jj-mobile #jjKeyBar,
+#jjReaderNav, #jjLogin { display: none; }
 body.jj-mobile #jjReaderNav {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 3100;
-  gap: 4px; padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  gap: 6px; padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
   background: rgba(20, 20, 20, .96); border-top: 1px solid #333;
+  height: 60px; box-sizing: border-box;
 }
-body.jj-mobile #jjKeyBar { overflow-x: auto; }
-body.jj-mobile #jjKeyBar button,
 body.jj-mobile #jjReaderNav button {
-  flex: 1 0 auto; min-width: 40px; height: 42px; padding: 0 8px;
-  border: 0; border-radius: 8px; background: #3a3a3a; color: #eee;
-  font-size: 17px; -webkit-tap-highlight-color: transparent;
+  flex: 1 1 0; height: 46px; border: 0; border-radius: 8px;
+  background: #3a3a3a; color: #eee; font-size: 16px; -webkit-tap-highlight-color: transparent;
 }
-body.jj-mobile #jjKeyBar button:active,
 body.jj-mobile #jjReaderNav button:active { background: #5a5a5a; }
-body.jj-mobile #jjReaderNav button { flex: 1 1 0; font-size: 16px; }
-body.jj-mobile #jjReaderNav { height: 60px; box-sizing: border-box; padding-top: 6px; padding-bottom: 6px; }
+/* the terminal takes swipes and taps itself (no page scrolling / zooming) */
+body.jj-mobile #BBSWindow.jj-gestures { touch-action: none; }
+
+/* login page over PTT's welcome screen */
+body.jj-mobile #jjLogin {
+  position: fixed; inset: 0; z-index: 3200; flex-direction: column; align-items: center;
+  justify-content: center; gap: 10px; padding: 24px; box-sizing: border-box;
+  background: radial-gradient(circle at 50% 30%, #2c3a1c 0%, #0b0f07 70%); color: #eee;
+  font-family: -apple-system, "Noto Sans TC", "PingFang TC", sans-serif; overflow-y: auto;
+}
+#jjLogin .jj-login-logo { width: 132px; height: 132px; border-radius: 28px; box-shadow: 0 8px 30px rgba(0,0,0,.5); }
+#jjLogin .jj-login-name { font-size: 30px; font-weight: 700; letter-spacing: 1px; }
+#jjLogin .jj-login-tag { font-size: 14px; color: #b8c6a2; margin-bottom: 8px; text-align: center; }
+#jjLogin .jj-login-status { font-size: 16px; color: #cfd8c0; min-height: 22px; }
+#jjLogin .jj-login-form { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 340px; }
+#jjLogin input[type=text], #jjLogin input[type=password] {
+  height: 50px; padding: 0 14px; border-radius: 10px; border: 1px solid #556b3a;
+  background: rgba(255,255,255,.08); color: #fff; font-size: 18px; outline: none;
+}
+#jjLogin input:focus { border-color: #a7c97c; }
+#jjLogin .jj-login-remember { font-weight: normal; font-size: 15px; color: #d6dfc8; display: flex; align-items: center; gap: 6px; }
+#jjLogin .jj-login-remember input { width: 20px; height: 20px; margin: 0; }
+#jjLogin .jj-login-error { color: #ff8a80; font-size: 15px; min-height: 20px; }
+#jjLogin .jj-login-go {
+  height: 52px; border: 0; border-radius: 12px; background: #8db45c; color: #10170a;
+  font-size: 19px; font-weight: 700;
+}
+#jjLogin .jj-login-go:active { background: #a7c97c; }
+#jjLogin .jj-login-guest { height: 40px; border: 0; background: none; color: #b8c6a2; font-size: 15px; text-decoration: underline; }
 
 /* settings: one column, sections as a row of tabs on top */
 body.jj-mobile #prefModal > .modal-dialog { width: 100%; min-width: 0; height: 100%; min-height: 0; margin: 0; }
