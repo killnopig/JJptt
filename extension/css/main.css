@@ -1505,7 +1505,7 @@ body.jj-mobile .jjm {
 
 /* pushes */
 .jjm-pushes { display: flex; flex-direction: column; }
-.jjm-push { padding: 10px 18px 12px; border-bottom: 1px solid var(--line); }
+.jjm-push { padding: var(--jjm-pgap, 10px) 18px calc(var(--jjm-pgap, 10px) + 2px); border-bottom: 1px solid var(--line); }
 .jjm-push[data-level="warn"] { box-shadow: inset 4px 0 0 var(--warn); }
 .jjm-push[data-level="watch"] { box-shadow: inset 4px 0 0 var(--watch); }
 .jjm-push[data-level="note"] { box-shadow: inset 4px 0 0 var(--note); }
@@ -1569,6 +1569,10 @@ body.jj-mobile .jjm {
 /* home title with the app icon */
 .jjm-title .jjm-logo { width: 34px; height: 34px; vertical-align: -8px; margin-right: 8px; }
 
+/* section title with a small button on the right */
+.jjm-section-row { display: flex; align-items: center; gap: 8px; }
+.jjm .jjm-mini { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--accent); padding: 6px 10px; border-radius: 14px; border: 1px solid var(--line); letter-spacing: 0; }
+
 /* settings */
 .jjm-group { background: var(--card); margin: 0 12px; border-radius: 16px; border: 1px solid var(--line); overflow: hidden; }
 .jjm .jjm-set {
@@ -1610,6 +1614,23 @@ body.jj-mobile .jjm {
 .jjm-temp { padding: 8px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
 .jjm-temp-id { font-weight: 700; }
 .jjm-temp .jjm-chip { min-height: 36px; }
+
+/* one line: tag, ID and text run together; time and floor on the right */
+.jjm-inline .jjm-push-head { display: inline; }
+.jjm-inline .jjm-push-head > * { display: inline; }
+.jjm-inline .jjm-push-time, .jjm-inline .jjm-push-floor { float: right; margin-left: 8px; font-size: 12px; line-height: 2; }
+.jjm-inline .jjm-push-text { display: inline; margin: 0 0 0 6px; }
+.jjm-inline .jjm-push-chips, .jjm-inline .jjm-push .jjr-media { margin-left: 0; }
+.jjm-inline .jjm-push-tag { width: auto; margin-right: 4px; }
+.jjm .jjm-inline .jjm-push-id, .jjm.jjm-inline .jjm-push-id { min-height: 0; padding: 0; margin: 0; }
+
+/* settings: preview of pushes, slider */
+.jjm-set-head { display: flex; align-items: center; }
+.jjm-set-val { margin-left: auto; color: var(--accent); font-weight: 700; }
+.jjm-range { width: 100%; accent-color: var(--accent); height: 32px; }
+.jjm-preview { border-radius: 12px; border: 1px solid var(--line); background: var(--bg); overflow: hidden; }
+.jjm-preview .jjm-push:last-child { border-bottom: 0; }
+.jjm-preview .jjm-push-id { color: #ffd54f; font-weight: 700; font-size: 15px; }
 
 /* bottom sheets */
 .jjm-shade { position: fixed; inset: 0; z-index: 4000; background: rgba(0,0,0,.55); display: flex; align-items: flex-end; }

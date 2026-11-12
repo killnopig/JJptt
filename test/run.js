@@ -515,7 +515,7 @@ function fakePtt(script) {
   var at = 0, typed = [];
   var app = {
     pref: { values: {} },
-    buf: { rows: 1, cols: 80, getRowText: function() { return script[at][0]; } },
+    buf: { rows: 24, cols: 80, getRowText: function(r) { return script[at][0].split('\n')[r] || ''; } },
     conn: {
       isConnected: false,
       send: function(k) { typed.push(k); move(k); },
@@ -614,6 +614,33 @@ testAsync('reply: y, to the board, same title, no quote, lines, Ctrl-X, save, si
   await f.ptt.reply('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html', '第一行\n第二行', false);
   assert.deepStrictEqual(f.typed, ['s', 'Test\r', ' ', '#', AID + '\r', 'y', 'f\r', 'y\r', 'n\r',
                                    '第一行', '\r', '第二行', '\x18', 's\r', '0\r', ' ']);
+});
+
+test('我的最愛 rows: board name and title; folders and lines skipped', function() {
+  var b = JJPtt.parseBoardRow('     3 ˇGossiping    綜合 ◎[八卦] 亂講話                  爆! 板主a/板主b');
+  assert.strictEqual(b.name, 'Gossiping');
+  assert.strictEqual(b.title, '[八卦] 亂講話');
+  assert.strictEqual(b.n, 3);
+  assert.strictEqual(JJPtt.parseBoardRow('>    1   C_Chat      閒談 ◎[希洽] 孤獨搖滾        HOT abc').name, 'C_Chat');
+  assert.strictEqual(JJPtt.parseBoardRow('     4   NewsFolder  目錄 Σ我的新聞資料夾'), null);
+  assert.strictEqual(JJPtt.parseBoardRow('     5 ------------------------------------------'), null);
+  assert.strictEqual(JJPtt.parseBoardRow('   編號   看 板   類別   轉信  中   文   敘   述'), null);
+});
+testAsync('我的最愛: main menu, f, two pages, stops at the last one', async function() {
+  var head = '【 我 的 最愛 】\n   編號   看 板   類別   轉信  中   文   敘   述\n';
+  var page1 = head + [1, 2].map(function(i) { return '   ' + i + ' ˇBoard' + i + '      綜合 ◎[標題' + i + ']  中文' ; }).join('\n');
+  var page2 = head + '   3   Stock       學術 ◎[股市] 股票板       爆! x\n   4   Folder      目錄 Σ資料夾';
+  var s = LOGIN.slice(0, 6);
+  s[4] = ['【主功能表】 批踢踢實業坊', { 'f': 6 }];
+  s.push([page1, { '\x1b[6~': 7 }]);              // 6
+  s.push([page2, { '\x1b[6~': 7, '\x1b[D': 4 }]);  // 7: last page stays
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  f.typed.length = 0;
+  var boards = await f.ptt.favorites();
+  sameJson(boards.map(function(b) { return b.name; }), ['Board1', 'Board2', 'Stock']);
+  assert.strictEqual(boards[2].title, '[股市] 股票板');
+  sameJson(f.typed, ['f', '\x1b[6~', '\x1b[6~', '\x1b[D']);
 });
 
 // ---- settings defaults ----------------------------------------------------------

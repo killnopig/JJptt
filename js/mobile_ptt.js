@@ -386,3 +386,72 @@ JJPtt.prototype.reply = function(url, text, quote) {
     });
   });
 };
+
+// ---- 我的最愛 (the account's favourite boards) ---------------------------------------------
+
+// One row of a board list: "   12 ˇGossiping    綜合 ◎[八卦] 亂講話   爆! 板主"
+// -> { name, title }; folders (Σ) and separator lines give null.
+JJPtt.parseBoardRow = function(row) {
+  var m = /^\s*[>●]?\s*(\d+)\s+[ˇ\s]?\s*([A-Za-z][\w\-]{1,15})\s+(\S{1,6})\s+([◎●Σ□]?)\s*(.*)$/.exec(row);
+  if (!m || m[4] === 'Σ') return null;
+  if (/^-+$/.test(m[2])) return null;
+  var title = m[5].split(/\s{2,}/)[0].replace(/^◎/, '').trim();
+  return { n: +m[1], name: m[2], title: title };
+};
+
+// Back to the main menu from wherever the connection is.
+JJPtt.prototype.toMenu = function() {
+  var self = this;
+  var tries = 0;
+  var step = function() {
+    var text = self.screen();
+    if (/【\s*主功能表\s*】|主功能表/.test(text)) return Promise.resolve();
+    if (++tries > 8) return Promise.reject(new Error('回不到 PTT 主選單'));
+    if (/確定要離開|您確定要離開|離開.*嗎/.test(text)) self.send('n\r');
+    else if (/按任意鍵|請按任意鍵/.test(text)) self.send(' ');
+    else self.send('\x1b[D');
+    return JJPtt.sleep(500).then(step);
+  };
+  return step();
+};
+
+JJPtt.prototype.favorites = function() {
+  var self = this;
+  return this.run(function() {
+    var boards = [], seen = {};
+    var lastFirst = -1, pages = 0;
+    var read = function() {
+      var buf = self.app.buf;
+      var first = -1;
+      for (var r = 2; r < (buf.rows || 24) - 1; ++r) {
+        var b = JJPtt.parseBoardRow(buf.getRowText(r, 0, buf.cols));
+        if (!b) continue;
+        if (first < 0) first = b.n;
+        var k = b.name.toLowerCase();
+        if (!seen[k]) {
+          seen[k] = true;
+          boards.push({ name: b.name, title: b.title });
+        }
+      }
+      return first;
+    };
+    var page = function() {
+      var first = read();
+      if (first === lastFirst || ++pages > 30) return Promise.resolve();
+      lastFirst = first;
+      self.send('\x1b[6~');  // page down
+      return JJPtt.sleep(500).then(page);
+    };
+    return self.ensureIn().then(function() {
+      return self.toMenu();
+    }).then(function() {
+      self.send('f');
+      return self.wait({ fav: /我的最愛|我 的 最愛/ }, 8000);
+    }).then(function() {
+      return JJPtt.sleep(300);
+    }).then(page).then(function() {
+      self.send('\x1b[D');  // leave the list
+      return boards;
+    });
+  });
+};

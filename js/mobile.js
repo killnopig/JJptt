@@ -18,6 +18,7 @@ function JJMobile(app) {
 JJMobile.WEB = 'https://www.ptt.cc';
 JJMobile.CACHE_MS = 10 * 60 * 1000;
 JJMobile.FAVS_KEY = 'jjptt.m.favs';
+JJMobile.SYNCED_KEY = 'jjptt.m.favsSynced';
 JJMobile.FONT_KEY = 'jjptt.m.font';
 JJMobile.FONTS = [15, 17, 19, 22];
 
@@ -94,11 +95,22 @@ JJMobile.prototype.setup = function() {
   reader.onTerminalUpdate = function() {};
   reader.schedulePrefetch = function() {};
   this.ptt = new JJPtt(this.app);
-  this.ptt.onChange(function() {
+  this.ptt.onChange(function(state) {
     var top = self.stack[self.stack.length - 1];
     if (top) self.setBar(top);
+    var home = self.stack[0];
+    if (home && home.type === 'home' && home.view) {  // the sync button's text
+      var btn = home.view.querySelector('.jjm-section-row .jjm-mini');
+      if (btn) btn.textContent = state === 'in' ? '從 PTT 同步' : '登入後可同步 PTT 我的最愛';
+    }
+    // logged in: bring PTT's 我的最愛 in once per app start
+    if (state === 'in' && !self.favsSyncedNow) {
+      self.favsSyncedNow = true;
+      self.syncFavs(false);
+    }
   });
   this.setFont(JJMobile.store(JJMobile.FONT_KEY) || 17);
+  this.setPushStyle();
 
   // the phone's back button
   var C = window.Capacitor;
@@ -141,6 +153,21 @@ JJMobile.prototype.setFont = function(px) {
   this.fontPx = px;
   this.root.style.setProperty('--jjm-fs', px + 'px');
   JJMobile.store(JJMobile.FONT_KEY, px);
+};
+
+// Push spacing (px above / below each push) and "ID and text on one line".
+JJMobile.GAP_KEY = 'jjptt.m.pushGap';
+JJMobile.INLINE_KEY = 'jjptt.m.pushInline';
+JJMobile.prototype.setPushStyle = function(gap, inline) {
+  if (gap === undefined || gap === null) gap = JJMobile.store(JJMobile.GAP_KEY);
+  if (typeof gap !== 'number') gap = 10;
+  if (inline === undefined || inline === null) inline = JJMobile.store(JJMobile.INLINE_KEY) === true;
+  this.pushGap = gap;
+  this.pushInline = inline;
+  this.root.style.setProperty('--jjm-pgap', gap + 'px');
+  this.root.classList.toggle('jjm-inline', inline);
+  JJMobile.store(JJMobile.GAP_KEY, gap);
+  JJMobile.store(JJMobile.INLINE_KEY, inline);
 };
 
 // ---- screens ----------------------------------------------------------------------
@@ -346,6 +373,43 @@ JJMobile.prototype.toggleFav = function(board, title) {
   if (this.app.showToast) this.app.showToast(i >= 0 ? '已從我的看板移除' : '已加入我的看板', 1500);
 };
 
+// PTT's 我的最愛 into 我的看板: PTT's order first, then boards added only in
+// the app (nothing is removed).
+JJMobile.prototype.syncFavs = function(manual) {
+  var self = this;
+  if (this.ptt.state !== 'in') {
+    if (manual) this.accountSheet(function() { self.syncFavs(true); });
+    return;
+  }
+  if (manual && this.app.showToast) this.app.showToast('正在讀取 PTT 我的最愛…', 1500);
+  this.ptt.favorites().then(function(boards) {
+    var mine = self.favs();
+    var have = {};
+    var merged = boards.map(function(b) {
+      have[b.name.toLowerCase()] = true;
+      return { name: b.name, title: b.title };
+    });
+    var added = 0;
+    mine.forEach(function(f) {
+      if (!have[f.name.toLowerCase()]) merged.push(f);
+    });
+    boards.forEach(function(b) {
+      if (!mine.some(function(f) { return f.name.toLowerCase() === b.name.toLowerCase(); })) added++;
+    });
+    JJMobile.store(JJMobile.FAVS_KEY, merged);
+    JJMobile.store(JJMobile.SYNCED_KEY, Date.now());
+    if (self.app.showToast) self.app.showToast('已同步 PTT 我的最愛：' + boards.length + ' 個看板' + (added ? '（新加 ' + added + ' 個）' : ''), 2500);
+    var home = self.stack[0];
+    if (home && home.type === 'home') {
+      home.view.innerHTML = '';
+      self.renderHome(home);
+      if (self.stack.length === 1) self.setBar(home);
+    }
+  }).catch(function(err) {
+    if (manual && self.app.showToast) self.app.showToast('同步失敗：' + err.message, 3500);
+  });
+};
+
 JJMobile.prototype.renderHome = function(screen) {
   var self = this;
   var el = JJMobile.el;
@@ -371,7 +435,12 @@ JJMobile.prototype.renderHome = function(screen) {
   v.appendChild(form);
 
   var favs = this.favs();
-  v.appendChild(el('div', 'jjm-section', '我的看板'));
+  var favHead = el('div', 'jjm-section jjm-section-row');
+  favHead.appendChild(el('span', '', '我的看板'));
+  favHead.appendChild(JJMobile.button('jjm-mini', this.ptt.state === 'in' ? '從 PTT 同步' : '登入後可同步 PTT 我的最愛', function() {
+    self.syncFavs(true);
+  }));
+  v.appendChild(favHead);
   var favList = el('div', 'jjm-list');
   if (!favs.length) {
     favList.appendChild(el('div', 'jjm-hint', '在看板裡按右上角的 ☆，就會加到這裡。'));
@@ -1155,6 +1224,7 @@ JJMobile.prototype.renderSettings = function(screen) {
   });
   fontRow.appendChild(fonts);
   rd.appendChild(fontRow);
+  this.pushLookRows(rd);
 
   // lists
   var ls = section('名單');
@@ -1191,6 +1261,79 @@ JJMobile.prototype.renderSettings = function(screen) {
   ab.appendChild(this.setRow('原始碼與回報問題', 'GitHub', function() {
     window.open('https://github.com/killnopig/JJptt', '_blank');
   }));
+};
+
+// 推文間距 slider, one-line switch and a preview of a few pushes that
+// follows them (and the text size) as they change.
+JJMobile.prototype.pushLookRows = function(box) {
+  var self = this;
+  var el = JJMobile.el;
+  var row = el('div', 'jjm-set jjm-set-col');
+  var head = el('div', 'jjm-set-head');
+  head.appendChild(el('div', 'jjm-set-title', '推文間距'));
+  var val = el('span', 'jjm-set-val');
+  head.appendChild(val);
+  row.appendChild(head);
+  var range = el('input', 'jjm-range');
+  range.type = 'range';
+  range.min = 0;
+  range.max = 24;
+  range.step = 2;
+  range.value = this.pushGap;
+  var show = function() {
+    var g = +range.value;
+    val.textContent = g <= 2 ? '最緊' : g <= 6 ? '緊' : g <= 12 ? '標準' : g <= 18 ? '鬆' : '最鬆';
+  };
+  show();
+  range.addEventListener('input', function() {
+    self.setPushStyle(+range.value, self.pushInline);
+    show();
+  });
+  row.appendChild(range);
+  box.appendChild(row);
+
+  var line = el('label', 'jjm-set jjm-toggle');
+  var t = el('div', 'jjm-set-text');
+  t.appendChild(el('div', 'jjm-set-title', '帳號和推文排在同一行'));
+  t.appendChild(el('div', 'jjm-set-sub', '比較緊湊，一個畫面看得到更多推文'));
+  line.appendChild(t);
+  var cb = el('input');
+  cb.type = 'checkbox';
+  cb.checked = this.pushInline;
+  cb.addEventListener('change', function() { self.setPushStyle(self.pushGap, cb.checked); });
+  line.appendChild(cb);
+  line.appendChild(el('span', 'jjm-switch'));
+  box.appendChild(line);
+
+  // preview: what an article's pushes look like with these settings
+  var pv = el('div', 'jjm-set jjm-set-col');
+  pv.appendChild(el('div', 'jjm-set-sub', '預覽（字的大小、間距改了會跟著變）'));
+  var frame = el('div', 'jjm-preview jjm-reading');
+  var sample = [
+    ['推', 'up', 'kitten5566', '這篇整理得很清楚，推', '11/12 10:21', 12, []],
+    ['→', 'arrow', 'kitten5566', '補充一下：官方今天也有發新聞稿', '11/12 10:22', 13, []],
+    ['噓', 'down', 'troll0607', '又在帶風向', '11/12 10:22', 14, [['秒推', 'warn'], ['同IP：bot1、bot2', 'warn']]],
+    ['推', 'up', 'neko_neko', '樓上的 IP 跟另外兩個人一樣欸', '11/12 10:25', 15, [['觀察', 'watch']]]
+  ];
+  sample.forEach(function(s) {
+    var p = el('div', 'jjm-push');
+    if (s[6].length) p.setAttribute('data-level', s[6][0][1]);
+    var h = el('div', 'jjm-push-head');
+    h.appendChild(el('span', 'jjm-push-tag jjm-push-' + s[1], s[0]));
+    h.appendChild(el('span', 'jjm-push-id', s[2]));
+    h.appendChild(el('span', 'jjm-push-time', '🇹🇼 ' + s[4]));
+    h.appendChild(el('span', 'jjm-push-floor', s[5] + '樓'));
+    p.appendChild(h);
+    p.appendChild(el('div', 'jjm-push-text', s[3]));
+    if (s[6].length) {
+      var c = el('div', 'jjm-push-chips');
+      s[6].forEach(function(x) { c.appendChild(el('span', 'jjm-pchip jjm-pchip-' + x[1], x[0])); });
+      p.appendChild(c);
+    }
+    frame.appendChild(p);
+  });
+  pv.appendChild(frame);
+  box.appendChild(pv);
 };
 
 JJMobile.prototype.setRow = function(title, sub, onTap) {
