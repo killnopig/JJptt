@@ -58,16 +58,19 @@ jobs:
           ./sign-release.sh app/build/outputs/apk/release/app-release-unsigned.apk "$GITHUB_WORKSPACE/JJptt.apk"
           rm -f "$JJPTT_KEYSTORE"
           # what the app reads to know whether it is the newest build
-          echo "{\"run\": ${GITHUB_RUN_NUMBER}, \"sha\": \"${GITHUB_SHA::7}\"}" > "$GITHUB_WORKSPACE/version.json"
+          JJPTT_VERSION=$(node -p "require('$GITHUB_WORKSPACE/package.json').version")
+          echo "{\"run\": ${GITHUB_RUN_NUMBER}, \"version\": \"${JJPTT_VERSION}\", \"sha\": \"${GITHUB_SHA::7}\"}" > "$GITHUB_WORKSPACE/version.json"
 
       - name: Publish to the android-latest release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION="0.0.${GITHUB_RUN_NUMBER}"
+          JJPTT_VERSION=$(node -p "require('./package.json').version")
+          VERSION="${JJPTT_VERSION} (${GITHUB_RUN_NUMBER})"
           git tag -f android-latest
           git push -f origin android-latest
-          NOTES="JJptt Android 測試版 ${VERSION}（${GITHUB_SHA::7}）
+          # 「版次 0.0.N」 first: builds before 1.33.0 (N) find their run by it
+          NOTES="版次 0.0.${GITHUB_RUN_NUMBER}・JJptt Android 測試版 ${VERSION}（${GITHUB_SHA::7}）
 
           在手機上點下面的 JJptt.apk 下載，打開安裝（第一次要允許「安裝不明來源的應用程式」）。新版直接裝在舊版上面，設定會保留。"
           if gh release view android-latest >/dev/null 2>&1; then

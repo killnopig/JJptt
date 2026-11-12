@@ -16,6 +16,7 @@ for (const f of ['icon_16.png', 'icon_48.png', 'icon_128.png', 'icon_512.png', '
 // which build this is (GitHub Actions run number and commit), shown in
 // 設定 → 關於 so a phone can tell whether it has the newest one
 const info = {
+  version: require('../package.json').version,  // JJptt's (the extension's)
   run: process.env.GITHUB_RUN_NUMBER || 'dev',
   sha: (process.env.GITHUB_SHA || '').slice(0, 7),
   time: new Date().toISOString()

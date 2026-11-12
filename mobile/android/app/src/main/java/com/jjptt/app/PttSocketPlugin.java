@@ -34,7 +34,9 @@ public class PttSocketPlugin extends Plugin {
     private final ExecutorService writer = Executors.newSingleThreadExecutor();
     private Socket socket;
     private OutputStream out;
-    private int generation = 0;  // bumped on every connect / close
+    // bumped on every connect / close; volatile: the read loop checks it
+    // without the lock and must see a close() at once
+    private volatile int generation = 0;
 
     static boolean allowedTarget(String host, int port) {
         boolean hostOk = "ptt.cc".equals(host) || "ptt2.cc".equals(host);

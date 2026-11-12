@@ -829,8 +829,14 @@ PttReader.el = function(tag, cls, text) {
   return n;
 };
 
+// http:// pictures are asked for over https:// (the Android app's page is
+// https and does not load http content; Chrome upgrades them the same way)
+PttReader.https = function(url) {
+  return String(url || '').replace(/^http:\/\//i, 'https://');
+};
+
 PttReader.imageSrc = function(url) {
-  if (url.isImageUrl()) return url;
+  if (url.isImageUrl()) return PttReader.https(url);
   var m = /^https?:\/\/(?:m\.)?imgur\.com\/(\w{5,8})$/i.exec(url);
   if (m) return 'https://i.imgur.com/' + m[1] + '.jpg';
   return '';
@@ -1039,7 +1045,7 @@ PttReader.prototype.fetchPreview = function(url) {
       var title = meta(['og:title', 'twitter:title']) || (doc.title || '').trim();
       var image = meta(['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src']);
       if (image) {
-        try { image = new URL(image, res.url).href; } catch (e) { image = ''; }
+        try { image = PttReader.https(new URL(image, res.url).href); } catch (e) { image = ''; }
       }
       var info = {
         title: title,

@@ -338,6 +338,49 @@ JJPtt.prototype.logout = function() {
   this.setState('off');
 };
 
+// ---- back from the background ----------------------------------------------------
+// After the phone slept, the connection may be gone without anyone being
+// told (the router forgot it): the first 推文 then waited ~15 seconds for
+// nothing. So when the app comes back, the connection is checked and, if
+// it is gone, logged in again right away, before anything is asked of it.
+
+JJPtt.PROBE_AFTER_MS = 30000;  // away shorter than this: nothing to check
+JJPtt.PROBE_MS = 4000;
+
+// Ctrl-L (PTT redraws the screen, wherever it is): alive if anything comes back.
+JJPtt.prototype.alive = function(ms) {
+  var self = this, app = this.app;
+  if (!this.connected()) return Promise.resolve(false);
+  var since = Date.now();
+  this.send('\x0c');
+  var until = since + (ms || JJPtt.PROBE_MS);
+  return new Promise(function(resolve) {
+    var tick = function() {
+      if (!self.connected()) return resolve(false);
+      if ((app.lastDataAt || 0) >= since) return resolve(true);
+      if (Date.now() > until) return resolve(false);
+      setTimeout(tick, JJPtt.STEP_MS);
+    };
+    tick();
+  });
+};
+
+// awayMs: how long the app was in the background.
+JJPtt.prototype.resume = function(awayMs) {
+  var self = this;
+  if (!this.user) return Promise.resolve();
+  return this.run(function() {
+    if (!(self.state === 'in' && self.connected())) return self.ensureIn();
+    if (typeof awayMs !== 'number' || awayMs < JJPtt.PROBE_AFTER_MS) return;
+    return self.alive().then(function(ok) {
+      if (ok) return;
+      self.disconnect();
+      self.setState('off');
+      return self.ensureIn();
+    });
+  });
+};
+
 // Logged in again if the connection dropped (the phone slept...).
 JJPtt.prototype.ensureIn = function() {
   if (this.state === 'in' && this.connected()) return Promise.resolve();

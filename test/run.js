@@ -17,7 +17,7 @@ global.i18n = function(k) { return (locale.zh_TW[k] && locale.zh_TW[k].message) 
 global.$ = function() { return { length: 0 }; };
 global.lib = { safeGetItem: function(k) { return global.lib.store[k] || null; },
                safeSetItem: function(k, v) { global.lib.store[k] = v; }, store: {} };
-['js/predefined_config.js', 'js/fact_check.js', 'js/reader.js', 'js/mobile_ptt.js', 'js/pref.js', 'js/spam_guard.js'].forEach(function(f) {
+['js/string_util.js', 'js/predefined_config.js', 'js/fact_check.js', 'js/reader.js', 'js/mobile_ptt.js', 'js/mobile.js', 'js/pref.js', 'js/spam_guard.js'].forEach(function(f) {
   vm.runInThisContext(fs.readFileSync(path.join(root, f), 'utf8'), { filename: f });
 });
 
@@ -458,6 +458,27 @@ test('門檻推文 off: no tags, but the first 10 are still remembered for 門�
   });
 });
 
+// ---- Android app: versions, http pictures (js/mobile.js, js/reader.js) ------
+
+console.log('Android app (versions)');
+
+test('version: JJptt\'s version and the run; before that 0.0.N', function() {
+  assert.strictEqual(JJMobile.version(57, '1.33.0'), '1.33.0 (57)');
+  assert.strictEqual(JJMobile.version(57), '0.0.57');
+  assert.strictEqual(JJMobile.version(NaN, '1.33.0'), '?');
+});
+test('version: the run from the release page, new and old wording', function() {
+  assert.strictEqual(JJMobile.runFromRelease('版次 0.0.58・JJptt Android 測試版 1.33.0 (58)（abc1234）'), 58);
+  assert.strictEqual(JJMobile.runFromRelease('JJptt Android 測試版 0.0.41（abc1234）'), 41);
+  assert.strictEqual(JJMobile.runFromRelease('JJptt Android 1.12.0'), 12);
+  assert.ok(isNaN(JJMobile.runFromRelease('nothing here')));
+});
+test('pictures: http:// asked for over https://', function() {
+  assert.strictEqual(PttReader.imageSrc('http://i.imgur.com/abcdefg.jpg'), 'https://i.imgur.com/abcdefg.jpg');
+  assert.strictEqual(PttReader.imageSrc('https://i.imgur.com/abcdefg.png'), 'https://i.imgur.com/abcdefg.png');
+  assert.strictEqual(PttReader.imageSrc('http://imgur.com/abcdefg'), 'https://i.imgur.com/abcdefg.jpg');
+});
+
 // ---- Android app: the PttSocket plugin as a native-messaging port -----------
 
 console.log('Android app (lib.openAppPort)');
@@ -600,7 +621,8 @@ function fakePtt(script) {
       convSend: function(k) { typed.push(k); move(k); },
       disconnect: function() { this.isConnected = false; }
     },
-    connect: function() { var c = this.conn; setTimeout(function() { c.isConnected = true; }, 5); }
+    // a new connection starts at PTT's first screen again
+    connect: function() { var c = this.conn; at = 0; setTimeout(function() { c.isConnected = true; }, 5); }
   };
   function move(k) {
     var next = script[at][1] && script[at][1][k];
@@ -640,6 +662,49 @@ testAsync('login: account, password, keeps the other login, any key, main menu',
   assert.deepStrictEqual(f.typed, ['tester\r', 'right\r', 'n\r', ' ']);
   assert.strictEqual(f.ptt.state, 'in');
   assert.strictEqual(f.ptt.user, 'tester');
+});
+// back from the background (JJPtt.resume)
+JJPtt.PROBE_MS = 60;
+async function loggedIn(answers) {
+  var f = fakePtt(LOGIN.slice());
+  await f.ptt.login('tester', 'right');
+  var send = f.app.conn.send;
+  f.app.conn.send = function(k) {
+    send.call(this, k);
+    if (k === '\x0c' && answers) f.app.lastDataAt = Date.now();  // PTT redraws
+  };
+  f.typed.length = 0;
+  return f;
+}
+testAsync('resume: back after a moment, nothing is sent', async function() {
+  var f = await loggedIn(true);
+  await f.ptt.resume(5000);
+  assert.deepStrictEqual(f.typed, []);
+  assert.strictEqual(f.ptt.state, 'in');
+});
+testAsync('resume: back after a while, PTT answers Ctrl-L -> stays in', async function() {
+  var f = await loggedIn(true);
+  await f.ptt.resume(10 * 60000);
+  assert.deepStrictEqual(f.typed, ['\x0c']);
+  assert.strictEqual(f.ptt.state, 'in');
+});
+testAsync('resume: back after a while, no answer -> logged in again', async function() {
+  var f = await loggedIn(false);
+  await f.ptt.resume(10 * 60000);
+  assert.deepStrictEqual(f.typed, ['\x0c', 'tester\r', 'right\r', 'n\r', ' ']);
+  assert.strictEqual(f.ptt.state, 'in');
+});
+testAsync('resume: the connection dropped while away -> logged in again', async function() {
+  var f = await loggedIn(true);
+  f.app.conn.isConnected = false;
+  await f.ptt.resume(1000);
+  assert.deepStrictEqual(f.typed, ['tester\r', 'right\r', 'n\r', ' ']);
+  assert.strictEqual(f.ptt.state, 'in');
+});
+testAsync('resume: not logged in -> nothing', async function() {
+  var f = fakePtt(LOGIN.slice());
+  await f.ptt.resume(10 * 60000);
+  assert.deepStrictEqual(f.typed, []);
 });
 testAsync('login: wrong password says so and is not logged in', async function() {
   var f = fakePtt(LOGIN);

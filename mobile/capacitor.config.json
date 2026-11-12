@@ -2,9 +2,6 @@
   "appId": "com.jjptt.app",
   "appName": "JJptt",
   "webDir": "www",
-  "android": {
-    "allowMixedContent": true
-  },
   "plugins": {
     "CapacitorHttp": {
       "enabled": true

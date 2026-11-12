@@ -274,6 +274,7 @@ pttchrome.App.prototype.onConnect = function() {
 
 pttchrome.App.prototype.onData = function(data) {
 //dumpLog(DUMP_TYPE_LOG, "pttchrome onData");
+  this.lastDataAt = Date.now();  // the app checks the connection is alive by it
   this.parser.feed(data);
 
   if (!this.appFocused && this.view.enableNotifications) {
