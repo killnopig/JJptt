@@ -295,7 +295,7 @@ JJMobile.prototype.autoLogin = function() {
 
 // 介面文字大小: the home screen, settings, sheets and the top bar, scaled
 // (articles and lists have their own sizes).
-JJMobile.FACT_SHORT = '真查';
+JJMobile.FACT_SHORT = 'FACT';  // Facts, Accuracy, Credibility & Truth = 真.事實查核中心
 JJMobile.UI_KEY = 'jjptt.m.uiZoom';
 JJMobile.FLOOR_KEY = 'jjptt.m.floorColor';
 JJMobile.FLOOR_COLORS = [['灰（預設）', ''], ['白', '#e8ece4'], ['黃', '#ffd54f'], ['綠', '#9ccc65'],
@@ -1034,7 +1034,7 @@ JJMobile.prototype.fillArticle = function(screen, article) {
         var rep = reader.factReportNode(article);
         if (rep) {
           rep.classList.add('jjm-fact');
-          // short on a phone: 「真查」 = 真.事實查核中心 (設定 → 事實查核 says so)
+          // short on a phone: FACT = 真.事實查核中心 (設定 → 事實查核 says so)
           var ft = rep.querySelector('.jjt-fact-title');
           if (ft) ft.textContent = JJMobile.FACT_SHORT;
           var fa = rep.querySelector('.jjt-fact-ai');
@@ -1733,8 +1733,9 @@ JJMobile.prototype.renderSettings = function(screen) {
     function(id) { self.app.doSetUserNote(id); }, function(id) { self.app.doRemoveUserNote(id); }, screen));
 
   // fact check (from the extension's settings page)
-  var fc = section('fact', '真.事實查核中心（文章裡簡稱「' + JJMobile.FACT_SHORT + '」）',
-                   '文章推文上方那一條「' + JJMobile.FACT_SHORT + '」就是真.事實查核中心的報告。只是疑點，不代表一定是網軍。');
+  var fc = section('fact', 'FACT 真.事實查核中心',
+                   'FACT = Facts, Accuracy, Credibility & Truth。文章推文上方那一條「FACT」就是它的報告。' +
+                   '證據勝於立場：不問立場，只問事實；不分對象，一體查核。標出來的只是疑點，不代表一定是網軍。');
   this.factRows(fc, screen);
   if (pref.values.aiService !== undefined && typeof PREF_OPTIONS !== 'undefined' && PREF_OPTIONS.aiService) {
     fc.appendChild(this.choiceRow('aiService', '「請 AI 分析」用哪一個',
