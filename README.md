@@ -4,7 +4,9 @@
 
 **在瀏覽器裡上 PTT，順手把帶風向的抓出來。**
 
-- **直連、不經手**：擴充功能版用本機小程式直接連 ptt.cc，不經過任何轉接站，帳號密碼只留在你的電腦。
+JJptt 是 Chrome（和 Edge）的擴充功能：裝好之後按工具列上的 JJptt 圖示，就在瀏覽器分頁裡上 PTT。
+
+- **直連、不經手**：用本機小程式直接連 ptt.cc，不經過任何第三方伺服器，帳號密碼只留在你的電腦。
 - **真.事實查核中心**：秒推、脈衝、補血、罐頭推文、同網段、機房／VPN IP、共伴效應、首殺班底——一篇文章底下的協同帶風向痕跡一眼看穿，還能一鍵交給 AI 判讀。
 - **閱讀模式**：保留終端機的字型與手感，圖片、影片、新聞卡片直接夾在內文裡，上下篇預先讀好、秒開。
 - **推文一目了然**：樓層、國旗、同 IP、推文多次的人各自上色，誰在洗版、誰在接力，不用數。
@@ -23,7 +25,7 @@
 ### 流量提醒
 
 - 終端機畫面很省：只傳文字，看一整天大約幾 MB。
-- 閱讀模式比較耗：每篇文章要從 PTT 網頁版下載，一般 50～300 KB，推文上千則的爆文可能超過 1 MB；捲到圖片和網址預覽時才會載入，每張圖從幾十 KB 到幾 MB 不等。
+- 閱讀模式比較耗：每篇文章要從 PTT 官方網頁（www.ptt.cc）下載，一般 50～300 KB，推文上千則的爆文可能超過 1 MB；捲到圖片和網址預覽時才會載入，每張圖從幾十 KB 到幾 MB 不等。
 - 預先讀取預設連圖片一起下載（設定 → 一般 →「預先讀取時連圖片一起下載」）：換篇最快，但流量會多很多——上下 5 篇時，每換一篇大約多下載 10 篇（一直往同一個方向看時是前進方向 10 篇、回頭 3 篇）的文字和它們的所有圖片；取消勾選就只抓文字。
 - 用手機熱點或流量有限時：取消「預先讀取時連圖片一起下載」、勾「閱讀模式用低解析度圖片」、把「預先讀取上下幾篇」調成 0 或 1，或暫時關掉閱讀模式。
 
@@ -138,41 +140,13 @@ PTT 本身是 80 × 24 字的文字終端機，這個限制讓幾件事在終端
 - **複製、查證不方便**：在終端機選字會跨到畫面框線和格式字元。閱讀模式可以直接選取、複製，也可以把選取的文字或整篇文章交給 AI 查證。
 - **換篇要等**：在終端機看下一篇要等 PTT 一頁一頁送過來。閱讀模式會預先讀取上下幾篇，換篇幾乎不用等。
 
-它刻意保留終端機的字型、顏色和 80 字寬，按鍵也跟 PTT 一樣（↑↓ 捲動、←／Esc 離開、X 推文、y 回文），所以用起來仍然是 PTT，只是多了圖片和整篇閱讀。不想用的話，可以在 設定 → 一般 關掉；網頁版沒有的看板（例如需要登入才看得到的）會自動留在終端機畫面。
+它刻意保留終端機的字型、顏色和 80 字寬，按鍵也跟 PTT 一樣（↑↓ 捲動、←／Esc 離開、X 推文、y 回文），所以用起來仍然是 PTT，只是多了圖片和整篇閱讀。不想用的話，可以在 設定 → 一般 關掉。閱讀模式的文章是從 PTT 官方網頁（www.ptt.cc）抓的，所以官方網頁上看不到的看板（例如要登入才看得到的）會自動留在終端機畫面。
 
 ## 進階（給會寫程式的人）
 
-JJptt fork 自 [iamchucky/PttChrome](https://github.com/iamchucky/PttChrome)（GPL-2.0）。原版要靠已停用的 Chrome App 開 TCP 連線；JJptt 的擴充功能版改用本機小程式直接連線，另外也有網站版，透過自己的 Cloudflare Worker 轉接站（`worker/`）連到 PTT。兩種都預設走 SSH，加密在瀏覽器裡完成。
+JJptt fork 自 [iamchucky/PttChrome](https://github.com/iamchucky/PttChrome)（GPL-2.0）。原版要靠已停用的 Chrome App 開 TCP 連線；JJptt 改用本機小程式直接連線，預設走 SSH，加密在瀏覽器裡完成。
 
-### 網站版（需要自己部署轉接站）
-
-網站版（`https://killnopig.github.io/JJptt/`，從網址列直接開，不用裝擴充功能）要靠一個架在 Cloudflare 的轉接站：
-
-- 轉接終端機連線（網頁沒辦法直接連 PTT）。
-- 代抓 PTT 網頁版的文章（`/page`），所以網站版也有閱讀模式、真.事實查核中心、連推黑名單、連續推文排在一起，跟擴充功能一樣。只抓 `https://www.ptt.cc/bbs/` 底下的網頁，只給 `ALLOWED_ORIGINS` 裡的網頁用，不是萬用代理。
-
-跟擴充功能版不一樣的地方：沒有網址預覽卡片（那要能抓任何網站，轉接站刻意不做）；圖片和 YouTube 縮圖照常顯示；沒有「立即更新」（重新整理就是最新版）。
-
-**第一次部署（Mac，約 10 分鐘）：**
-
-1. 到 <https://dash.cloudflare.com/sign-up> 註冊 Cloudflare 帳號（免費方案就夠）。
-2. 電腦要有 Node.js：終端機打 `node -v`，有出現版本號就好；沒有的話到 <https://nodejs.org> 下載 LTS 版安裝。
-3. 終端機依序執行（第二行會打開瀏覽器，按「Allow」授權）：
-
-   ```bash
-   cd ~/JJptt/worker
-   npx wrangler login
-   npx wrangler deploy
-   ```
-
-4. 最後會印出一行 `https://jjptt-relay.<你的子網域>.workers.dev`，把它記下來。
-5. 打開 `https://killnopig.github.io/JJptt/?relay=wss://jjptt-relay.<你的子網域>.workers.dev`（把網址換成你的）。之後直接開 `https://killnopig.github.io/JJptt/` 就會記得。也可以把網址設在 `js/app_conn.js` 的 `lib.DEFAULT_RELAY_URL`，網頁就不會再問。
-
-**更新轉接站**（之後改了 `worker/` 才需要）：`cd ~/JJptt/worker && npx wrangler deploy`。舊版的轉接站沒有代抓文章的功能，網站版的閱讀模式會顯示「請重新部署轉接站」。
-
-允許使用轉接站的網頁網址設在 `worker/wrangler.toml` 的 `ALLOWED_ORIGINS`；自己 fork 的話要把 `https://killnopig.github.io` 換成自己的。
-
-防濫用限制：每個 IP 每分鐘最多 10 條新連線、120 次代抓文章（`wrangler.toml` 的 `[[ratelimits]]`）；每條連線上傳平時 16 KB/秒、可瞬間衝到 256 KB（`worker/src/index.js` 的 `UPLOAD_*`）。Cloudflare 免費方案每天 10 萬次請求，自己用綽綽有餘。
+另外有一個不用安裝、從網址列直接開的**網站版**，要自己在 Cloudflare 架轉接站（`worker/`），一般使用者用不到，說明在 [docs/web-version.md](docs/web-version.md)。
 
 ### 自己 fork 時的 Google 同步設定
 
@@ -194,7 +168,7 @@ npm run build
 
 `npm run build` 會打包網站並複製到 `extension/`。發佈新版本：在 `js/changelog.js` 最上面加一筆（版本號、日期、改了什麼），再 `npm run build`，版本號會自動寫進 `package.json`、`extension/manifest.json` 和 `CHANGELOG.md`。
 
-`npm test` 跑自動測試（只要 Node，不用另外裝套件），測試在 `test/run.js` 和 `test/worker.mjs`（轉接站代抓文章：只准抓 PTT、只准自己的網頁用）：事實查核的連推規則、臨時黑名單、同網址洗版，以及每條規則在設定頁和中英文說明都有沒有漏掉。
+`npm test` 跑自動測試（只要 Node，不用另外裝套件），測試在 `test/run.js`（還有網站版轉接站的 `test/worker.mjs`）：事實查核的連推規則、臨時黑名單、同網址洗版，以及每條規則在設定頁和中英文說明都有沒有漏掉。
 
 本機小程式的原始碼在 `native-host/main.go`，改完用 `sh native-host/build.sh` 重新編譯所有平台的執行檔（需要 Go）。
 
