@@ -1983,8 +1983,8 @@ JJMobile.prototype.demoBoards = function() {
 JJMobile.LOOK_SLOTS_KEY = 'jjptt.m.looks';
 JJMobile.LOOK_DEFAULT = { text: 17, push: null, list: null, lh: 1.65, listGap: 12, pushGap: 10, inline: false,
                           floor: '', nav: ['bottom'], ui: 1, tab: 10 };
-JJMobile.LOOK_DEV = { text: 17, push: 15, list: 17, lh: 1.5, listGap: 6, pushGap: 4, inline: false,
-                      floor: '', nav: ['bottom', 'right'], ui: 1, tab: 15 };
+JJMobile.LOOK_DEV = { text: 22, push: 17, list: 19, lh: 1.65, listGap: 2, pushGap: 0, inline: false,
+                      floor: '', nav: ['left', 'right'], ui: 0.9, tab: 30 };
 JJMobile.prototype.getLook = function() {
   return { text: this.fontPx, push: (this.fonts || {}).push || null, list: (this.fonts || {}).list || null,
            lh: this.lineHeight || 1.65, listGap: this.listGap, pushGap: this.pushGap, inline: !!this.pushInline,
