@@ -174,6 +174,32 @@ test('one cut-in does not dodge it (9 + other + 5)', function() {
   assert.ok(r.pref.isBlacklisted('aaa'));
   assert.strictEqual(r.pref.tempBlacklistInfo.aaa.n, 14);
 });
+test('[公告] / [測試] articles: 連推 does not count', function() {
+  ['[公告] 每週六清除本板文章.', '[測試]', 'Re: [公告] 板規', ' [ 測試 ] abc'].forEach(function(title) {
+    var art = article(many('aaa', 20, 1));
+    art.meta['標題'] = title;
+    var r = analyze(art);
+    assert.ok(!r.pref.isBlacklisted('aaa'), title);
+    assert.strictEqual(r.floodLine, '', title);
+    assert.ok(!r.tags[0] || !r.tags[0].some(function(t) { return /^連推/.test(t.t); }), title);
+  });
+  assert.ok(analyze(article(many('aaa', 20, 1))).pref.isBlacklisted('aaa'), '[問卦] 測試 still counts');
+});
+test('old 連推 entries from [公告] / [測試] articles are dropped; others stay', function() {
+  var pref = makePref();
+  var until = Date.now() + 3600000;
+  pref.tempBlacklist = { a: until, b: until, c: until, d: until };
+  pref.tempBlacklistInfo = {
+    a: { kind: 'flood', n: 30, title: '[公告] 每週六清除本板文章.' },
+    b: { kind: 'flood', n: 12, title: '[測試]' },
+    c: { kind: 'flood', n: 12, title: '[問卦] 測試' },
+    d: { kind: 'spam', n: 4, title: '[公告] 板規' }
+  };
+  assert.strictEqual(pref.dropExemptFlood(), true);
+  assert.deepStrictEqual(Object.keys(pref.tempBlacklist).sort(), ['c', 'd']);
+  assert.deepStrictEqual(Object.keys(pref.tempBlacklistInfo).sort(), ['c', 'd']);
+  assert.strictEqual(pref.dropExemptFlood(), false);
+});
 test('cut-ins counting off: 9 + other + 5 is not a run', function() {
   var ps = many('aaa', 9, 1).concat([push('bbb', 1)], many('aaa', 5, 2));
   assert.ok(!analyze(article(ps), { factFloodRunChain: false }).pref.isBlacklisted('aaa'));

@@ -1215,6 +1215,7 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 #tabContentSyncBackup .list-group-item-text { margin-left: 0; padding-left: 0; }
 #tabContentSyncBackup #drive_sync { margin: 0 !important; }
 #tabContentSyncBackup #drive_title { display: block; margin: 0 0 10px !important; color: #555; }
+#tabContentSyncBackup #drive_account { margin: 0 0 10px; color: #333; }
 #tabContentSyncBackup #drive_sync .btn { margin: 0 6px 6px 0 !important; }
 #tabContentSyncBackup #drive_status,
 #tabContentSyncBackup #update_status { display: block; margin: 2px 0 0 !important; color: #333; }
@@ -1280,6 +1281,7 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 #tabContentBlacklist .jj-listblock { margin: 0 0 22px; padding-bottom: 4px; }
 #tabContentBlacklist .jj-listblock .checkbox { margin-top: 0; }
 #tabContentBlacklist .jj-listlabel { margin: 0 0 4px; }
+#tabContentBlacklist .jj-temp-list { margin: 8px 0 12px; }
 
 /* ===== Settings window: one look for every tab =====
    大 = tab title, 中 = section heading (band + bar), 小 = group heading */

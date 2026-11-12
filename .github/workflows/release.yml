@@ -1,0 +1,67 @@
+# When the version in js/changelog.js changes, builds the extension and
+# publishes it as release vX.Y.Z with the zip and the native host attached.
+# A version that already has a release is skipped.
+name: Extension release
+
+on:
+  push:
+    branches: [gh-pages]
+    paths: [js/changelog.js]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: extension-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Is this version already released?
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -e "eval(require('fs').readFileSync('js/changelog.js','utf8')+';console.log(JJPTT_CHANGELOG[0].version)')")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "v$VERSION is already released, nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test and build
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          npm ci
+          npm test
+          npm run build
+
+      - name: Package
+        if: steps.check.outputs.skip != 'true'
+        run: sh tools/package-release.sh
+
+      - name: Publish release v${{ steps.check.outputs.version }}
+        if: steps.check.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.check.outputs.version }}
+        run: |
+          cd dist
+          gh release create "v$VERSION" \
+            --target "$GITHUB_SHA" \
+            --title "JJptt $VERSION" \
+            --notes-file notes.md \
+            --latest \
+            "JJptt-extension-$VERSION.zip" \
+            "JJptt-native-host-$VERSION.zip" \
+            install.sh install.bat install.ps1 uninstall.bat \
+            jjptt-host-*

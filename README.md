@@ -18,13 +18,17 @@
 
 ![真.事實查核中心：推文上方的報告，每則推文旁標出秒推、同網段、機房、罐頭等疑點](docs/images/reader-factcheck.png)
 
+<sub>以上為示範畫面，帳號與內容都是虛構的。</sub>
+
 ### FACT 真.事實查核中心
 
 **FACT = Facts, Accuracy, Credibility & Truth。** 證據勝於立場：不問立場，只問事實；不分對象，一體查核。
 
-![FACT 真.事實查核中心：Evidence over opinion，公開透明、標準一致、不偏不倚、證據優先、勇於更正](docs/images/fact.png)
+- **同一把尺**：不因政治立場、人物身分或組織背景改變查核標準。
+- **公開證據**：每個標記都說得出為什麼（同 IP、機房、秒推…），點開報告就看得到。
+- **接受檢驗**：誤判的人可以從自動黑名單移除，每條規則都能自己開關、調門檻。
 
-<sub>以上為示範畫面，帳號與內容都是虛構的。</sub>
+![FACT 真.事實查核中心：Evidence over opinion，公開透明、標準一致、不偏不倚、證據優先、勇於更正](docs/images/fact.png)
 
 ### 流量提醒
 
@@ -37,6 +41,8 @@
 
 JJptt 是 Chrome 擴充功能，加上一個連線用的「本機小程式」。兩個都裝好才能用。
 支援電腦版的 Chrome、Edge、Brave、Arc、Vivaldi；手機不行。
+
+不想用 Git 的話，也可以到 [Releases](https://github.com/killnopig/JJptt/releases/latest) 下載 `JJptt-extension-版本.zip`（解壓縮後的 `extension` 資料夾就是步驟 4 要選的）和 `JJptt-native-host-版本.zip`（解壓縮後執行裡面的安裝檔）。用 zip 安裝的話「立即更新」不能用，新版要重新下載；下面用 `git clone` 的方式可以一鍵更新。
 
 ### Mac
 

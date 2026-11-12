@@ -429,6 +429,9 @@ locale.zh_TW = {
   "drive_disconnect": {
     "message": "中斷連結"
   },
+  "drive_account": {
+    "message": "已連結的 Google 帳號："
+  },
   "drive_status_notConfigured": {
     "message": "尚未設定 Google 用戶端 ID（見 README）"
   },
@@ -580,7 +583,7 @@ locale.zh_TW = {
     "message": "同一帳號 24 小時內把同一網址貼在超過 3 篇文章，自動加入黑名單 24 小時"
   },
   "options_tempBlacklist": {
-    "message": "目前的自動黑名單："
+    "message": "目前的自動黑名單（連推、同網址洗版這些規則自動加入的，24 小時後自動移除）："
   },
   "options_tempBlacklistNone": {
     "message": "（沒有）"
@@ -736,7 +739,7 @@ locale.zh_TW = {
     "message": "在文章列表停留多久就先抓那篇（毫秒，0 = 立刻）"
   },
   "options_factFloodRun": {
-    "message": "連推黑名單：同一個帳號在一篇文章裡連續推文太多則，標「連推N」並自動加入黑名單 24 小時（同一頁上面「名單」區可以看到、提早移除）"
+    "message": "連推黑名單：同一個帳號在一篇文章裡連續推文太多則，標「連推N」並自動加入黑名單 24 小時（同一頁上面「名單」區可以看到、提早移除）；[公告]、[測試] 文章不算"
   },
   "options_factFloodRunMin": {
     "message": "連續幾則以上"
@@ -752,6 +755,9 @@ locale.zh_TW = {
   },
   "options_factFloodRunKeepRemoved": {
     "message": "手動移出黑名單的人，24 小時內不再被自動規則加回去（連推、同網址洗版都算）"
+  },
+  "tempBlack_unknown": {
+    "message": "舊版加入的，沒有記錄原因"
   },
   "tempBlack_flood": {
     "message": "連推 %n 則"
