@@ -1878,3 +1878,14 @@ body.jj-mobile #jjToast {
    the time and floor keep their width, the chips give way */
 .jjm-push-head .jjm-push-time, .jjm-push-head .jjm-push-floor { white-space: nowrap; flex: 0 0 auto; }
 .jjm-push-head .jjm-push-chips-inline .jjm-pchip { overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
+
+/* under an article: 問 AI about it, open it in the browser */
+.jjm-artacts { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 18px 14px; }
+.jjm-artacts .jjm-btn-quiet { align-self: auto; }
+/* text selected in an article: ask AI (above the bottom edge) */
+.jjm-selbar {
+  position: fixed; left: 0; right: 0; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 4200;
+  display: flex; justify-content: center; pointer-events: none;
+}
+.jjm-selbar .jjm-btn { pointer-events: auto; box-shadow: 0 6px 20px rgba(0,0,0,.5); min-height: 48px; padding: 0 20px;
+  border-radius: var(--r-pill); font-size: var(--f-md); }

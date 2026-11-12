@@ -65,6 +65,8 @@ JJMobile.button = function(cls, text, fn) {
 JJMobile.ICONS = {
   back: '<polyline points="15 5 8 12 15 19"/>',
   next: '<polyline points="9 5 16 12 9 19"/>',
+  ai: '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+  external: '<path d="M14 4h6v6"/><line x1="20" y1="4" x2="11" y2="13"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>',
   link: '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',
   list: '<line x1="5" y1="7" x2="19" y2="7"/><line x1="5" y1="12" x2="19" y2="12"/><line x1="5" y1="17" x2="19" y2="17"/>',
   search: '<circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/>',
@@ -139,6 +141,7 @@ JJMobile.prototype.setup = function() {
   reader.onTerminalUpdate = function() {};
   reader.schedulePrefetch = function() {};
   this.ptt = new JJPtt(this.app);
+  this.watchSelection();  // selected text in an article: 問 AI
   this.ptt.onChange(function(state) {
     var top = self.stack[self.stack.length - 1];
     if (top) self.setBar(top);

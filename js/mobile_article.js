@@ -90,6 +90,15 @@ JJMobile.prototype.fillArticle = function(screen, article) {
     }
   }
   if (!pushList) v.appendChild(body);
+  // under the text: ask AI about the whole article, open it in the browser
+  var acts = el('div', 'jjm-artacts');
+  acts.appendChild(JJMobile.iconButton('jjm-btn jjm-btn-quiet', 'ai', '問 AI：這篇是不是事實？', function() {
+    self.app.askAi(JJMobile.articleForAi(article));
+  }));
+  acts.appendChild(JJMobile.iconButton('jjm-btn jjm-btn-quiet', 'external', '在瀏覽器開啟', function() {
+    window.open(PttReader.articleUrl(screen.url || article.url), '_blank');
+  }));
+  body.parentNode.insertBefore(acts, body.nextSibling);
   reader.loadPreviews(v);
   // your own push just sent, until www.ptt.cc has it (reloadAfterPost)
   pushList = this.showPendingPush(screen, article, pushList);
@@ -114,6 +123,49 @@ JJMobile.prototype.fillArticle = function(screen, article) {
   if (where.indexOf('bottom') >= 0) v.appendChild(makeNav('jjm-endnav'));
   if (where.indexOf('left') >= 0) v.appendChild(makeNav('jjm-sidenav jjm-sidenav-left', true));
   if (where.indexOf('right') >= 0) v.appendChild(makeNav('jjm-sidenav jjm-sidenav-right', true));
+};
+
+// What 「問 AI：這篇是不是事實？」 sends: title, address and the text up to
+// the 發信站 line (the extension's reading mode sends the same).
+JJMobile.articleForAi = function(article) {
+  var meta = article.meta || {};
+  return (meta['標題'] || '') + '\n' + PttReader.articleUrl(article.url || '') + '\n\n' +
+    String(article.text || '').split('\n※ 發信站')[0];
+};
+
+// Text selected in an article: a bar at the bottom asks AI about it (the
+// extension's 「問 AI：這是不是事實？」 in the right-click menu). Android's own
+// copy / share bar stays as it is.
+JJMobile.prototype.watchSelection = function() {
+  var self = this;
+  var bar = null, picked = '';
+  var hide = function() { if (bar) bar.style.display = 'none'; };
+  var show = function() {
+    if (!bar) {
+      bar = JJMobile.el('div', 'jjm-selbar');
+      var ask = JJMobile.iconButton('jjm-btn jjm-btn-main', 'ai', '問 AI：這是不是事實？', function() {
+        var t = picked;
+        hide();
+        try { window.getSelection().removeAllRanges(); } catch (e) {}
+        if (t) self.app.askAi(t);
+      });
+      // keep the selection while the finger is on the button
+      ask.addEventListener('mousedown', function(e) { e.preventDefault(); });
+      ask.addEventListener('touchstart', function(e) { e.preventDefault(); ask.click(); }, { passive: false });
+      bar.appendChild(ask);
+      (self.root || document.body).appendChild(bar);  // inside .jjm: its button styles
+    }
+    bar.style.display = '';
+  };
+  document.addEventListener('selectionchange', function() {
+    var sel = window.getSelection ? window.getSelection() : null;
+    var text = sel ? String(sel).trim() : '';
+    var top = self.stack[self.stack.length - 1];
+    var node = sel && sel.anchorNode;
+    var inArticle = !!(text && top && top.type === 'article' && top.view && node && top.view.contains(node));
+    if (inArticle) { picked = text; show(); }
+    else hide();
+  });
 };
 
 JJMobile.NAV_KEY = 'jjptt.m.navPlaces';
@@ -521,6 +573,9 @@ JJMobile.prototype.pushInfo = function(article, fact) {
   var authorId = String(article.meta['作者'] || '').split(' ')[0].toLowerCase();
   var authorIpMatch = /來自: ((?:\d{1,3}\.){3}\d{1,3})/.exec(article.text);
   var authorIp = authorIpMatch ? authorIpMatch[1] : '';
+  // 推文分析 off (設定 → 真.事實查核): no floor numbers, flags or same-IP
+  // marks, like the extension; FACT tags and the lists have their own switches
+  var insightsOn = !(pref && pref.values && pref.values.enablePushInsights === false);
   var idsByIp = {}, countById = {}, repeatColors = {};
   article.pushes.forEach(function(p) {
     var id = p.id.toLowerCase();
@@ -535,14 +590,14 @@ JJMobile.prototype.pushInfo = function(article, fact) {
     var chips = [];   // [text, level]
     var level = '';
     var flag = '';
-    if (p.ip && geo.ready) {
+    if (insightsOn && p.ip && geo.ready) {
       var cc = geo.lookup(p.ip);
       if (cc) {
         flag = PushInsights.flagEmoji(cc);
         if (cc !== 'TW') level = 'foreign';
       }
     }
-    if (p.ip) {
+    if (insightsOn && p.ip) {
       var others = Object.keys(idsByIp[p.ip] || {}).filter(function(x) { return x !== id; });
       if (others.length && pref.values.factSameIp !== false) {
         chips.push([T.sameIp + '：' + others.slice(0, 2).join('、') + (others.length > 2 ? ' 等 ' + others.length + ' 人' : ''), 'warn']);
@@ -581,7 +636,7 @@ JJMobile.prototype.pushInfo = function(article, fact) {
       head.appendChild(cr);
     }
     head.appendChild(el('span', 'jjm-push-time', [flag, p.time].filter(Boolean).join(' ')));
-    head.appendChild(el('span', 'jjm-push-floor', (i + 1) + '樓'));
+    if (insightsOn) head.appendChild(el('span', 'jjm-push-floor', (i + 1) + '樓'));
     row.appendChild(head);
     var content = reader.lineNode([{ text: p.content, st: { fg: 7, bg: 0, hl: false, href: '' } }]);
     content.node.className = 'jjm-push-text';

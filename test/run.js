@@ -523,6 +523,11 @@ test('repeat pushers: the app CSS uses the colour PushInsights sets (--jj-rp)', 
   assert.ok(!/--jj-repeat/.test(css), 'no rule waits for a --jj-repeat nobody sets');
   assert.ok(/setProperty\('--jj-rp'/.test(fs.readFileSync(path.join(root, 'js/push_insights.js'), 'utf8')));
 });
+test('ask AI about the article: title, its own address, the text before 發信站', function() {
+  var q = JJMobile.articleForAi({ url: 'https://www.ptt.cc/bbs/G/M.1.A.html?_=9', meta: { '標題': '[問卦] 標題' },
+    text: '第一行\n第二行\n※ 發信站: 批踢踢實業坊(ptt.cc), 來自: 1.2.3.4\n推 x: y' });
+  assert.strictEqual(q, '[問卦] 標題\nhttps://www.ptt.cc/bbs/G/M.1.A.html\n\n第一行\n第二行');
+});
 test('own push: found on the web page by ID and the start of the text', function() {
   var art = { pushes: [{ id: 'other', content: '加油' }, { id: 'MikeEeee', content: '加油啦 大家' }] };
   assert.ok(JJMobile.hasPush(art, { id: 'mikeeeee', text: '加油啦 大家' }));

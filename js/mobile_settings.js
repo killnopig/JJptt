@@ -209,6 +209,11 @@ JJMobile.prototype.renderSettings = function(screen) {
   if (pref.values.aiService !== undefined && typeof PREF_OPTIONS !== 'undefined' && PREF_OPTIONS.aiService) {
     fc.appendChild(this.choiceRow('aiService', '「請 AI 分析」用哪一個',
       PREF_OPTIONS.aiService.map(function(k, i) { return [i, i18n(k)]; })));
+    // 自訂: its address; and the question asked (any service)
+    fc.appendChild(this.textRow('aiCustomUrl', '自訂 AI 網址',
+      '上面選「' + i18n('ai_custom') + '」時才用；%s 會換成要問的內容，例如 https://example.com/?q=%s'));
+    fc.appendChild(this.textRow('aiPrompt', '要問 AI 的話',
+      '%s 會換成選取的文字或文章；留空 = 只送出內容'));
   }
   this.aboutFact(section('fact', '關於 真.事實查核中心 FACT'));
 
