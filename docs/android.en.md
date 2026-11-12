@@ -14,8 +14,17 @@ JJptt now has an Android app. It connects to PTT by itself — no local helper t
 - **Your layout**: text size, line spacing and push style, with a live preview on top; save a layout as a code and share it with friends.
 - **Same settings as the desktop**: a settings file exported from the extension imports straight into the app.
 - **Your account stays safe**: the password is encrypted with an Android Keystore key on the phone and never backed up to the cloud.
+- **Ask AI, share, in one tap**: select a passage and ask AI "is this true?", or hand the whole article to ChatGPT, Claude, Perplexity, Grok or Copilot; copy the article's address in one tap, or open it in the browser.
 
 ![FACT: five accounts say "so good!" within one minute? We flag it.](images/android-fact.en.png)
+
+<p align="center">
+  <img src="images/app-fact.png" width="24%" alt="The FACT report above the pushes">
+  <img src="images/app-pushes.png" width="24%" alt="Pushes tagged fast push, shared subnet, data centre">
+  <img src="images/app-sent.png" width="24%" alt="Your push shows up at once">
+  <img src="images/app-layout.png" width="24%" alt="Layout settings with a live preview">
+</p>
+<p align="center"><sub>FACT report ｜ what's odd about each push ｜ your push, at once ｜ live layout preview</sub></p>
 
 ## Download and update
 

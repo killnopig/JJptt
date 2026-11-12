@@ -2,29 +2,53 @@
 
 **中文** | [English](README.en.md) | [日本語](README.ja.md)
 
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-%E8%AB%8B%E6%88%91%E5%96%9D%E6%9D%AF%E5%92%96%E5%95%A1-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/killnopig)
+[![下載 Android App](https://img.shields.io/badge/Android-%E4%B8%8B%E8%BC%89%20APK-3DDC84?logo=android&logoColor=white)](https://github.com/killnopig/JJptt/releases/tag/android-stable) [![電腦版](https://img.shields.io/badge/Chrome-%E6%93%B4%E5%85%85%E5%8A%9F%E8%83%BD-4285F4?logo=googlechrome&logoColor=white)](docs/desktop.md) [![Ko-fi](https://img.shields.io/badge/Ko--fi-%E8%AB%8B%E6%88%91%E5%96%9D%E6%9D%AF%E5%92%96%E5%95%A1-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/killnopig)
 
-**在瀏覽器裡上 PTT，順手把帶風向的抓出來。**
+## PTT 上誰在帶風向？JJptt 讓你一眼看穿。
 
-- **直連、不經手**：擴充功能版用本機小程式直接連 ptt.cc，不經過任何轉接站，帳號密碼只留在你的電腦。
-- **真.事實查核中心**：秒推、脈衝、補血、罐頭推文、同網段、機房／VPN IP、共伴效應、首殺班底——一篇文章底下的協同帶風向痕跡一眼看穿，還能一鍵交給 AI 判讀。
-- **閱讀模式**：保留終端機的字型與手感，圖片、影片、新聞卡片直接夾在內文裡，上下篇預先讀好、秒開。
-- **推文一目了然**：樓層、國旗、同 IP、推文多次的人各自上色，誰在洗版、誰在接力，不用數。
-- **名單隨你管**：黑名單、觀察名單、自訂「網軍」名單，淡化或隱藏、隨時開關；同一網址洗版自動封鎖 24 小時。
-- **越用越順手**：最新文章排最上面、Z 搜尋自動帶推文數、選字就能問 AI 是不是事實。
-- **設定帶著走**：Google Drive 同步、匯出成檔案；有新版按一下就自動更新、自動重開。
+一分鐘內五個帳號說同一句話、三個帳號來自同一個網段、推文的 IP 在國外機房——這些在 PTT 上自己數不出來，JJptt 直接標在推文旁邊。
 
-免費、開源（GPL-2.0），不上架、不收集任何資料。
+<p align="center">
+  <img src="docs/images/android-cover.png" width="49%" alt="JJptt Android：上 PTT，順手抓出帶風向的">
+  <img src="docs/images/android-fact.png" width="49%" alt="真.事實查核中心：一分鐘內五個人都說「真的超好喝」？標出來給你看">
+</p>
 
-📱 **手機也能用了**：[JJptt Android App](docs/android.md) 正式版已發布，直接連 PTT、不用裝任何東西。
+**免費、沒有廣告、開源、不收集任何資料。** 電腦和 Android 手機都能用。
+
+### 為什麼選 JJptt
+
+| | |
+|---|---|
+| 🔍 **抓帶風向** | 真.事實查核中心自動標出秒推、脈衝、補血、罐頭推文、同網段、機房／VPN IP、共伴效應、首殺班底——協同帶風向的痕跡，不用自己數 |
+| 🤖 **一鍵問 AI** | 整篇文章一鍵交給 ChatGPT、Claude、Perplexity、Grok 或 Copilot 判讀；選一段文字，也能單獨問「這是不是事實？」 |
+| 🔒 **直連、不經手** | 直接連 ptt.cc，沒有轉接站；帳號密碼只存在你自己的電腦或手機 |
+| 📖 **真的好讀** | 圖片、影片、新聞卡片直接夾在內文裡；上下篇預先讀好，秒開 |
+| 🎨 **推文一目了然** | 樓層、國旗、同 IP、同一人推了幾次各自上色；黑名單淡化或隱藏，同一網址到處貼自動封鎖 24 小時 |
+| 🔄 **設定帶著走** | 電腦版匯出的設定，手機直接匯入；調好的版面存成設定碼，分享給朋友 |
+
+## 📱 Android App
+
+> **想了解 Android App？** App 自己連 PTT，不用裝其他東西：推文、回文、發文都可以，推完馬上看到；選一段文字或整篇文章，一鍵問 AI；密碼用 Android 系統金鑰加密。免費，約 10 MB。
+>
+> 👉 **[Android App 介紹與下載](docs/android.md)**：截圖、下載與更新方式、iPhone 版的計畫
+
+## 💻 電腦版（Chrome 擴充功能）
+
+保留 PTT 終端機的字型與手感，再加上閱讀模式和事實查核。Chrome、Edge、Brave、Arc、Vivaldi 都能用，約 5 分鐘裝好。
 
 ![閱讀模式：保留終端機外觀，圖片直接顯示在內文裡](docs/images/reader.png)
 
 ![真.事實查核中心：推文上方的報告，每則推文旁標出秒推、同網段、機房、罐頭等疑點](docs/images/reader-factcheck.png)
 
-<sub>以上為示範畫面，帳號與內容都是虛構的。</sub>
+- **閱讀模式**：圖片、影片、新聞卡片夾在內文裡，上下篇預先讀好。
+- **越用越順手**：最新文章排最上面、Z 搜尋自動帶推文數、選字就能問 AI。
+- **設定帶著走**：Google Drive 同步、匯出成檔案；有新版按一下就自動更新、自動重開。
 
-### FACT 真.事實查核中心
+**[電腦版安裝與使用說明](docs/desktop.md)**
+
+<sub>以上畫面皆為示範，文章、帳號與 IP 都是虛構的。</sub>
+
+## FACT 真.事實查核中心
 
 **FACT = Facts, Accuracy, Credibility & Truth。** 證據勝於立場：不問立場，只問事實；不分對象，一體查核。
 
@@ -34,7 +58,7 @@
 
 ![FACT 真.事實查核中心：Evidence over opinion，公開透明、標準一致、不偏不倚、證據優先、勇於更正](docs/images/fact.png)
 
-### 流量提醒
+## 流量提醒
 
 - 終端機畫面很省：只傳文字，看一整天大約幾 MB。
 - 閱讀模式比較耗：每篇文章要從 PTT 網頁版下載，一般 50～300 KB，推文上千則的爆文可能超過 1 MB；捲到圖片和網址預覽時才會載入，每張圖從幾十 KB 到幾 MB 不等。

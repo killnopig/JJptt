@@ -14,8 +14,17 @@ JJptt 也有 Android App 了：App 自己連 PTT，不用裝本機小程式，�
 - **版面隨你調**：字級、行距、推文樣式都能改，上方即時預覽；調好的版面可以存成設定碼分享給朋友。
 - **跟電腦版共用設定**：擴充功能匯出的設定檔，手機可以直接匯入。
 - **帳號安全**：密碼用 Android 的金鑰加密保存在手機裡，不會備份到雲端。
+- **問 AI、分享都一鍵**：選一段文字就能問 AI「這是不是事實？」，也能整篇交給 ChatGPT、Claude、Perplexity、Grok 或 Copilot；文章網址一鍵複製，或用瀏覽器開啟。
 
 ![真.事實查核中心：一分鐘內五個人都說「真的超好喝」？標出來給你看](images/android-fact.png)
+
+<p align="center">
+  <img src="images/app-fact.png" width="24%" alt="文章上方的 FACT 報告">
+  <img src="images/app-pushes.png" width="24%" alt="推文旁標出秒推、同網段、機房">
+  <img src="images/app-sent.png" width="24%" alt="推完馬上看到自己的推文">
+  <img src="images/app-layout.png" width="24%" alt="版面設定與即時預覽">
+</p>
+<p align="center"><sub>FACT 報告 ｜ 每則推文的疑點 ｜ 推完馬上看到 ｜ 版面即時預覽</sub></p>
 
 ## 下載與更新
 

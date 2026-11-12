@@ -14,8 +14,17 @@ JJptt に Android アプリができました。アプリ自身がPTTにつな�
 - **レイアウトは自由に**：文字サイズ、行間、プッシュの見た目を変更でき、上部でリアルタイムにプレビュー。決めたレイアウトは設定コードにして友だちと共有できます。
 - **パソコン版と設定を共有**：拡張機能で書き出した設定ファイルをそのままアプリに読み込めます。
 - **アカウントも安全**：パスワードは Android のキーストアの鍵で暗号化してスマホに保存し、クラウドにはバックアップされません。
+- **AIへの質問も共有もワンタップ**：文章を選んで「これは事実？」とAIに聞いたり、記事全体を ChatGPT、Claude、Perplexity、Grok、Copilot に渡したり。記事のURLはワンタップでコピー、ブラウザで開くこともできます。
 
 ![FACT：1分以内に5人が「めっちゃ美味しい」？しっかり表示します](images/android-fact.ja.png)
+
+<p align="center">
+  <img src="images/app-fact.png" width="24%" alt="プッシュの上の FACT レポート">
+  <img src="images/app-pushes.png" width="24%" alt="即プッシュ・同一サブネット・データセンターを表示">
+  <img src="images/app-sent.png" width="24%" alt="送ったプッシュはすぐ表示">
+  <img src="images/app-layout.png" width="24%" alt="レイアウト設定とリアルタイムプレビュー">
+</p>
+<p align="center"><sub>FACT レポート ｜ 各プッシュの疑わしい点 ｜ 送ったらすぐ表示 ｜ レイアウトのプレビュー</sub></p>
 
 ## ダウンロードと更新
 

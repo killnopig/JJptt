@@ -2,31 +2,53 @@
 
 [中文](README.md) | **English** | [日本語](README.ja.md)
 
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/killnopig)
+[![Get the Android app](https://img.shields.io/badge/Android-Download%20APK-3DDC84?logo=android&logoColor=white)](https://github.com/killnopig/JJptt/releases/tag/android-stable) [![Desktop](https://img.shields.io/badge/Chrome-Extension-4285F4?logo=googlechrome&logoColor=white)](docs/desktop.en.md) [![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/killnopig)
 
-**Read PTT in your browser — and catch the astroturfers while you're at it.**
+## Who is steering the thread? JJptt shows you at a glance.
 
-[PTT](https://www.ptt.cc/) is Taiwan's largest bulletin board system. JJptt is a client for it.
+[PTT](https://www.ptt.cc/) is Taiwan's largest bulletin board system, and JJptt is a client for it. Five accounts saying the same line within one minute, three accounts from one IP range, pushes coming from an overseas data centre — you can't count these by hand on PTT. JJptt tags them right next to each push.
 
-- **Direct, no middleman**: the extension connects to ptt.cc through a small local helper program. No relay server; your ID and password stay on your computer.
-- **FACT (真.事實查核中心)**: fast pushes, bursts, boosting, canned pushes, shared subnets, data-centre / VPN IPs, co-occurring accounts, first-push squads — the traces of coordinated opinion pushing under an article, visible at a glance, and handed to AI with one click.
-- **Reading mode**: keeps the terminal's font and feel, with images, videos and news cards right inside the article; the previous and next articles are loaded ahead, so they open instantly.
-- **Pushes at a glance**: floor numbers, country flags, shared IPs and repeat pushers each get their own colour — who is flooding and who is relaying, without counting.
-- **Your lists**: blacklist, watchlist, a custom "shill" list — fade or hide, switch on and off any time; posting the same URL around gets blocked automatically for 24 hours.
-- **Gets out of your way**: newest articles on top, Z search fills in the push count, select text to ask AI whether it's true.
-- **Settings travel with you**: Google Drive sync or export to a file; new versions install with one click and restart by themselves.
+<p align="center">
+  <img src="docs/images/android-cover.en.png" width="49%" alt="JJptt for Android: Read PTT. Catch the astroturfers.">
+  <img src="docs/images/android-fact.en.png" width="49%" alt="FACT: five accounts say &quot;so good!&quot; within one minute? We flag it.">
+</p>
 
-Free and open source (GPL-2.0). Not on any store, and no data is collected.
+**Free, no ads, open source, no data collected.** On your computer and your Android phone. (JJptt's interface is in Traditional Chinese.)
 
-📱 **Now on your phone too**: the [JJptt Android app](docs/android.en.md) is out — it connects to PTT directly, nothing else to install.
+### Why JJptt
+
+| | |
+|---|---|
+| 🔍 **Catch astroturfing** | FACT (真.事實查核中心) flags fast pushes, bursts, boosting, canned pushes, shared subnets, data-centre / VPN IPs, co-occurring accounts and first-push squads — the traces of coordinated pushing, without counting |
+| 🤖 **Ask AI in one tap** | Hand the whole article to ChatGPT, Claude, Perplexity, Grok or Copilot; or select a passage and ask "is this true?" |
+| 🔒 **Direct, no middleman** | Connects straight to ptt.cc, no relay server; your ID and password stay on your own computer or phone |
+| 📖 **Actually readable** | Images, videos and news cards inside the article; previous and next articles loaded ahead, so they open instantly |
+| 🎨 **Pushes at a glance** | Floor numbers, country flags, shared IPs and repeat pushers each get a colour; fade or hide your blacklist; posting the same URL around gets blocked for 24 hours |
+| 🔄 **Settings travel with you** | Settings exported from the desktop import straight into the app; save a layout as a code and share it |
+
+## 📱 Android app
+
+> **Want to know about the Android app?** It connects to PTT by itself, nothing else to install: push, reply and post, and see your push at once; select a passage or take the whole article to AI in one tap; your password is encrypted with an Android Keystore key. Free, about 10 MB.
+>
+> 👉 **[The Android app and download](docs/android.en.md)**: screenshots, download and updates, plans for an iPhone version
+
+## 💻 Desktop (Chrome extension)
+
+The PTT terminal's font and feel, plus reading mode and FACT. Works in Chrome, Edge, Brave, Arc and Vivaldi; about 5 minutes to set up.
 
 ![Reading mode: the terminal look, with images inside the article](docs/images/reader.png)
 
 ![FACT: a report above the pushes, and each push tagged with fast push, shared subnet, data centre, canned text…](docs/images/reader-factcheck.png)
 
-<sub>Demo screens; accounts and content are fictional. JJptt's interface is in Traditional Chinese.</sub>
+- **Reading mode**: images, videos and news cards inside the article, the next ones loaded ahead.
+- **Gets out of your way**: newest articles on top, Z search fills in the push count, select text to ask AI.
+- **Settings travel with you**: Google Drive sync or export to a file; new versions install with one click and restart by themselves.
 
-### FACT (真.事實查核中心)
+**[Desktop install and use](docs/desktop.en.md)**
+
+<sub>Demo screens; articles, accounts and IPs are fictional.</sub>
+
+## FACT (真.事實查核中心)
 
 **FACT = Facts, Accuracy, Credibility & Truth.** Evidence over opinion: ask about the facts, not the side; check everyone the same way.
 
@@ -36,7 +58,7 @@ Free and open source (GPL-2.0). Not on any store, and no data is collected.
 
 ![FACT: Evidence over opinion — transparent, consistent, impartial, evidence first, willing to correct](docs/images/fact.png)
 
-### Data usage
+## Data usage
 
 - The terminal screen is light: text only, a few MB for a whole day.
 - Reading mode uses more: each article is downloaded from PTT's web site, usually 50–300 KB, over 1 MB for an article with thousands of pushes; images and link previews load only when you scroll to them, from tens of KB to a few MB each.

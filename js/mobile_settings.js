@@ -342,7 +342,12 @@ JJMobile.demoPushes = function() {
     if (s[6].length) p.setAttribute('data-level', s[6][0][1]);
     var h = el('div', 'jjm-push-head');
     h.appendChild(el('span', 'jjm-push-tag jjm-push-' + s[1], s[0]));
-    h.appendChild(el('span', 'jjm-push-id', s[2]));
+    var who = el('span', 'jjm-push-id', s[2]);
+    // someone who pushed twice gets their colour, as in a real article
+    if (s[2] === 'kitten5566' && typeof PushInsights !== 'undefined') {
+      PushInsights.setRepeatColor(who, PushInsights.REPEAT_COLORS[0]);
+    }
+    h.appendChild(who);
     h.appendChild(el('span', 'jjm-push-time', '🇹🇼 ' + s[4]));
     h.appendChild(el('span', 'jjm-push-floor', s[5] + '樓'));
     p.appendChild(h);
