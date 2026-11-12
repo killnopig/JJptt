@@ -1117,6 +1117,10 @@ TermView.prototype = {
       this.updateReversedList(hidePinned);
       return;
     }
+    if (hidePinned) {
+      this.updateHiddenPinnedList();
+      return;
+    }
     var first = 3, last = this.buf.rows - 2;  // article rows between header and status
     var normal = [], pinned = [], rest = [];
     for (var r = first; r <= last; ++r) {
@@ -1143,6 +1147,95 @@ TermView.prototype = {
     }
     if (identity && !Object.keys(hidden).length) return;
     this.listMap = { slotOf: slotOf, rowOf: rowOf, hidden: hidden, reversed: reverse };
+  },
+
+  // Oldest-first list with the pinned posts hidden: the last page would end
+  // with empty rows where the pinned posts were, so the articles move down
+  // to the bottom and the rows above them are filled with the articles
+  // just before, remembered from earlier screens. Entering a board on such
+  // a page with nothing remembered yet, look at the previous page once
+  // (PageUp) and come back with ↓, like the newest-first list does.
+  updateHiddenPinnedList: function() {
+    var buf = this.buf;
+    var first = 3, last = buf.rows - 2, slots = last - first + 1;
+    var boardMatch = /看板《(\w+)》/.exec(buf.getRowText(0, 0, buf.cols));
+    var kind = buf.getRowText(buf.rows - 1, 0, 24).trim().split(/\s+/)[0] || '';
+    var listKey = (boardMatch ? boardMatch[1] : '') + '|' + kind;
+    var st = this.pinFillState;
+    var entered = false;
+    if (!st || st.board !== listKey) {
+      st = this.pinFillState = { board: listKey, cache: {}, fill: 'start' };
+      entered = true;
+    }
+    var normal = [], pinnedCount = 0, selRow = -1, selNum = 0, minNum = 0, maxNum = 0;
+    for (var r = first; r <= last; ++r) {
+      var text = buf.getRowText(r, 0, buf.cols);
+      if (!text.trim()) continue;
+      if (/^.{0,8}★/.test(text)) { pinnedCount++; continue; }  // ★ pinned post
+      normal.push(r);
+      var m = /^.\s*(\d+)\s/.exec(text);
+      if (!m) continue;
+      var num = +m[1];
+      if (!minNum || num < minNum) minNum = num;
+      if (num > maxNum) maxNum = num;
+      if (selRow < 0 && /^[>●]/.test(text)) { selRow = r; selNum = num; }
+      var html = this.htmlRowStrArray[r] || '';
+      if (/^>/.test(text)) html = html.replace('&gt;', ' ');  // not the cursor when shown from cache
+      st.cache[num] = html.replace(/ srow="\d+"/g, ' srow="-1"');
+    }
+    var nums = Object.keys(st.cache).map(Number).sort(function(a, b) { return b - a; });
+    if (nums.length > 300) nums.slice(300).forEach(function(n) { delete st.cache[n]; });
+
+    // rows to fill above: the articles just before the first one on screen
+    var room = slots - normal.length;
+    var before = [];
+    if (pinnedCount && minNum) {
+      for (var b = minNum - 1; b >= 1 && before.length < room; --b) {
+        if (!(b in st.cache)) break;
+        before.unshift(b);
+      }
+    }
+
+    var slotOf = [], rowOf = [], out = [];
+    for (var k = 0; k < buf.rows; ++k) { slotOf[k] = -1; rowOf[k] = k; out[k] = this.htmlRowStrArray[k]; }
+    for (var j = 0; j < first; ++j) slotOf[j] = j;
+    for (j = last + 1; j < buf.rows; ++j) slotOf[j] = j;
+    var s = 0;
+    for (var c = 0; c < before.length; ++c, ++s) {
+      rowOf[first + s] = -1;
+      out[first + s] = st.cache[before[c]];
+    }
+    for (var n = 0; n < normal.length; ++n, ++s) {
+      rowOf[first + s] = normal[n];
+      slotOf[normal[n]] = first + s;
+      out[first + s] = this.htmlRowStrArray[normal[n]];
+    }
+    for (; s < slots; ++s) {
+      rowOf[first + s] = -1;
+      out[first + s] = '<span type="bbsrow" srow="-1"> </span>';
+    }
+    this.listMap = { slotOf: slotOf, rowOf: rowOf, html: out, hidden: {}, reversed: false };
+
+    if (!this.conn) return;
+    var conn = this.conn;
+    if (st.fill === 'start') {
+      st.fill = 'done';
+      if (entered && pinnedCount && minNum > 1 && before.length < room) {
+        st.fill = 'up';
+        console.log('JJptt list: pinned posts hidden on a short page, PageUp to fill the screen');
+        conn.send('\x1b[5~');
+        st.fillTimer = setTimeout(function() {  // safety net
+          if (st.fill === 'up') st.fill = 'done';
+        }, 1500);
+      }
+    } else if (st.fill === 'up' && !pinnedCount && selNum) {
+      st.fill = 'done';
+      clearTimeout(st.fillTimer);
+      var newest = Math.max.apply(null, Object.keys(st.cache).map(Number));
+      var steps = Math.min(Math.max(0, newest - selNum), 200);
+      console.log('JJptt list: previous page loaded, selected #' + selNum + ', back to #' + newest + ' with ↓ x' + steps);
+      if (steps) conn.send(new Array(steps + 1).join('\x1b[B'));
+    }
   },
 
   // Newest-first list: move a page on screen. dir 1 = down (older

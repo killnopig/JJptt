@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.33.1',
+    date: '2026-11-12',
+    changes: [
+      '修正：勾「文章列表隱藏 ★ 置底公告」時，最後一頁下面會空好幾行；現在文章排到最底下，上面空出來的用前面的文章補滿（進板時會先看一下前一頁再回來，跟「最新的在上面」一樣）'
+    ]
+  },
+  {
     version: '1.33.0',
     date: '2026-11-12',
     changes: [
