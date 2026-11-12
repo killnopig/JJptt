@@ -58,7 +58,7 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           git tag -f android-latest
           git push -f origin android-latest
-          NOTES="JJptt Android 測試版 ${VERSION}（第 ${GITHUB_RUN_NUMBER} 次打包，${GITHUB_SHA::7}）
+          NOTES="JJptt Android 測試版 ${VERSION}（版次 ${GITHUB_RUN_NUMBER}，${GITHUB_SHA::7}）
 
           在手機上點下面的 JJptt.apk 下載，打開安裝（第一次要允許「安裝不明來源的應用程式」）。新版直接裝在舊版上面，設定會保留。"
           if gh release view android-latest >/dev/null 2>&1; then
