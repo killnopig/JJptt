@@ -706,6 +706,20 @@ testAsync('channels: no network is an error, not a switch to 測試版', async f
   } finally { channelDone(); }
 });
 
+testAsync('copy link: the article\'s own address goes to the clipboard, with a toast', async function() {
+  var copied = null, toasts = [];
+  var nav = Object.getOwnPropertyDescriptor(global, 'navigator');
+  Object.defineProperty(global, 'navigator', { configurable: true, writable: true, value: { clipboard: { writeText: function(t) { copied = t; return Promise.resolve(); } } } });
+  try {
+    var m = Object.create(JJMobile.prototype);
+    m.app = { showToast: function(t) { toasts.push(t); } };
+    m.copyArticleUrl({ url: 'https://www.ptt.cc/bbs/Beauty/M.1774944082.A.AC4.html?_=123' });
+    await tick(); await tick();
+    assert.strictEqual(copied, 'https://www.ptt.cc/bbs/Beauty/M.1774944082.A.AC4.html');
+    assert.deepStrictEqual(toasts, ['已複製這篇的網址']);
+  } finally { if (nav) Object.defineProperty(global, 'navigator', nav); else delete global.navigator; }
+});
+
 // ---- Android app: the background PTT connection (js/mobile_ptt.js) ----------
 
 console.log('Android app (JJPtt: login / push / reply)');

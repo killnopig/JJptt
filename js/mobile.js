@@ -65,6 +65,7 @@ JJMobile.button = function(cls, text, fn) {
 JJMobile.ICONS = {
   back: '<polyline points="15 5 8 12 15 19"/>',
   next: '<polyline points="9 5 16 12 9 19"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',
   list: '<line x1="5" y1="7" x2="19" y2="7"/><line x1="5" y1="12" x2="19" y2="12"/><line x1="5" y1="17" x2="19" y2="17"/>',
   search: '<circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/>',
   star: '<polygon points="12 3.5 14.6 9 20.5 9.6 16 13.6 17.3 19.5 12 16.5 6.7 19.5 8 13.6 3.5 9.6 9.4 9"/>',
@@ -497,6 +498,43 @@ JJMobile.prototype.render = function(screen) {
   else if (screen.type === 'settings') this.renderSettings(screen);
 };
 
+// Text onto the clipboard: the clipboard API, else a hidden text box and
+// 「copy」, else a box to copy from by hand. Resolves true when copied.
+JJMobile.copyText = function(text) {
+  var byHand = function() {
+    try {
+      var t = document.createElement('textarea');
+      t.value = text;
+      t.setAttribute('readonly', '');
+      t.style.position = 'fixed';
+      t.style.opacity = '0';
+      document.body.appendChild(t);
+      t.select();
+      var ok = document.execCommand && document.execCommand('copy');
+      document.body.removeChild(t);
+      if (ok) return true;
+    } catch (e) {}
+    window.prompt('複製這段：', text);
+    return false;
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(function() { return true; }, byHand);
+    }
+  } catch (e) {}
+  return Promise.resolve(byHand());
+};
+
+// The article's own address (no ?_= or #), for sharing.
+JJMobile.prototype.copyArticleUrl = function(screen) {
+  var self = this;
+  var url = PttReader.articleUrl(screen.url || '');
+  if (!url) return;
+  JJMobile.copyText(url).then(function(ok) {
+    if (ok && self.app.showToast) self.app.showToast('已複製這篇的網址', 1500);
+  });
+};
+
 JJMobile.prototype.setBar = function(screen) {
   var self = this;
   var hasBack = this.stack.length > 1;
@@ -528,6 +566,7 @@ JJMobile.prototype.setBar = function(screen) {
     add('edit', '發文', function() { self.postSheet(screen); });
     add('reload', '重新整理', function() { self.reload(screen); });
   } else if (screen.type === 'article') {
+    add('link', '複製這篇的網址', function() { self.copyArticleUrl(screen); });
     add('top', '回到頂部', function() { if (screen.view) screen.view.scrollTo({ top: 0, behavior: 'smooth' }); });
     add('bottom', '到最下面推文', function() { self.toComposer(screen); });
     add('textSize', '字的大小', function() { self.fontSheet(); });
