@@ -1430,8 +1430,8 @@ body.jj-mobile .jjm {
 /* rows: boards and articles */
 .jjm-list { display: flex; flex-direction: column; }
 .jjm .jjm-row {
-  display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; min-height: 60px;
-  padding: 12px 18px; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; min-height: 44px;
+  padding: var(--jjm-lgap, 12px) 18px; border-bottom: 1px solid var(--line);
 }
 .jjm .jjm-row:active { background: rgba(255,255,255,.05); }
 .jjm-row-main { flex: 1 1 auto; min-width: 0; }
@@ -1439,7 +1439,7 @@ body.jj-mobile .jjm {
 .jjm-row-sub { font-size: 14px; color: var(--sub); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .jjm-badge { flex: 0 0 auto; font-size: 13px; color: var(--sub); background: var(--card); border-radius: 10px; padding: 3px 9px; }
 
-.jjm .jjm-article { flex-direction: column; align-items: stretch; gap: 6px; }
+.jjm .jjm-article { flex-direction: column; align-items: stretch; gap: calc(2px + var(--jjm-lgap, 12px) * .35); }
 .jjm-article-title { font-size: var(--jjm-fs); line-height: 1.4; font-weight: 500; }
 .jjm-article-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--sub); }
 .jjm-author { color: var(--sub); }

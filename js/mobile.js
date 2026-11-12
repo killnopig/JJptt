@@ -19,6 +19,7 @@ JJMobile.WEB = 'https://www.ptt.cc';
 JJMobile.CACHE_MS = 10 * 60 * 1000;
 JJMobile.FAVS_KEY = 'jjptt.m.favs';
 JJMobile.SYNCED_KEY = 'jjptt.m.favsSynced';
+JJMobile.SEARCH_PUSH_KEY = 'jjptt.m.searchByPush';
 JJMobile.FONT_KEY = 'jjptt.m.font';
 JJMobile.FONTS = [15, 17, 19, 22];
 
@@ -53,6 +54,10 @@ JJMobile.button = function(cls, text, fn) {
 // The terminal code listens to clicks, mouse and keys on the whole window
 // (and cancels form submits, takes Enter...). Nothing in the phone UI is for
 // it, so events stop here.
+JJMobile.SEARCH_SVG = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" style="vertical-align:middle">' +
+  '<circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/>' +
+  '<line x1="15.4" y1="15.4" x2="20.5" y2="20.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
+
 JJMobile.EVENTS = ['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'keydown', 'keypress', 'keyup', 'input', 'paste'];
 JJMobile.isolate = function(node) {
   JJMobile.EVENTS.forEach(function(t) {
@@ -111,6 +116,7 @@ JJMobile.prototype.setup = function() {
   });
   this.setFont(JJMobile.store(JJMobile.FONT_KEY) || 17);
   this.setPushStyle();
+  this.setListGap();
 
   // the phone's back button
   var C = window.Capacitor;
@@ -285,6 +291,16 @@ JJMobile.prototype.setFont = function(px) {
 
 // Push spacing (px above / below each push) and "ID and text on one line".
 JJMobile.GAP_KEY = 'jjptt.m.pushGap';
+JJMobile.LIST_GAP_KEY = 'jjptt.m.listGap';
+
+// Space above / below each row of the board and article lists.
+JJMobile.prototype.setListGap = function(gap) {
+  if (gap === undefined || gap === null) gap = JJMobile.store(JJMobile.LIST_GAP_KEY);
+  if (typeof gap !== 'number') gap = 12;
+  this.listGap = gap;
+  this.root.style.setProperty('--jjm-lgap', gap + 'px');
+  JJMobile.store(JJMobile.LIST_GAP_KEY, gap);
+};
 JJMobile.INLINE_KEY = 'jjptt.m.pushInline';
 JJMobile.prototype.setPushStyle = function(gap, inline) {
   if (gap === undefined || gap === null) gap = JJMobile.store(JJMobile.GAP_KEY);
@@ -347,7 +363,8 @@ JJMobile.prototype.setBar = function(screen) {
   }
   this.actions.innerHTML = '';
   var add = function(text, label, fn) {
-    var b = JJMobile.button('jjm-icon', text, fn);
+    var b = JJMobile.button('jjm-icon', text === '⌕' ? '' : text, fn);
+    if (text === '⌕') b.innerHTML = JJMobile.SEARCH_SVG;  // a real magnifier (the ⌕ glyph is tiny)
     b.setAttribute('aria-label', label);
     self.actions.appendChild(b);
     return b;
@@ -367,6 +384,7 @@ JJMobile.prototype.setBar = function(screen) {
   } else if (screen.type === 'settings') {
     // nothing on the right
   } else {
+    add('⌕', '找看板', function() { self.boardSheet(); });
     var st = this.ptt ? this.ptt.state : 'off';
     var acct = add(st === 'in' ? this.ptt.user : st === 'connecting' ? '登入中…' : '登入', '帳號', function() { self.accountSheet(); });
     acct.classList.add('jjm-acct');
@@ -558,29 +576,37 @@ JJMobile.prototype.syncFavs = function(manual) {
   });
 };
 
+// 🔍 on the home bar: type a board name and go.
+JJMobile.prototype.boardSheet = function() {
+  var self = this;
+  var el = JJMobile.el;
+  var form = el('form', 'jjm-sheet-form');
+  var input = el('input');
+  input.type = 'search';
+  input.placeholder = '看板名稱，例如 Gossiping';
+  input.setAttribute('autocapitalize', 'off');
+  input.setAttribute('autocorrect', 'off');
+  input.setAttribute('spellcheck', 'false');
+  input.setAttribute('enterkeyhint', 'go');
+  form.appendChild(input);
+  form.appendChild(el('button', 'jjm-btn jjm-btn-main', '前往'));
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var name = input.value.trim().replace(/^\/?bbs\//i, '').replace(/[^\w-]/g, '');
+    if (!name) return;
+    self.closeSheet();
+    self.open({ type: 'board', board: name });
+  });
+  this.showSheet('找看板', form);
+  setTimeout(function() { input.focus(); }, 50);
+};
+
 JJMobile.prototype.renderHome = function(screen) {
   var self = this;
   var el = JJMobile.el;
   var v = screen.view;
   screen.title = 'JJptt';
 
-  var form = el('form', 'jjm-search');
-  var input = el('input');
-  input.type = 'search';
-  input.placeholder = '輸入看板名稱，例如 Gossiping';
-  input.setAttribute('autocapitalize', 'off');
-  input.setAttribute('autocorrect', 'off');
-  input.setAttribute('spellcheck', 'false');
-  input.setAttribute('enterkeyhint', 'go');
-  form.appendChild(input);
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    var name = input.value.trim().replace(/^\/?bbs\//i, '').replace(/[^\w-]/g, '');
-    if (!name) return;
-    input.blur();
-    self.open({ type: 'board', board: name });
-  });
-  v.appendChild(form);
 
   var favs = this.favs();
   var favHead = el('div', 'jjm-section jjm-section-row');
@@ -782,7 +808,12 @@ JJMobile.prototype.searchSheet = function(screen) {
   var el = JJMobile.el;
   var box = el('form', 'jjm-sheet-form');
   var kinds = [['', '標題'], ['author:', '作者'], ['recommend:', '推文數 ≥']];
-  var kind = '';
+  // 設定 → 搜尋: open on 推文數 with the usual number filled in
+  var pv = (this.app.pref && this.app.pref.values) || {};
+  var pushN = parseInt(pv.pushFilterDefault, 10);
+  if (isNaN(pushN) || pushN <= 0) pushN = 10;
+  var byPush = JJMobile.store(JJMobile.SEARCH_PUSH_KEY) !== false;
+  var kind = byPush ? 'recommend:' : '';
   var chips = el('div', 'jjm-chips');
   var input = el('input');
   input.type = 'search';
@@ -795,11 +826,17 @@ JJMobile.prototype.searchSheet = function(screen) {
       c.classList.add('jjm-on');
       input.placeholder = kind === 'author:' ? '作者帳號' : kind === 'recommend:' ? '例如 50' : '搜尋標題';
       input.type = kind === 'recommend:' ? 'number' : 'search';
+      input.value = kind === 'recommend:' ? String(pushN) : '';
       input.focus();
     });
     chips.appendChild(c);
   });
   box.appendChild(chips);
+  if (kind === 'recommend:') {
+    input.type = 'number';
+    input.placeholder = '例如 50';
+    input.value = String(pushN);
+  }
   box.appendChild(input);
   box.appendChild(el('button', 'jjm-btn jjm-btn-main', '搜尋'));
   box.addEventListener('submit', function(e) {
@@ -1375,6 +1412,13 @@ JJMobile.prototype.renderSettings = function(screen) {
   fontRow.appendChild(fonts);
   rd.appendChild(fontRow);
   this.pushLookRows(rd);
+  this.listLookRows(rd);
+
+  // search
+  var se = section('搜尋');
+  var sw = this.localToggleRow(JJMobile.SEARCH_PUSH_KEY, '看板搜尋預設用推文數篩選', '打開搜尋就選好「推文數 ≥」並填好下面的數字', true);
+  se.appendChild(sw);
+  se.appendChild(this.numberRow('pushFilterDefault', '推文數預設', '只看推文數至少這麼多的文章', 1, 999));
 
   // lists
   var ls = section('名單');
@@ -1489,6 +1533,52 @@ JJMobile.prototype.pushLookRows = function(box) {
   box.appendChild(pv);
 };
 
+// 列表間距 slider with a preview of a board's article list.
+JJMobile.prototype.listLookRows = function(box) {
+  var self = this;
+  var el = JJMobile.el;
+  var row = el('div', 'jjm-set jjm-set-col');
+  var head = el('div', 'jjm-set-head');
+  head.appendChild(el('div', 'jjm-set-title', '列表間距'));
+  var val = el('span', 'jjm-set-val');
+  head.appendChild(val);
+  row.appendChild(head);
+  row.appendChild(el('div', 'jjm-set-sub', '看板列表、文章列表每一列的上下空間'));
+  var range = el('input', 'jjm-range');
+  range.type = 'range';
+  range.min = 2;
+  range.max = 24;
+  range.step = 2;
+  range.value = this.listGap;
+  var show = function() {
+    var g = +range.value;
+    val.textContent = g <= 4 ? '最緊' : g <= 8 ? '緊' : g <= 14 ? '標準' : g <= 19 ? '鬆' : '最鬆';
+  };
+  show();
+  range.addEventListener('input', function() {
+    self.setListGap(+range.value);
+    show();
+  });
+  row.appendChild(range);
+  var frame = el('div', 'jjm-preview jjm-list');
+  [['爆', 'hot', '[新聞] 颱風明天登陸 北部可能停班停課', 'reporter01', '11/12'],
+   ['15', '10', '[問卦] 有沒有便利商店咖啡越來越貴的八卦？', 'coffee99', '11/12'],
+   ['3', '1', '[爆卦] 這個標題比較長，看看兩行的時候間距長怎樣好不好讀', 'longtitle', '11/12']
+  ].forEach(function(e) {
+    var r = el('div', 'jjm-row jjm-article');
+    r.appendChild(el('div', 'jjm-article-title', e[2]));
+    var meta = el('div', 'jjm-article-meta');
+    meta.appendChild(el('span', 'jjm-nrec jjm-nrec-' + e[1], e[0]));
+    meta.appendChild(el('span', 'jjm-author', e[3]));
+    meta.appendChild(el('span', 'jjm-date', e[4]));
+    r.appendChild(meta);
+    frame.appendChild(r);
+  });
+  row.appendChild(el('div', 'jjm-set-sub', '預覽'));
+  row.appendChild(frame);
+  box.appendChild(row);
+};
+
 JJMobile.prototype.setRow = function(title, sub, onTap) {
   var el = JJMobile.el;
   var row = el('button', 'jjm-set jjm-set-tap');
@@ -1526,7 +1616,7 @@ JJMobile.prototype.toggleRow = function(key, title, sub) {
 };
 
 // A switch kept in this phone only (not one of the extension's settings).
-JJMobile.prototype.localToggleRow = function(storeKey, title, sub) {
+JJMobile.prototype.localToggleRow = function(storeKey, title, sub, defaultOn) {
   var el = JJMobile.el;
   var row = el('label', 'jjm-set jjm-toggle');
   var t = el('div', 'jjm-set-text');
@@ -1535,9 +1625,12 @@ JJMobile.prototype.localToggleRow = function(storeKey, title, sub) {
   row.appendChild(t);
   var box = el('input');
   box.type = 'checkbox';
-  try { box.checked = window.localStorage.getItem(storeKey) === '1'; } catch (e) {}
+  var saved = null;
+  try { saved = window.localStorage.getItem(storeKey); } catch (e) {}
+  // stored as '1' / '0' (older switches) or true / false
+  box.checked = saved === null ? !!defaultOn : (saved === '1' || saved === 'true');
   box.addEventListener('change', function() {
-    try { window.localStorage.setItem(storeKey, box.checked ? '1' : '0'); } catch (e) {}
+    try { window.localStorage.setItem(storeKey, box.checked ? (defaultOn ? 'true' : '1') : (defaultOn ? 'false' : '0')); } catch (e) {}
   });
   row.appendChild(box);
   row.appendChild(el('span', 'jjm-switch'));
