@@ -808,7 +808,9 @@ JJMobile.prototype.renderBoard = function(screen) {
         if (self.stack[self.stack.length - 1] === screen) self.setBar(screen);
       }
       screen.older = page.older;
-      if (first && page.pinned.length) {
+      // 置底公告, unless hidden (設定 → 一般; the extension's hidePinned)
+      var pv2 = (self.app.pref && self.app.pref.values) || {};
+      if (first && page.pinned.length && !pv2.hidePinned) {
         page.pinned.forEach(function(e) { self.appendEntry(screen, e); });
       }
       page.entries.forEach(function(e) { self.appendEntry(screen, e); });
@@ -897,7 +899,7 @@ JJMobile.prototype.searchSheet = function(screen) {
   // 設定 → 搜尋: open on 推文數 with the usual number filled in
   var pv = (this.app.pref && this.app.pref.values) || {};
   var pushN = parseInt(pv.pushFilterDefault, 10);
-  if (isNaN(pushN) || pushN <= 0) pushN = 10;
+  if (isNaN(pushN) || pushN === 0) pushN = 10;  // negative: 噓文 (recommend:-10)
   var byPush = JJMobile.store(JJMobile.SEARCH_PUSH_KEY) !== false;
   var kind = byPush ? 'recommend:' : '';
   var chips = el('div', 'jjm-chips');
@@ -1430,17 +1432,18 @@ JJMobile.prototype.pushInfo = function(article, fact) {
     var who = self.userChip(p.id, null, true);
     PushInsights.setRepeatColor(who, insights.repeatColor(repeatColors, id, countById[id]));
     head.appendChild(who);
+    // 秒推、機房… on the account's line, not a line of their own
+    if (chips.length) {
+      var cr = el('span', 'jjm-push-chips jjm-push-chips-inline');
+      chips.forEach(function(c) { cr.appendChild(el('span', 'jjm-pchip jjm-pchip-' + c[1], c[0])); });
+      head.appendChild(cr);
+    }
     head.appendChild(el('span', 'jjm-push-time', [flag, p.time].filter(Boolean).join(' ')));
     head.appendChild(el('span', 'jjm-push-floor', (i + 1) + '樓'));
     row.appendChild(head);
     var content = reader.lineNode([{ text: p.content, st: { fg: 7, bg: 0, hl: false, href: '' } }]);
     content.node.className = 'jjm-push-text';
     row.appendChild(content.node);
-    if (chips.length) {
-      var cr = el('div', 'jjm-push-chips');
-      chips.forEach(function(c) { cr.appendChild(el('span', 'jjm-pchip jjm-pchip-' + c[1], c[0])); });
-      row.appendChild(cr);
-    }
     if (!black) {
       content.urls.forEach(function(u) {
         if (PttReader.imageSrc(u)) row.appendChild(reader.linkBlock(u, true));
@@ -1669,6 +1672,7 @@ JJMobile.prototype.renderSettings = function(screen) {
   rd.appendChild(this.numberRow('readerPrefetchCount', '先讀好接下來幾篇', '0 = 不預先讀取，最多 10', 0, 10));
   rd.appendChild(this.toggleRow('readerPrefetchImages', '預先讀取時連圖片一起下載', '換篇更快，但流量多很多'));
   rd.appendChild(this.toggleRow('readerLowResImages', '用低解析度圖片', '載入快、省流量；點圖片看原圖'));
+  rd.appendChild(this.toggleRow('hidePinned', '隱藏置底公告', '看板文章列表不顯示板規、公告那些置底文章'));
   rd.appendChild(this.toggleRow('readerGroupRuns', '同一個人的連續推文排在一起', '被別人插話打斷的也排回一起，樓層照舊'));
   this.layoutPane(panes.layout, screen);
 
@@ -1676,7 +1680,25 @@ JJMobile.prototype.renderSettings = function(screen) {
   var se = section('general', '搜尋');
   var sw = this.localToggleRow(JJMobile.SEARCH_PUSH_KEY, '看板搜尋預設用推文數篩選', '打開搜尋就選好「推文數 ≥」並填好下面的數字', true);
   se.appendChild(sw);
-  se.appendChild(this.numberRow('pushFilterDefault', '推文數預設', '只看推文數至少這麼多的文章', 1, 999));
+  se.appendChild(this.numberRow('pushFilterDefault', '推文數預設', '正數 = 推文至少這麼多（10 = 推 ≥ 10）；負數 = 噓文（-10 = 噓比推多 10 以上）', -99, 999));
+  // the extension's 備份成檔案, read here
+  var imp = el('div', 'jjm-set jjm-set-col');
+  imp.appendChild(el('div', 'jjm-set-title', '匯入擴充版的設定檔'));
+  imp.appendChild(el('div', 'jjm-set-sub', '電腦上擴充版「同步、備份與更新 → 備份成檔案」存的 jjptt-settings-….json，傳到手機後在這裡選它：黑名單、觀察名單、自訂名單、事實查核規則都會套用（不含帳號密碼）。'));
+  var file = el('input');
+  file.type = 'file';
+  file.accept = '.json,application/json';
+  file.style.display = 'none';
+  file.addEventListener('change', function() {
+    var f = file.files && file.files[0];
+    if (!f || !self.app.updater) return;
+    self.app.updater.importSettings(f);
+    setTimeout(function() { self.reload(screen); }, 1500);
+  });
+  imp.appendChild(file);
+  imp.appendChild(JJMobile.button('jjm-btn jjm-btn-main', '選擇設定檔匯入', function() { file.value = ''; file.click(); }));
+  var ie = section('general', '同步');
+  ie.appendChild(imp);
 
   // lists
   var ab0 = section('lists', '自動黑名單');

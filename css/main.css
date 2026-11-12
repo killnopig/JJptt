@@ -1758,3 +1758,7 @@ body.jj-mobile { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* 關於: real buttons */
 .jjm .jjm-wide { display: block; width: calc(100% - 28px); margin: 14px 14px 4px; min-height: 50px; font-size: 17px; }
 .jjm .jjm-btn-coffee { background: #3b2a1a; color: #ffd8a8; border: 1px solid #8a5a2b; font-weight: 700; }
+
+/* fact-check chips on the account's line */
+.jjm-push-head .jjm-push-chips-inline { display: inline-flex; flex-wrap: nowrap; gap: 4px; margin: 0; min-width: 0; overflow: hidden; flex: 0 1 auto; }
+.jjm-push-chips-inline .jjm-pchip { font-size: 11px; padding: 1px 6px; line-height: 1.5; white-space: nowrap; }
