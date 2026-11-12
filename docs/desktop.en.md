@@ -73,7 +73,7 @@ Open that `JJptt` folder → `native-host` → double-click `install.bat`.
 1. Click the JJptt icon in the toolbar: a new tab opens and connects to PTT (encrypted SSH by default).
 2. Enter your ID and password as usual. To log in automatically: **right-click on the screen → 設定 (Settings) → 自動登入與其他 (Auto login and more)**.
 3. Open a board and an article and reading mode shows images and the push analysis. Press `Esc` to go back to the terminal screen.
-4. Every switch is under **right-click → 設定 (Settings)**; the shill-catching ones are under 「真.事實查核中心」 (FACT).
+4. Every switch is under **right-click → 設定 (Settings)**; the shill-catching ones are under 「真.事實查核中心」 (FACT) — see [the full FACT guide](fact.en.md) for what each rule does.
 
 ![FACT in the settings: every rule has its own switch and threshold](images/settings-factcheck.png)
 

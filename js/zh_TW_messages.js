@@ -630,6 +630,9 @@ locale.zh_TW = {
   "fact_allOff": {
     "message": "全部關閉"
   },
+  "fact_docs": {
+    "message": "完整說明：每條規則、自動黑名單、誤判怎麼撤銷 ›"
+  },
   "options_fgTask": {
     "message": "門檻推文"
   },

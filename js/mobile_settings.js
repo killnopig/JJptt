@@ -917,8 +917,12 @@ JJMobile.prototype.aboutFact = function(box) {
     toggle.textContent = open ? '收起' : '看 FACT 的原則 ›';
   });
   head.appendChild(toggle);
+  head.appendChild(JJMobile.button('jjm-link-btn', '完整說明：每條規則、自動黑名單、誤判怎麼撤銷 ›', function() {
+    window.open(JJMobile.FACT_DOC_URL, '_blank');
+  }));
   box.appendChild(head);
 };
+JJMobile.FACT_DOC_URL = 'https://github.com/killnopig/JJptt/blob/gh-pages/docs/fact.md';
 
 // The fact-check rules, in the order and groups of the extension's settings
 // page: a switch per rule, its numbers under it (greyed out when off).

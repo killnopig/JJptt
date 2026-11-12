@@ -633,6 +633,9 @@ locale.en_US = {
   "fact_allOff": {
     "message": "All off"
   },
+  "fact_docs": {
+    "message": "Full guide: every rule, the automatic blacklist, undoing a mistake ›"
+  },
   "options_fgTask": {
     "message": "Threshold pushing"
   },

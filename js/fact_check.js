@@ -602,6 +602,7 @@ FactCheck.prototype.setupUi = function() {
   };
   $('#fact_allOn').text(i18n('fact_allOn')).off().click(function(e) { e.preventDefault(); setAll(true); });
   $('#fact_allOff').text(i18n('fact_allOff')).off().click(function(e) { e.preventDefault(); setAll(false); });
+  $('#fact_docs').text(i18n('fact_docs'));  // the full FACT guide on GitHub
   $('#fact_historyClear').text(i18n('fact_historyClear')).off().click(function(e) {
     e.preventDefault();
     if (!window.confirm(i18n('fact_historyConfirm'))) return;

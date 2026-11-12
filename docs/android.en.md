@@ -8,7 +8,7 @@
 
 JJptt now has an Android app. It connects to PTT by itself — no local helper to install, and no relay server in between.
 
-- **FACT**: fast pushes, shared subnets, data-centre IPs… tagged right next to each push, and one tap hands the article to AI.
+- **FACT**: fast pushes, shared subnets, data-centre IPs… tagged right next to each push, and one tap hands the article to AI; accounts that flood fade out for 24 hours ([how the rules work](fact.en.md)).
 - **Push, reply, post**: your push shows up the moment PTT takes it (marked 「剛送出」, "just sent") — no waiting for the web page to catch up.
 - **Easy reading**: images and news cards inside the article; previous / next can float on the left or right edge for one-handed reading; your PTT favourites sync in one tap.
 - **Your layout**: text size, line spacing and push style, with a live preview on top; save a layout as a code and share it with friends.

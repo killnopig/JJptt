@@ -19,7 +19,7 @@
 
 | | |
 |---|---|
-| 🔍 **Catch astroturfing** | FACT (真.事實查核中心) flags fast pushes, bursts, boosting, canned pushes, shared subnets, data-centre / VPN IPs, co-occurring accounts and first-push squads — the traces of coordinated pushing, without counting |
+| 🔍 **[Catch astroturfing](docs/fact.en.md)** | FACT (真.事實查核中心) flags fast pushes, bursts, boosting, canned pushes, shared subnets, data-centre / VPN IPs, co-occurring accounts and first-push squads — the traces of coordinated pushing, without counting |
 | 🤖 **Ask AI in one tap** | Hand the whole article to ChatGPT, Claude, Perplexity, Grok or Copilot; or select a passage and ask "is this true?" |
 | 🔒 **Direct, no middleman** | Connects straight to ptt.cc, no relay server; your ID and password stay on your own computer or phone |
 | 📖 **Actually readable** | Images, videos and news cards inside the article; previous and next articles loaded ahead, so they open instantly |
@@ -57,6 +57,8 @@ The PTT terminal's font and feel, plus reading mode and FACT. Works in Chrome, E
 - **Open to checking**: anyone flagged by mistake can be taken off the automatic blacklist, and every rule can be switched off or given your own threshold.
 
 ![FACT: Evidence over opinion — transparent, consistent, impartial, evidence first, willing to correct](docs/images/fact.png)
+
+👉 **[The full FACT guide](docs/fact.en.md)**: every detection rule with its default threshold, the automatic blacklist (flooding, same-URL spam), and undoing a mistake
 
 ## Data usage
 
