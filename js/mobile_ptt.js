@@ -563,8 +563,13 @@ JJPtt.parseBoardRow = function(row) {
   var title = m[5].split(/\s{2,}/)[0].replace(/^◎/, '');
   // a title that fills its column runs straight into the next ones:
   // 「…三星獅爆!GreenChamb…」, 「…龍布…爆!hasebe/jou…」, 「…規…21 abc」
-  title = title.replace(/(爆!|HOT)\S*$/, '').replace(/…\s*\d{1,3}(\s+\S+)?$/, '…');
-  return { n: +m[1], name: m[2], title: title.trim() };
+  return { n: +m[1], name: m[2], title: JJPtt.cleanTitle(title) };
+};
+
+// A title that filled its column runs straight into the next ones:
+// 「…三星獅爆!GreenChamb…」, 「…龍布…爆!hasebe/jou…」, 「…規…21 abc」.
+JJPtt.cleanTitle = function(title) {
+  return String(title || '').replace(/(爆!|HOT)\S*$/, '').replace(/…\s*\d{1,3}(\s+\S+)?$/, '…').trim();
 };
 
 // Back to the main menu from wherever the connection is.

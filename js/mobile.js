@@ -211,9 +211,12 @@ JJMobile.prototype.checkUpdate = function(manual) {
 // name: space). A short note there (檢查中…, 下载中 40%); anything longer
 // is a toast. Green 更新到 0.0.N when there is a newer one.
 JJMobile.prototype.setUpdateRow = function(note) {
-  var shortNote = note && note.length <= 10 && !/^已經是最新版$/.test(note);
+  var top = this.stack[this.stack.length - 1];
+  var onHome = top && top.type === 'home';
+  // the version button is only on the home screen: elsewhere every note is a toast
+  var shortNote = onHome && note && note.length <= 10 && !/^已經是最新版$/.test(note);
   this.updateNote = shortNote ? note : null;
-  if (note && !shortNote && this.app.showToast) this.app.showToast(note, note.length > 20 ? 5000 : 2000);
+  if (note && !shortNote && this.app.showToast && !/^下載中 \d/.test(note)) this.app.showToast(note, note.length > 20 ? 5000 : 2000);
   this.refreshVersion();
 };
 
@@ -353,6 +356,10 @@ JJMobile.prototype.back = function() {
   this.stack.pop().view.remove();
   var top = this.stack[this.stack.length - 1];
   top.view.style.display = '';
+  if (top.type === 'home' && this.homeDirty) {  // 每頁幾個看板 changed
+    this.homeDirty = false;
+    this.reload(top);
+  }
   this.setBar(top);
   if (top.type === 'board' && top.listNode) this.markRead(top);
 };
@@ -619,7 +626,8 @@ JJMobile.prototype.boardSheet = function() {
 // Home: tabs instead of one long page. 我的最愛 10 boards a tab (我的最愛1,
 // 我的最愛2…), each PTT folder its own tab, then 熱門看板. The tab shown is
 // remembered.
-JJMobile.TAB_SIZE = 10;
+JJMobile.TAB_SIZE = 10;  // boards a tab unless set (設定 → 版面)
+JJMobile.TAB_SIZE_KEY = 'jjptt.m.tabSize';
 JJMobile.TAB_KEY = 'jjptt.m.homeTab';
 
 JJMobile.homeTabs = function(favs) {
@@ -629,10 +637,11 @@ JJMobile.homeTabs = function(favs) {
     if (!folders[f.folder]) { folders[f.folder] = []; order.push(f.folder); }
     folders[f.folder].push(f);
   });
-  var n = Math.max(1, Math.ceil(top.length / JJMobile.TAB_SIZE));
+  var size = +JJMobile.store(JJMobile.TAB_SIZE_KEY) || JJMobile.TAB_SIZE;
+  var n = Math.max(1, Math.ceil(top.length / size));
   for (var i = 0; i < n; ++i) {
     tabs.push({ id: 'fav' + (i + 1), label: n > 1 ? '我的最愛' + (i + 1) : '我的最愛',
-                boards: top.slice(i * JJMobile.TAB_SIZE, (i + 1) * JJMobile.TAB_SIZE) });
+                boards: top.slice(i * size, (i + 1) * size) });
   }
   order.forEach(function(name) {
     tabs.push({ id: 'dir:' + name, label: name, boards: folders[name] });
@@ -678,7 +687,7 @@ JJMobile.prototype.renderHome = function(screen) {
     if (!cur.boards.length) {
       list.appendChild(el('div', 'jjm-hint', '在看板裡按右上角的 ☆ 加到這裡，或登入後按「同步」拿 PTT 的我的最愛。'));
     }
-    cur.boards.forEach(function(f) { list.appendChild(self.boardRow(f.name, f.title, '')); });
+    cur.boards.forEach(function(f) { list.appendChild(self.boardRow(f.name, JJPtt.cleanTitle(f.title), '')); });
   } else {
     var wait = this.loading(list);
     this.app.reader.fetchDoc(JJMobile.WEB + '/bbs/hotboards.html').then(function(doc) {
@@ -1655,6 +1664,24 @@ JJMobile.prototype.renderSettings = function(screen) {
     fontRow.appendChild(fonts);
     lay.appendChild(fontRow);
   });
+  var perRow = el('div', 'jjm-set jjm-set-col');
+  perRow.appendChild(el('div', 'jjm-set-title', '我的最愛每一頁幾個看板'));
+  perRow.appendChild(el('div', 'jjm-set-sub', '超過就分成 我的最愛1、我的最愛2…'));
+  var perChips = el('div', 'jjm-chips');
+  var perNow = +JJMobile.store(JJMobile.TAB_SIZE_KEY) || JJMobile.TAB_SIZE;
+  [10, 15, 20, 30].forEach(function(n) {
+    var b = JJMobile.button('jjm-chip' + (perNow === n ? ' jjm-on' : ''), n + ' 個', function() {
+      JJMobile.store(JJMobile.TAB_SIZE_KEY, n);
+      JJMobile.store(JJMobile.TAB_KEY, null);
+      if (self.stack[0] && self.stack[0].type === 'home') self.stack[0].tab = null;
+      Array.prototype.forEach.call(perChips.children, function(x) { x.classList.remove('jjm-on'); });
+      b.classList.add('jjm-on');
+      self.homeDirty = true;
+    });
+    perChips.appendChild(b);
+  });
+  perRow.appendChild(perChips);
+  lay.appendChild(perRow);
   this.pushLookRows(lay);
   this.listLookRows(lay);
 
@@ -1693,9 +1720,9 @@ JJMobile.prototype.renderSettings = function(screen) {
   // about
   var ab = section('about', '關於');
   var b = window.JJPTT_BUILD || {};
-  var buildText = b.run ? JJMobile.version(parseInt(b.run, 10)) + (b.time ? '（' + this.shortTime(b.time) + '）' : '') : '';
-  ab.appendChild(this.setRow('JJptt ' + (typeof JJPTT_VERSION !== 'undefined' ? JJPTT_VERSION : '') + (buildText ? '・' + buildText : ''),
-                             '檢查有沒有新版，有就直接更新', function() {
+  ab.appendChild(this.setRow('版本 ' + JJMobile.version(parseInt(b.run, 10)),
+                             b.time ? '打包時間 ' + this.shortTime(b.time) : '', function() {}));
+  ab.appendChild(this.setRow('檢查並自動更新', '有新版就直接下載，接著會跳出 Android 的安裝畫面，按「更新」就裝好（設定和登入都會保留）', function() {
     self.checkUpdate(true);
   }));
   ab.appendChild(this.setRow('覺得好用？請我喝杯咖啡', 'Ko-fi（自願，不影響任何功能）', function() {
