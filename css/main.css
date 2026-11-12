@@ -1442,7 +1442,7 @@ body.jj-mobile .jjm {
 .jjm-badge { flex: 0 0 auto; font-size: 13px; color: var(--sub); background: var(--card); border-radius: 10px; padding: 3px 9px; }
 
 .jjm .jjm-article { flex-direction: column; align-items: stretch; gap: calc(2px + var(--jjm-lgap, 12px) * .35); }
-.jjm-article-title { font-size: var(--jjm-fs); line-height: 1.4; font-weight: 500; }
+.jjm-article-title { font-size: var(--jjm-lfs, var(--jjm-fs)); line-height: 1.4; font-weight: 500; }
 .jjm-article-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--sub); }
 .jjm-author { color: var(--sub); }
 .jjm-author.jjm-watch { color: var(--watch); }
@@ -1509,7 +1509,7 @@ body.jj-mobile .jjm {
 .jjm-pushes { display: flex; flex-direction: column; }
 /* 推文間距 (--jjm-pgap, 0-24px) sets the space around a push and inside it
    (name to text, between lines) together */
-.jjm-push { padding: var(--jjm-pgap, 10px) 18px; border-bottom: 1px solid var(--line); }
+.jjm-push { padding: var(--jjm-pgap, 10px) 18px; border-bottom: 1px solid var(--line); font-size: var(--jjm-pfs, var(--jjm-fs)); }
 .jjm-push[data-level="warn"] { box-shadow: inset 4px 0 0 var(--warn); }
 .jjm-push[data-level="watch"] { box-shadow: inset 4px 0 0 var(--watch); }
 .jjm-push[data-level="note"] { box-shadow: inset 4px 0 0 var(--note); }
@@ -1731,3 +1731,8 @@ body.jj-mobile { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   border: 1px solid var(--line); background: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .jjm .jjm-verbtn-new { color: #11180a; background: #9ccc65; border-color: #9ccc65; font-weight: 700; }
+
+/* 自動黑名單: why / the address / the article */
+.jjm-temp-why { font-size: 15px; color: var(--text); }
+.jjm-temp-link { word-break: break-all; }
+.jjm .jjm-temp-art { text-align: left; font-size: 14px; color: var(--accent); background: none; padding: 0; line-height: 1.4; }
