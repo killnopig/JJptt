@@ -6,12 +6,23 @@
 
 ## Installation (about 5 minutes, once)
 
-The JJptt Chrome extension comes with a small local helper program for the connection. Both are needed.
+You install two things, and both are needed:
+
+- **The extension**: a small tool added to your browser. It's what you see as JJptt.
+- **The local helper**: a small program on your computer that connects JJptt to PTT. A browser can't connect to PTT by itself, so it needs this.
+
 Works with desktop Chrome, Edge, Brave, Arc and Vivaldi; on a phone, use the [Android app](android.en.md).
 
-If you'd rather not use Git, download `JJptt-extension-<version>.zip` (the unzipped `extension` folder is what step 4 asks for) and `JJptt-native-host-<version>.zip` (unzip and run the installer inside) from [Releases](https://github.com/killnopig/JJptt/releases/latest). Installed from zip, the one-click update doesn't work and new versions must be downloaded again; the `git clone` way below updates with one click.
+There are two ways to install; pick one:
 
-### Mac
+| | Method 1 (recommended): download with Git | Method 2: download zip files |
+|---|---|---|
+| Updating later | One click on 「立即更新」 (Update now) | Download and install again every time |
+| What you do | Paste two or three commands into Terminal | Download and unzip; on a Mac you still paste one command |
+
+Method 1 comes first; [Method 2](#method-2-download-zip-files) is further down.
+
+### Method 1: Mac
 
 **Step 1: open Terminal**
 
@@ -42,11 +53,13 @@ When it says it's done (「安裝完成」), you're set.
 4. In the window that opens, press `⌘ + Shift + G`, paste `~/JJptt/extension`, press Enter, then "Select".
 5. A JJptt card appears: done.
 
+> **Why turn on Developer mode?** JJptt isn't in the Chrome Web Store. Chrome only lets you pick a folder and install an extension from it in this mode. Turning it on doesn't make your computer less safe; it just adds the "install it yourself" option.
+
 **Step 5: restart Chrome**
 
 Press `⌘ + Q` to quit Chrome completely and open it again. Click the puzzle icon right of the address bar → pin JJptt; from then on, click the JJptt icon in the toolbar to open it.
 
-### Windows
+### Method 1: Windows
 
 **Step 1: install Git**
 
@@ -67,6 +80,18 @@ When done, there is a new folder `C:\Users\<your name>\JJptt`.
 Open that `JJptt` folder → `native-host` → double-click `install.bat`.
 
 **Steps 4 and 5:** as on the Mac. Choose the `extension` folder inside `JJptt`; to restart the browser, close all its windows.
+
+### Method 2: download zip files
+
+1. From [Releases](https://github.com/killnopig/JJptt/releases/latest), download two files: `JJptt-extension-<version>.zip` and `JJptt-native-host-<version>.zip`.
+2. Unzip both (on a Mac, double-click; on Windows, right-click → "Extract All").
+3. Install the local helper:
+   - Mac: open Terminal (see Method 1, step 1), type `sh ` (sh and a space), drag `install.sh` from the unzipped `native-host` folder into the window, and press Enter.
+   - Windows: open the unzipped `native-host` folder and double-click `install.bat`.
+4. Add JJptt to Chrome: follow step 4 of Method 1, and pick the unzipped `extension` folder.
+5. Restart the browser: step 5 of Method 1.
+
+Installed this way, 「立即更新」 (Update now) doesn't work. For a new version, download and do it again.
 
 ## First use
 
@@ -117,11 +142,25 @@ PTT itself is an 80 × 24 character text terminal, and that limit makes a few th
 - **Copying and checking are awkward**: selecting text in the terminal picks up borders and formatting characters. In reading mode you select and copy directly, and can hand the selection or the whole article to AI to check.
 - **Waiting between articles**: in the terminal the next article arrives from PTT a page at a time. Reading mode loads the previous and next few ahead, so switching is nearly instant.
 
-It deliberately keeps the terminal's font, colours and 80-column width, and PTT's keys (↑↓ scroll, ← / Esc leave, X push, y reply), so it is still PTT — just with images and whole-article reading. To turn it off: 設定 → 一般 (General). Boards the web site doesn't have (such as ones that need a login) stay on the terminal screen automatically.
+It deliberately keeps the terminal's font, colours and 80-column width, and PTT's keys (↑↓ scroll, ← / Esc leave, X push, y reply), so it is still PTT — just with images and whole-article reading. To turn it off: 設定 → 一般 (General). Boards PTT's web site (www.ptt.cc) doesn't show (such as ones that need a login) stay on the terminal screen automatically.
 
-## Advanced
+## Data usage
 
-### Web version (needs your own relay)
+- PTT's original screen (the terminal) is light: text only, a few MB for a whole day.
+- Reading mode uses more: each article is downloaded from PTT's web site, usually 50–300 KB. A popular article with thousands of pushes can be over 1 MB.
+- Images and link previews load only when you scroll near them, from tens of KB to a few MB each.
+- 「預先讀取時連圖片一起下載」 (download images when loading ahead) is on by default: the fastest switching, but much more data. With 5 articles loaded each way, every switch downloads about 10 more articles with all their images. Untick it to load text only.
+
+On a hotspot or a limited plan, save data like this:
+
+1. 設定 → 一般 (Settings → General) → untick 「預先讀取時連圖片一起下載」.
+2. Tick 「閱讀模式用低解析度圖片」 (low-resolution images in reading mode).
+3. Set 「預先讀取上下幾篇」 (articles to load ahead) to 0 or 1.
+4. Still too much? Turn reading mode off for a while.
+
+## Advanced (only for people who write code; everyone else can skip it)
+
+### Web version (needs your own relay server)
 
 ```bash
 cd worker

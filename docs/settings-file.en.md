@@ -16,7 +16,6 @@ Everything, in every direction. It's the same kind of file, so a file saved on o
 | Android app | Chrome extension on a computer | ✅ Yes | You added lots of people to the blacklist on the phone and want the computer to match |
 | Chrome extension | Chrome extension on another computer | ✅ Yes | A new computer, or one at home and one at work |
 | Android app | Android app on another phone | ✅ Yes | A new phone |
-| Web version | Any of the above | ✅ Yes | The web version has the same settings page as the extension and works the same way |
 
 ## Can I keep my own backup?
 
@@ -50,7 +49,7 @@ Tips:
 ## How to move them (three steps)
 
 1. **Save a file on the old one**
-   - Computer (Chrome extension or web version): right-click on the screen → 設定 (Settings) →「同步、備份與更新」(Sync, backup and update) → press 「匯出設定檔」 (Export settings).
+   - Computer (Chrome extension): right-click on the screen → 設定 (Settings) →「同步、備份與更新」(Sync, backup and update) → press 「匯出設定檔」 (Export settings).
    - Android app: 設定 (Settings) → 一般 (General) → find 「同步」 (Sync) → press 「匯出設定檔」 (Export settings) and choose where to save it (Google Drive, or LINE to yourself).
 2. **Get the file to the new one**: send it to yourself on LINE, put it in Google Drive, or email it to yourself. The file is named like `jjptt-settings-20261113.json`.
 3. **Open the file on the new one**
