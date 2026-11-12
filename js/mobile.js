@@ -1837,7 +1837,7 @@ JJMobile.prototype.renderSettings = function(screen) {
     fc.appendChild(this.choiceRow('aiService', '「請 AI 分析」用哪一個',
       PREF_OPTIONS.aiService.map(function(k, i) { return [i, i18n(k)]; })));
   }
-  this.aboutFact(section('fact', '關於 FACT'));
+  this.aboutFact(section('fact', '關於 真.事實查核中心 FACT'));
 
   // about
   var ab = section('about', '關於');
@@ -2456,6 +2456,16 @@ JJMobile.prototype.aboutFact = function(box) {
     rules.appendChild(li);
   });
   more.appendChild(rules);
+  // how it works, in plain words
+  more.appendChild(el('div', 'jjm-set-title', 'FACT 怎麼運作'));
+  var how = el('ul', 'jjm-fact-rules');
+  ['只看推文本身公開的資料：推文時間、IP、國家、內容，以及同一批帳號在不同文章的出現紀錄。',
+   '每條規則只回答一個問題，例如「是不是發文後幾秒就推」「是不是來自雲端機房」，符合就標出來，並寫明原因。',
+   '標記是提醒你多看一眼的疑點，不是判決；最後怎麼看，由你自己決定。',
+   '紀錄只存在這支手機，不會上傳；不想要的規則可以在上面一條一條關掉。'].forEach(function(t) {
+    how.appendChild(el('li', '', t));
+  });
+  more.appendChild(how);
   head.appendChild(more);
   var toggle = JJMobile.button('jjm-link-btn', '看 FACT 的原則 ›', function() {
     var open = more.style.display === 'none';
