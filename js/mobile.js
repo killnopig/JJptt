@@ -377,6 +377,7 @@ JJMobile.prototype.setBar = function(screen) {
     });
     star.classList.toggle('jjm-on', fav);
     add('⌕', '搜尋', function() { self.searchSheet(screen); });
+    add('✎', '發文', function() { self.postSheet(screen); });
     add('⟳', '重新整理', function() { self.reload(screen); });
   } else if (screen.type === 'article') {
     add('Aa', '字的大小', function() { self.fontSheet(); });
@@ -401,7 +402,7 @@ JJMobile.prototype.accountSheet = function(then) {
   var ptt = this.ptt;
   if (ptt.state === 'in') {
     var box = el('div', 'jjm-sheet-list');
-    box.appendChild(el('div', 'jjm-hint', '已登入，可以推文、回文。'));
+    box.appendChild(el('div', 'jjm-hint', '已登入，可以推文、回文、發文。'));
     box.appendChild(JJMobile.button('jjm-sheet-item', '登出', function() {
       ptt.logout();
       var pref = self.app.pref;
@@ -456,7 +457,7 @@ JJMobile.prototype.accountSheet = function(then) {
   form.appendChild(remember);
   form.appendChild(err);
   form.appendChild(go);
-  form.appendChild(el('div', 'jjm-hint', '看文章不用登入；登入後才能推文、回文。帳號密碼只存在這支手機。'));
+  form.appendChild(el('div', 'jjm-hint', '看文章不用登入；登入後才能推文、回文、發文。帳號密碼只存在這支手機。'));
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     var u = user.value.trim(), p = pass.value;
@@ -1095,6 +1096,118 @@ JJMobile.prototype.replySheet = function(screen) {
   else this.accountSheet(start);
 };
 
+// 發文: category chips (the board's own once PTT has shown them, PTT's
+// defaults before that) or one typed in, the title, the text. What is typed
+// is kept as a draft per board until it is posted.
+JJMobile.DEFAULT_POST_TYPES = ['問題', '建議', '討論', '心得', '閒聊', '請益', '情報', '公告'];
+JJMobile.DRAFT_KEY = 'jjptt.m.draft.';
+
+JJMobile.prototype.postSheet = function(screen) {
+  var self = this;
+  var el = JJMobile.el;
+  var board = screen.board;
+  var store = window.localStorage;
+  var draft = {};
+  try { draft = JSON.parse(store.getItem(JJMobile.DRAFT_KEY + board.toLowerCase()) || '{}'); } catch (e) {}
+  var start = function() {
+    var form = el('form', 'jjm-sheet-form');
+    var known = JJPtt.postTypes(board);
+    var types = known.length ? known : JJMobile.DEFAULT_POST_TYPES;
+    var type = draft.type || '';
+    var chips = el('div', 'jjm-chips');
+    var custom = el('input');
+    custom.type = 'text';
+    custom.placeholder = '或自己輸入類別';
+    custom.maxLength = 4;
+    // the first chip (不選) is the one for no category
+    var mark = function(fillCustom) {
+      Array.prototype.forEach.call(chips.children, function(c, i) {
+        c.classList.toggle('jjm-on', i === 0 ? !type : c.textContent === type);
+      });
+      if (fillCustom) custom.value = types.indexOf(type) >= 0 ? '' : type;
+    };
+    [''].concat(types).forEach(function(t) {
+      chips.appendChild(JJMobile.button('jjm-chip', t || '不選', function() {
+        type = t;
+        mark(true);
+        update();
+      }));
+    });
+    form.appendChild(chips);
+    form.appendChild(custom);
+    if (!known.length) {
+      form.appendChild(el('div', 'jjm-hint', '這是 PTT 預設的類別；在這個板發過一次文之後，會換成這個板自己的類別。'));
+    }
+    var title = el('input');
+    title.type = 'text';
+    title.placeholder = '標題';
+    title.setAttribute('enterkeyhint', 'next');
+    title.value = draft.title || '';
+    form.appendChild(title);
+    var count = el('span', 'jjm-count');
+    form.appendChild(count);
+    var area = el('textarea');
+    area.rows = 10;
+    area.placeholder = '內文';
+    area.value = draft.text || '';
+    form.appendChild(area);
+    var err = el('div', 'jjm-form-error');
+    form.appendChild(err);
+    var go = el('button', 'jjm-btn jjm-btn-main', '發表文章');
+    form.appendChild(go);
+
+    var left = function() {
+      var prefix = type ? JJPtt.big5Length('[' + type + '] ') : 0;
+      return Math.floor((JJPtt.TITLE_BYTES - prefix - JJPtt.big5Length(title.value.trim())) / 2);
+    };
+    var save = function() {
+      try {
+        store.setItem(JJMobile.DRAFT_KEY + board.toLowerCase(),
+                      JSON.stringify({ type: type, title: title.value, text: area.value }));
+      } catch (e) {}
+    };
+    var update = function() {
+      var n = left();
+      count.textContent = '標題還可以打 ' + n + ' 個字';
+      count.classList.toggle('jjm-over', n < 0);
+      save();
+    };
+    custom.addEventListener('input', function() {
+      type = custom.value.replace(/[\[\]\s]/g, '');
+      mark(false);
+      update();
+    });
+    title.addEventListener('input', update);
+    area.addEventListener('input', save);
+    mark(true);
+    update();
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      err.textContent = '';
+      if (!title.value.trim()) { err.textContent = '請輸入標題'; return; }
+      if (left() < 0) { err.textContent = '標題太長了'; return; }
+      if (!area.value.trim()) { err.textContent = '請輸入內文'; return; }
+      go.disabled = true;
+      go.textContent = '發表中…';
+      self.ptt.post(board, type, title.value, area.value).then(function() {
+        try { store.removeItem(JJMobile.DRAFT_KEY + board.toLowerCase()); } catch (e2) {}
+        self.closeSheet();
+        if (self.app.showToast) self.app.showToast('已發表文章', 2000);
+        if (self.stack[self.stack.length - 1] === screen) self.reload(screen);
+      }).catch(function(e2) {
+        go.disabled = false;
+        go.textContent = '發表文章';
+        err.textContent = e2.message + '（內容已存成草稿）';
+      });
+    });
+    self.showSheet('發文到 ' + board, form);
+    setTimeout(function() { (title.value ? area : title).focus(); }, 50);
+  };
+  if (this.ptt.state === 'in' || this.ptt.user) start();
+  else this.accountSheet(start);
+};
+
 // After pushing: load the article again, staying at the bottom.
 JJMobile.prototype.reloadAfterPost = function(screen) {
   var self = this;
@@ -1389,7 +1502,7 @@ JJMobile.prototype.renderSettings = function(screen) {
   var acc = section('帳號');
   var st = this.ptt.state;
   acc.appendChild(this.setRow(st === 'in' ? '已登入 ' + this.ptt.user : '登入 PTT',
-    st === 'in' ? '點這裡登出' : '登入後可以推文、回文', function() { self.accountSheet(function() { self.reload(screen); }); }));
+    st === 'in' ? '點這裡登出' : '登入後可以推文、回文、發文', function() { self.accountSheet(function() { self.reload(screen); }); }));
   if (this.ptt.lastFailure) {
     var lf = this.ptt.lastFailure;
     acc.appendChild(this.setRow('最後一次 PTT 畫面（除錯用）', this.shortTime(new Date(lf.at).toISOString()) + '・' + lf.message, function() {

@@ -1,11 +1,12 @@
 // JJptt app: a PTT connection in the background for what reading from the
-// web pages can't do -- logging in, pushing (推 / 噓 / →) and replying. The
+// web pages can't do -- logging in, pushing (推 / 噓 / →), replying, posting. The
 // terminal is never shown: this reads its screen and types the keys a
 // person would, one job at a time.
 //
 //   ptt.login(user, pass)        -> Promise (rejects with a message)
 //   ptt.push(url, kind, text)    kind '1' 推 / '2' 噓 / '3' →
 //   ptt.reply(url, text, quote)
+//   ptt.post(board, type, title, text)
 //   ptt.logout()
 function JJPtt(app) {
   this.app = app;
@@ -282,6 +283,21 @@ JJPtt.prototype.toArticle = function(url) {
   var board = JJPtt.boardFromUrl(url);
   var aid = JJPtt.aidFromUrl(url);
   if (!board || !aid) return Promise.reject(new Error('看不懂這篇文章的網址'));
+  return this.toBoard(board).then(function() {
+    self.send('#');
+    return self.wait({ ask: /搜尋.*(文章代碼|AID)|請輸入文章代碼|#/ }, 5000);
+  }).then(function() {
+    self.send(aid + '\r');
+    return JJPtt.sleep(500);
+  }).then(function() {
+    if (/找不到這個文章代碼|找不到|沒有這篇/.test(self.screen())) throw new Error('在 PTT 上找不到這篇文章');
+  });
+};
+
+// Into a board's article list.
+JJPtt.prototype.toBoard = function(board) {
+  var self = this;
+  if (!/^[A-Za-z0-9_\-]{1,20}$/.test(board || '')) return Promise.reject(new Error('看板名稱不對'));
   // out of an article, then "s" (select board) -- which only works in a
   // list, not in the main menu: from there, 我的最愛 first
   if (/瀏覽 第|\(y\)回應/.test(this.screen())) this.send('q');
@@ -304,14 +320,60 @@ JJPtt.prototype.toArticle = function(url) {
       });
     };
     return step();
+  });
+};
+
+// Answers PTT's questions until `done` shows. cases: { key: RegExp };
+// answer(key) returns the keys to send. Each question is answered once:
+// on the real PTT an answered question stays on the screen while the next
+// one is asked under it, and must not be answered again. 'hurdle' (any key)
+// and 'sign' may come back.
+JJPtt.prototype.answerUntil = function(cases, answer, ms, failMessage) {
+  var self = this;
+  var answered = {};
+  var until = Date.now() + (ms || 15000);
+  var step = function() {
+    if (Date.now() > until) return Promise.reject(new Error(failMessage || 'PTT 沒有回應，請再試一次'));
+    var open = {};
+    for (var k in cases) if (!answered[k]) open[k] = cases[k];
+    return self.wait(open, 10000).then(function(k) {
+      var keys = answer(k);
+      if (keys === null) return k;
+      if (k !== 'hurdle' && k !== 'sign') answered[k] = true;
+      if (keys) self.send(keys);
+      return JJPtt.sleep(500).then(step);
+    });
+  };
+  return step();
+};
+
+// The editor: type the lines, Ctrl-X, save, then past the signature and the
+// 「順利貼出佈告」 screen.
+JJPtt.prototype.typeAndSave = function(lines, endWithNewline) {
+  var self = this;
+  lines.forEach(function(line, i) {
+    if (line) self.type(line);
+    if (i < lines.length - 1 || endWithNewline) self.send('\r');
+  });
+  return JJPtt.sleep(300).then(function() {
+    self.send('\x18');
+    return self.wait({ save: /檔案處理|\(S\)存檔/ }, 8000);
   }).then(function() {
-    self.send('#');
-    return self.wait({ ask: /搜尋.*(文章代碼|AID)|請輸入文章代碼|#/ }, 5000);
-  }).then(function() {
-    self.send(aid + '\r');
-    return JJPtt.sleep(500);
-  }).then(function() {
-    if (/找不到這個文章代碼|找不到|沒有這篇/.test(self.screen())) throw new Error('在 PTT 上找不到這篇文章');
+    self.send('s\r');
+    return self.answerUntil({
+      no: /無法發表|不能發文|禁止發文|權限不足|無法在此發表/,
+      done: /順利貼出|貼出佈告|文章已發表/,
+      sign: /請選擇簽名檔/,
+      hurdle: /按任意鍵|請按任意鍵/,
+      list: /文章選讀|看板《/
+    }, function(k) {
+      if (k === 'no') throw new Error('這個板不能發文');
+      if (k === 'done' || k === 'list') {
+        if (/按任意鍵|請按任意鍵/.test(self.screen())) self.send(' ');
+        return null;
+      }
+      return k === 'sign' ? '0\r' : ' ';
+    }, 15000, '不確定有沒有貼出去，請到板上看看');
   });
 };
 
@@ -362,59 +424,103 @@ JJPtt.prototype.reply = function(url, text, quote) {
       return self.toArticle(url);
     }).then(function() {
       self.send('y');
-      var until = Date.now() + 15000;
       // answer the questions until the editor is open
-      var step = function() {
-        if (Date.now() > until) return Promise.reject(new Error('PTT 沒有開啟編輯畫面'));
-        return self.wait({
-          where: /回應至|\(F\)看板/,
-          title: /採用原標題/,
-          quote: /引用原文/,
-          editor: /編輯文章|\^X|Ctrl-X|檔案處理/,
-          no: /無法回應|不能回文|禁止回文|唯讀|權限不足|您不能/
-        }, 10000).then(function(k) {
-          if (k === 'no') throw new Error('這個板不能回文');
-          if (k === 'editor') return null;
-          if (k === 'where') self.send('f\r');
-          else if (k === 'title') self.send('y\r');
-          else if (k === 'quote') self.send(quote ? 'y\r' : 'n\r');
-          return JJPtt.sleep(500).then(step);
-        });
-      };
-      return step();
+      return self.answerUntil({
+        no: /無法回應|不能回文|禁止回文|唯讀|權限不足|您不能/,
+        editor: JJPtt.EDITOR,
+        where: /回應至|\(F\)看板/,
+        title: /採用原標題/,
+        quote: /引用原文/
+      }, function(k) {
+        if (k === 'no') throw new Error('這個板不能回文');
+        if (k === 'editor') return null;
+        if (k === 'where') return 'f\r';
+        if (k === 'title') return 'y\r';
+        return quote ? 'y\r' : 'n\r';
+      }, 15000, 'PTT 沒有開啟編輯畫面');
     }).then(function() {
-      // the editor: type the lines, then Ctrl-X and save
-      lines.forEach(function(line, i) {
-        if (line) self.type(line);
-        if (i < lines.length - 1 || quote) self.send('\r');
-      });
-      return JJPtt.sleep(300);
+      return self.typeAndSave(lines, quote);
+    });
+  });
+};
+
+// ---- post (發文) ------------------------------------------------------------------------------
+
+// The board's categories as PTT lists them after Ctrl-P:
+// "種類：1.問題 2.建議 3.討論 ... (1-8或不選)" -> ['問題', '建議', '討論', ...]
+JJPtt.parsePostTypes = function(screen) {
+  var line = String(screen || '').split('\n').filter(function(l) { return /種類：/.test(l); }).pop();
+  if (!line) return [];
+  line = line.slice(line.indexOf('種類：') + 3).replace(/\(1-\d.*$/, '');
+  var out = [], re = /(\d)\.(\S+)/g, m;
+  while ((m = re.exec(line))) out[+m[1] - 1] = m[2];
+  return out.filter(function(x) { return x; });
+};
+
+// Categories seen on each board (after a post there), for the app's chips.
+JJPtt.TYPES_KEY = 'jjptt.m.postTypes';
+JJPtt.postTypes = function(board) {
+  try {
+    var all = JSON.parse(window.localStorage.getItem(JJPtt.TYPES_KEY) || '{}');
+    return all[String(board).toLowerCase()] || [];
+  } catch (e) { return []; }
+};
+JJPtt.savePostTypes = function(board, types) {
+  if (!types.length) return;
+  try {
+    var all = JSON.parse(window.localStorage.getItem(JJPtt.TYPES_KEY) || '{}');
+    all[String(board).toLowerCase()] = types;
+    window.localStorage.setItem(JJPtt.TYPES_KEY, JSON.stringify(all));
+  } catch (e) {}
+};
+
+// The editor's footer (not the list's「(^X)轉錄」).
+JJPtt.EDITOR = /編輯文章|\^X\/\^Q|檔案處理/;
+
+// Title width PTT keeps (TTLEN), with the "[類別] " PTT puts in front.
+JJPtt.TITLE_BYTES = 64;
+
+// post(board, type, title, text): type is a category name ('問卦'...) or ''.
+// One of the board's own categories is picked by its number; any other is
+// put in front of the title as "[type] ", since PTT only takes 1-8 there.
+JJPtt.prototype.post = function(board, type, title, text) {
+  var self = this;
+  type = String(type || '').replace(/[\[\]\s]/g, '');
+  title = String(title || '').replace(/\s+/g, ' ').trim();
+  var lines = String(text || '').replace(/\r/g, '').split('\n');
+  if (!title) return Promise.reject(new Error('請輸入標題'));
+  if (!String(text || '').trim()) return Promise.reject(new Error('沒有內容'));
+  var typeAsked = false;
+  return this.run(function() {
+    return self.ensureIn().then(function() {
+      return self.toBoard(board);
     }).then(function() {
-      self.send('\x18');
-      return self.wait({ save: /檔案處理|\(S\)存檔/ }, 8000);
+      self.send('\x10');  // Ctrl-P
+      return self.answerUntil({
+        no: /無法在此發表|無法發表|不能發文|禁止發文|權限不足|您不能|未達.*(限制|標準)|唯讀/,
+        editor: JJPtt.EDITOR,
+        type: /種類：|或不選/,
+        title: /標題：/,
+        hurdle: /按任意鍵|請按任意鍵|按任一鍵/
+      }, function(k) {
+        if (k === 'no') throw new Error('你現在不能在 ' + board + ' 板發文');
+        if (k === 'editor') return null;
+        if (k === 'hurdle') return ' ';
+        if (k === 'type') {
+          typeAsked = true;
+          var types = JJPtt.parsePostTypes(self.screen());
+          JJPtt.savePostTypes(board, types);
+          var i = type ? types.indexOf(type) : -1;
+          if (i >= 0) return String(i + 1) + '\r';
+          if (type) title = '[' + type + '] ' + title;
+          return '\r';
+        }
+        // the title (no category question asked: a category goes in front)
+        if (type && !typeAsked) title = '[' + type + '] ' + title;
+        return title + '\r';
+      }, 20000, 'PTT 沒有開啟編輯畫面');
     }).then(function() {
-      self.send('s\r');
-      var until = Date.now() + 15000;
-      var step = function() {
-        if (Date.now() > until) return Promise.reject(new Error('不確定有沒有貼出去，請到板上看看'));
-        return self.wait({
-          done: /順利貼出|貼出佈告|文章已發表/,
-          sign: /請選擇簽名檔|簽名檔/,
-          hurdle: /按任意鍵|請按任意鍵/,
-          list: /文章選讀|看板《/,
-          no: /無法發表|不能發文|禁止發文|權限不足/
-        }, 10000).then(function(k) {
-          if (k === 'no') throw new Error('這個板不能發文');
-          if (k === 'done' || k === 'list') {
-            if (/按任意鍵|請按任意鍵/.test(self.screen())) self.send(' ');
-            return null;
-          }
-          if (k === 'sign') self.send('0\r');
-          else self.send(' ');
-          return JJPtt.sleep(500).then(step);
-        });
-      };
-      return step();
+      return self.typeAndSave(lines, false);
     });
   });
 };

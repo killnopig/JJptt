@@ -650,6 +650,87 @@ testAsync('reply: y, to the board, same title, no quote, lines, Ctrl-X, save, si
                                    '第一行', '\r', '第二行', '\x18', 's\r', '0\r', ' ']);
 });
 
+testAsync('reply: an answered question stays on the screen and is not answered again', async function() {
+  // the real PTT asks each question under the last one
+  var q1 = '▲ 回應至 (F)看板 (M)作者信箱 (B)二者皆是 (Q)取消？[F] f';
+  var q2 = q1 + '\n採用原標題[Y/n]? y';
+  var s = boardScript({ 'y': 11 });
+  s.push([q1.slice(0, -2), { 'f\r': 12 }]);                                           // 11
+  s.push([q1 + '\n採用原標題[Y/n]?', { 'y\r': 13, 'f\r': 99 }]);                     // 12
+  s.push([q2 + '\n請問要引用原文嗎(Y/N/All/Repost/1-9)?[Y]', { 'n\r': 14, 'f\r': 99, 'y\r': 99 }]);  // 13
+  s.push(['【 編輯文章 】 (^Z/F1)說明 (^X/^Q)離開', { '\x18': 15 }]);                // 14
+  s.push(['檔案處理: (S)存檔 (L)站內信 (A)放棄', { 's\r': 16 }]);                   // 15
+  s.push(['順利貼出佈告，請按任意鍵繼續', { ' ': 8 }]);                              // 16
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  f.typed.length = 0;
+  await f.ptt.reply('https://www.ptt.cc/bbs/Test/M.1451110159.A.379.html', '嗨', false);
+  sameJson(f.typed.slice(6), ['y', 'f\r', 'y\r', 'n\r', '嗨', '\x18', 's\r', ' ']);
+});
+
+test('發文 categories from the Ctrl-P screen', function() {
+  sameJson(JJPtt.parsePostTypes('發表文章於【 Test 】 測試 看板\n種類：1.問題 2.建議 3.討論 4.心得 5.閒聊 6.請益 7.情報 8.公告 (1-8或不選)'),
+           ['問題', '建議', '討論', '心得', '閒聊', '請益', '情報', '公告']);
+  sameJson(JJPtt.parsePostTypes('種類：1.問卦 2.爆卦 (1-2或不選)'), ['問卦', '爆卦']);
+  sameJson(JJPtt.parsePostTypes('沒有種類這一行'), []);
+});
+
+// The board list (screen 8) with Ctrl-P; its footer says (^X)轉錄, which is
+// not the editor.
+function postScript() {
+  var s = boardScript({});
+  s[8] = ['【板主:x】 看板《Test》\n文章選讀  (y)回應(X)推文(^X)轉錄 (=[]<>)相關主題', { '\x10': 11 }];
+  var head = '發表文章於【 Test 】 測試 看板\n種類：1.問題 2.建議 3.閒聊 (1-3或不選)';
+  s.push(['本板發文注意事項：請先看板規\n請按任意鍵繼續', { ' ': 12 }]);                  // 11
+  s.push([head, {}]);                                                                     // 12: the category
+  s.push([head + ' 3\n標題：', {}]);                                                       // 13: title, 種類 still there
+  s.push(['【 編輯文章 】 (^Z/F1)說明 (^X/^Q)離開', { '\x18': 15 }]);                    // 14
+  s.push(['檔案處理: (S)存檔 (L)站內信 (A)放棄', { 's\r': 16 }]);                       // 15
+  s.push(['請選擇簽名檔 (1-9, 0=不加 x=隨機)[0]:', { '0\r': 17 }]);                     // 16
+  s.push(['順利貼出佈告，請按任意鍵繼續', { ' ': 8 }]);                                  // 17
+  return s;
+}
+testAsync('post: board, Ctrl-P, board rules, category by number, title, lines, save, signature', async function() {
+  var s = postScript();
+  s[12][1] = { '3\r': 13 };
+  s[13][1] = { '測試發文\r': 14, '3\r': 99 };
+  var f = fakePtt(s);
+  var store = {};
+  global.localStorage = { getItem: function(k) { return store[k] || null; }, setItem: function(k, v) { store[k] = v; } };
+  try {
+    await f.ptt.login('tester', 'right');
+    f.typed.length = 0;
+    await f.ptt.post('Test', '閒聊', '測試發文', '第一行\n\n第三行');
+    sameJson(JJPtt.postTypes('test'), ['問題', '建議', '閒聊']);
+  } finally {
+    delete global.localStorage;
+  }
+  sameJson(f.typed, ['f', 's', 'Test\r', ' ', '\x10', ' ', '3\r', '測試發文\r',
+                     '第一行', '\r', '\r', '第三行', '\x18', 's\r', '0\r', ' ']);
+});
+testAsync('post: a category the board does not have goes in front of the title', async function() {
+  var s = postScript();
+  s[12][1] = { '\r': 13 };
+  s[13][1] = { '[自訂] 標題\r': 14 };
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  f.typed.length = 0;
+  await f.ptt.post('Test', '自訂', '標題', '內容');
+  assert.ok(f.typed.indexOf('[自訂] 標題\r') >= 0, JSON.stringify(f.typed));
+});
+testAsync('post: a board that does not let this account post says so', async function() {
+  var s = postScript();
+  s[11] = ['對不起，您目前無法在此發表文章！', {}];
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  await assert.rejects(f.ptt.post('Test', '', '標題', '內容'), /不能在 Test 板發文/);
+});
+testAsync('post: needs a title and text', async function() {
+  var f = fakePtt(LOGIN);
+  await assert.rejects(f.ptt.post('Test', '', '', '內容'), /標題/);
+  await assert.rejects(f.ptt.post('Test', '', '標題', '  '), /沒有內容/);
+});
+
 test('我的最愛 rows: board name and title; folders and lines skipped', function() {
   var b = JJPtt.parseBoardRow('     3 ˇGossiping    綜合 ◎[八卦] 亂講話                  爆! 板主a/板主b');
   assert.strictEqual(b.name, 'Gossiping');
