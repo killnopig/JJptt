@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.32.1',
+    date: '2026-11-12',
+    changes: [
+      '設定 → 真.事實查核中心 →「名單」：自動黑名單清單移到黑名單框正下方，不再縮排在「同一網址」那條規則底下，標題寫明是連推、同網址洗版等規則自動加入的；舊版加入、沒記錄原因的人寫「舊版加入的，沒有記錄原因」'
+    ]
+  },
+  {
     version: '1.32.0',
     date: '2026-11-12',
     changes: [

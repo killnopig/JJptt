@@ -1281,6 +1281,7 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 #tabContentBlacklist .jj-listblock { margin: 0 0 22px; padding-bottom: 4px; }
 #tabContentBlacklist .jj-listblock .checkbox { margin-top: 0; }
 #tabContentBlacklist .jj-listlabel { margin: 0 0 4px; }
+#tabContentBlacklist .jj-temp-list { margin: 8px 0 12px; }
 
 /* ===== Settings window: one look for every tab =====
    大 = tab title, 中 = section heading (band + bar), 小 = group heading */

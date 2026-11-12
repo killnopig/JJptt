@@ -149,6 +149,8 @@ PttChromePref.prototype = {
             row.append(document.createTextNode(label));
           }
         }
+      } else {
+        row.append(document.createTextNode(' — ' + i18n('tempBlack_unknown')));
       }
       row.append(document.createTextNode(' — ' + i18n('options_tempBlacklistLeft').replace('%s', hours) + ' '));
       $('<a href="#"></a>').text(i18n('options_tempBlacklistRemove')).click(function(e) {

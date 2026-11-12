@@ -583,7 +583,7 @@ locale.zh_TW = {
     "message": "同一帳號 24 小時內把同一網址貼在超過 3 篇文章，自動加入黑名單 24 小時"
   },
   "options_tempBlacklist": {
-    "message": "目前的自動黑名單："
+    "message": "目前的自動黑名單（連推、同網址洗版這些規則自動加入的，24 小時後自動移除）："
   },
   "options_tempBlacklistNone": {
     "message": "（沒有）"
@@ -755,6 +755,9 @@ locale.zh_TW = {
   },
   "options_factFloodRunKeepRemoved": {
     "message": "手動移出黑名單的人，24 小時內不再被自動規則加回去（連推、同網址洗版都算）"
+  },
+  "tempBlack_unknown": {
+    "message": "舊版加入的，沒有記錄原因"
   },
   "tempBlack_flood": {
     "message": "連推 %n 則"

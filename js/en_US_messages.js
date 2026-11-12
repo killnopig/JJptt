@@ -586,7 +586,7 @@ locale.en_US = {
     "message": "Blacklist an ID for 24 hours when it posts the same URL in more than 3 articles within 24 hours"
   },
   "options_tempBlacklist": {
-    "message": "Automatic blacklist: "
+    "message": "Automatic blacklist (added by rules such as pushes in a row and same-URL spam, removed after 24 hours): "
   },
   "options_tempBlacklistNone": {
     "message": "(none)"
@@ -758,6 +758,9 @@ locale.en_US = {
   },
   "options_factFloodRunKeepRemoved": {
     "message": "Don't let automatic rules (push runs, same-URL spam) re-add anyone you took off the blacklist by hand for 24 hours"
+  },
+  "tempBlack_unknown": {
+    "message": "added by an older version, reason not recorded"
   },
   "tempBlack_flood": {
     "message": "%n pushes in a row"
