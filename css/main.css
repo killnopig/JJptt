@@ -1392,7 +1392,9 @@ body.jj-mobile .jjm {
   padding: env(safe-area-inset-top) 6px 0; background: var(--bg); border-bottom: 1px solid var(--line);
 }
 .jjm-title { flex: 1 1 auto; min-width: 0; font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.jjm-actions { display: flex; flex: 0 0 auto; }
+.jjm-actions { display: flex; flex: 0 0 auto; align-items: center; }
+/* no back button (home): the title starts at the edge, not after an empty space */
+.jjm-bar.jjm-noback .jjm-title { padding-left: 10px; }
 .jjm .jjm-icon {
   width: 48px; height: 48px; border-radius: 24px; font-size: 22px; text-align: center; line-height: 48px; color: var(--text);
 }

@@ -357,7 +357,9 @@ JJMobile.prototype.render = function(screen) {
 
 JJMobile.prototype.setBar = function(screen) {
   var self = this;
-  this.backBtn.style.visibility = this.stack.length > 1 ? 'visible' : 'hidden';
+  var hasBack = this.stack.length > 1;
+  this.backBtn.style.display = hasBack ? '' : 'none';
+  this.bar.classList.toggle('jjm-noback', !hasBack);
   this.titleEl.textContent = screen.title || 'JJptt';
   if (screen.type === 'home') {  // the app icon in front of the name
     var logo = JJMobile.el('img', 'jjm-logo');
