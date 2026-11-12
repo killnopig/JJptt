@@ -929,17 +929,6 @@ locale.en_US = {
   "about_new_title": {
     "message": "Release notes"
   },
-  "about_new_content": {
-    "message": [
-      "Connects through a local helper (extension) or a Cloudflare relay (website) instead of the retired Chrome App",
-      "Push insights: floor numbers, IP country, shared-IP and same-IP-as-author hints",
-      "Watchlist with notes (right-click a push)",
-      "Blacklist can hide completely and match title keywords",
-      "Easy reading shows more image links and plays imgur animations",
-      "Automatic Google Drive sync of settings (never passwords)",
-      "Show/hide password toggle and a save confirmation"
-    ]
-  },
 
   // alerts
   "alert_connectionHeader": {

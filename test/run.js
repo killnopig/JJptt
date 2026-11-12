@@ -17,7 +17,7 @@ global.i18n = function(k) { return (locale.zh_TW[k] && locale.zh_TW[k].message) 
 global.$ = function() { return { length: 0 }; };
 global.lib = { safeGetItem: function(k) { return global.lib.store[k] || null; },
                safeSetItem: function(k, v) { global.lib.store[k] = v; }, store: {} };
-['js/predefined_config.js', 'js/fact_check.js', 'js/reader.js', 'js/pref.js', 'js/spam_guard.js'].forEach(function(f) {
+['js/changelog.js', 'js/pitch.js', 'js/predefined_config.js', 'js/fact_check.js', 'js/reader.js', 'js/pref.js', 'js/spam_guard.js'].forEach(function(f) {
   vm.runInThisContext(fs.readFileSync(path.join(root, f), 'utf8'), { filename: f });
 });
 
@@ -430,6 +430,28 @@ test('門檻推文 off: no tags, but the first 10 are still remembered for 門�
     var on = analyze(article(ps));
     assert.ok(on.tags[0].some(function(t) { return t.t === '門檻推文'; }));
   });
+});
+
+// ---- extension vs web version -----------------------------------------------
+
+console.log('擴充功能版 / 網站版');
+
+test('the extension leaves web-only changes out of 關於, the web shows them', function() {
+  var e = { version: 'x', changes: ['[網站版] 只有網站版', '兩邊都有'] };
+  assert.deepStrictEqual(JJPTT_visibleChanges(e, true), ['兩邊都有']);
+  assert.deepStrictEqual(JJPTT_visibleChanges(e, false), e.changes);
+});
+test('web-only changes are marked "[網站版] " (not just mentioning it)', function() {
+  JJPTT_CHANGELOG.forEach(function(entry) {
+    entry.changes.forEach(function(c) {
+      if (/^網站版|^修正網站版/.test(c)) assert.fail('v' + entry.version + ' needs the [網站版] mark: ' + c);
+    });
+  });
+});
+test('the pitch: only the extension-only point is marked', function() {
+  var ext = JJPTT_PITCH.points.filter(function(p) { return p[2] === 'ext'; });
+  assert.strictEqual(ext.length, 1);
+  assert.ok(/本機小程式/.test(ext[0][1]));
 });
 
 // ---- settings defaults ----------------------------------------------------------

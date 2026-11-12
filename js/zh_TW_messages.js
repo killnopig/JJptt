@@ -926,17 +926,6 @@ locale.zh_TW = {
   "about_new_title": {
     "message": "更新紀錄"
   },
-  "about_new_content": {
-    "message": [
-      "改用本機程式（擴充功能版）或 Cloudflare 轉接站（網站版）連線，不再需要已停用的 Chrome App",
-      "推文分析：樓層、IP 國籍、同 IP 多帳號與作者同 IP 等可疑標記",
-      "觀察名單（右鍵加入，可寫備註）",
-      "黑名單可完全隱藏，並支援標題關鍵字",
-      "好讀模式自動顯示更多種圖片網址，imgur 動圖會播放",
-      "Google Drive 自動同步設定（不含密碼）",
-      "密碼欄可切換顯示，設定儲存時會提示"
-    ]
-  },
 
   // alerts
   "alert_connectionHeader": {

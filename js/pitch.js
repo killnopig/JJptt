@@ -1,8 +1,9 @@
 // JJptt in a nutshell: shown at the top of 設定 → 關於 (README has the same).
+// A point marked 'ext' is about the extension only and is left out on the web.
 var JJPTT_PITCH = {
   title: '在瀏覽器裡上 PTT，順手把帶風向的抓出來。',
   points: [
-    ['直連、不經手', '擴充功能版用本機小程式直接連 ptt.cc，不經過任何轉接站，帳號密碼只留在你的電腦。'],
+    ['直連、不經手', '用本機小程式直接連 ptt.cc，不經過任何第三方伺服器，帳號密碼只留在你的電腦。', 'ext'],
     ['真.事實查核中心', '秒推、脈衝、補血、罐頭推文、同網段、機房／VPN IP、共伴效應、首殺班底——一篇文章底下的協同帶風向痕跡一眼看穿，還能一鍵交給 AI 判讀。'],
     ['閱讀模式', '保留終端機的字型與手感，圖片、影片、新聞卡片直接夾在內文裡，上下篇預先讀好、秒開。'],
     ['推文一目了然', '樓層、國旗、同 IP、推文多次的人各自上色，誰在洗版、誰在接力，不用數。'],

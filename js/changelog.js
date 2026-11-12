@@ -1,13 +1,18 @@
 // JJptt release history, newest first. This is the single source of the
 // version number: `npm run build` copies it into package.json,
 // extension/manifest.json and CHANGELOG.md.
+//
+// A change that only concerns the web version (from the address bar, through
+// the relay) starts with "[網站版] ": the extension leaves it out of 關於
+// (JJPTT_visibleChanges); CHANGELOG.md keeps everything.
 var JJPTT_CHANGELOG = [
   {
     version: '1.32.0',
     date: '2026-11-12',
     changes: [
-      '網站版（從網址列直接開的版本）也有閱讀模式了：轉接站幫忙代抓 PTT 網頁版的文章，所以真.事實查核中心、連推黑名單、連續推文排在一起都跟擴充功能一樣（要重新部署轉接站，步驟在 README）',
-      '網站版沒有網址預覽卡片（轉接站只抓 PTT，不做萬用代理）；圖片和 YouTube 縮圖照常顯示'
+      '[網站版] 從網址列直接開的版本也有閱讀模式了：轉接站幫忙代抓 PTT 網頁版的文章，所以真.事實查核中心、連推黑名單、連續推文排在一起都跟擴充功能一樣（要重新部署轉接站，步驟在 README）',
+      '[網站版] 沒有網址預覽卡片（轉接站只抓 PTT，不做萬用代理）；圖片和 YouTube 縮圖照常顯示',
+      '「關於」更清爽：不再列出跟擴充功能無關的更新紀錄，介紹也拿掉不相干的比較'
     ]
   },
   {
@@ -698,7 +703,7 @@ var JJPTT_CHANGELOG = [
       '密碼欄加入顯示／隱藏按鈕',
       '設定視窗加入「儲存並關閉」按鈕，儲存後顯示「設定已儲存」',
       '關於頁面標示 Fork 自 PttChrome（原作者 Chuck Yang）',
-      '修正網站版在 Safari、Firefox 無法用 SSH 連線'
+      '[網站版] 修正在 Safari、Firefox 無法用 SSH 連線'
     ]
   },
   {
@@ -718,10 +723,17 @@ var JJPTT_CHANGELOG = [
     date: '2026-11-11',
     changes: [
       '從 PttChrome fork，改名 JJptt',
-      '擴充功能版：透過本機程式直接連線 ptt.cc，不需要已停用的 Chrome App',
-      '網站版：透過 Cloudflare 轉接站連線，並限制連線頻率防止濫用'
+      '透過本機程式直接連線 ptt.cc，不需要已停用的 Chrome App',
+      '[網站版] 透過 Cloudflare 轉接站連線，並限制連線頻率防止濫用'
     ]
   }
 ];
 
 var JJPTT_VERSION = JJPTT_CHANGELOG[0].version;
+
+var JJPTT_WEB_ONLY = /^\[網站版\]\s*/;
+
+// The changes of one release worth showing: the extension skips web-only ones.
+function JJPTT_visibleChanges(entry, isExtension) {
+  return entry.changes.filter(function(c) { return !(isExtension && JJPTT_WEB_ONLY.test(c)); });
+}

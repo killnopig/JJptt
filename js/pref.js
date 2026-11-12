@@ -582,6 +582,7 @@ PttChromePref.prototype = {
       $('<p class="jj-pitch-title"></p>').text(JJPTT_PITCH.title).appendTo(pitch);
       var ul = $('<ul class="jj-pitch-list"></ul>').appendTo(pitch);
       JJPTT_PITCH.points.forEach(function(pt) {
+        if (pt[2] === 'ext' && !lib.isExtension()) return;
         var li = $('<li></li>').appendTo(ul);
         $('<b></b>').text(pt[0]).appendTo(li);
         li.append(document.createTextNode('：' + pt[1]));
@@ -594,12 +595,16 @@ PttChromePref.prototype = {
     var latest = JJPTT_CHANGELOG[0];
     $('#about_version').text('JJptt ' + latest.version + '（' + latest.date + '）');
 
-    // Release history, newest first.
+    // Release history, newest first. The extension leaves out what only
+    // concerns the web version (and releases with nothing else).
     var list = $('#about_new').empty();
+    var isExt = lib.isExtension();
     JJPTT_CHANGELOG.forEach(function(entry) {
+      var changes = JJPTT_visibleChanges(entry, isExt);
+      if (!changes.length) return;
       $('<li class="jj-changelog-ver"></li>')
         .text('v' + entry.version + '（' + entry.date + '）').appendTo(list);
-      entry.changes.forEach(function(change) {
+      changes.forEach(function(change) {
         $('<li></li>').text(change).appendTo(list);
       });
     });
