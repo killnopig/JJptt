@@ -1,6 +1,9 @@
 // JJptt relay: bridges a browser WebSocket to a TCP connection to PTT.
 // The browser runs telnet/SSH itself; this worker only forwards bytes.
+// It also fetches PTT web pages for the web version's article view
+// (/page, see page.js).
 import { connect } from 'cloudflare:sockets';
+import { PAGE_PATH, handlePage, allowedOrigins as pageOrigins } from './page.js';
 
 const ALLOWED_HOSTS = new Set(['ptt.cc', 'ptt2.cc']);
 const ALLOWED_PORTS = new Set([22, 23, 443, 3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010]);
@@ -25,10 +28,11 @@ function createUploadBudget() {
 export default {
   async fetch(request, env) {
     if (request.headers.get('Upgrade') !== 'websocket') {
+      if (new URL(request.url).pathname === PAGE_PATH) return handlePage(request, env);
       return new Response('JJptt relay is running.\n', { status: 200 });
     }
 
-    const allowedOrigins = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+    const allowedOrigins = pageOrigins(env);
     const origin = request.headers.get('Origin') || '';
     if (!allowedOrigins.includes(origin)) {
       return new Response('Origin not allowed', { status: 403 });

@@ -486,6 +486,15 @@ locale.zh_TW = {
   "reader_failed": {
     "message": "閱讀模式沒有開啟：%s（留在終端機畫面）"
   },
+  "reader_err_noRelay": {
+    "message": "網頁版沒有設定轉接站，無法開啟閱讀模式"
+  },
+  "reader_err_relay": {
+    "message": "轉接站沒有回應，或還是舊版（沒有代抓文章的功能）：請重新部署轉接站"
+  },
+  "reader_err_relayBusy": {
+    "message": "轉接站忙碌（短時間內抓太多篇），等一下再試"
+  },
   "reader_err_over18": {
     "message": "PTT 網頁版要求確認已滿 18 歲，自動確認失敗"
   },

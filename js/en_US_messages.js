@@ -489,6 +489,15 @@ locale.en_US = {
   "reader_failed": {
     "message": "Reader view not opened: %s (staying in the terminal)"
   },
+  "reader_err_noRelay": {
+    "message": "No relay set up, so the article view is not available on the web"
+  },
+  "reader_err_relay": {
+    "message": "The relay did not answer, or is an old version without page fetching: redeploy it"
+  },
+  "reader_err_relayBusy": {
+    "message": "The relay is busy (too many pages at once); try again shortly"
+  },
   "reader_err_over18": {
     "message": "PTT web asked for the over-18 confirmation and it could not be answered"
   },

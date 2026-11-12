@@ -3,6 +3,14 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.32.0',
+    date: '2026-11-12',
+    changes: [
+      '網站版（從網址列直接開的版本）也有閱讀模式了：轉接站幫忙代抓 PTT 網頁版的文章，所以真.事實查核中心、連推黑名單、連續推文排在一起都跟擴充功能一樣（要重新部署轉接站，步驟在 README）',
+      '網站版沒有網址預覽卡片（轉接站只抓 PTT，不做萬用代理）；圖片和 YouTube 縮圖照常顯示'
+    ]
+  },
+  {
     version: '1.31.0',
     date: '2026-11-12',
     changes: [

@@ -38,8 +38,10 @@ PttReader.WEB = 'https://www.ptt.cc';
 PttReader.KEYS_PREV = '\x1b[D\x1b[A\x1b[C';
 PttReader.KEYS_NEXT = '\x1b[D\x1b[B\x1b[C';
 
+// The extension reads www.ptt.cc itself; the web version goes through its
+// relay (lib.relayPageUrl).
 PttReader.prototype.available = function() {
-  return lib.isExtension() && typeof DOMParser !== 'undefined';
+  return typeof DOMParser !== 'undefined' && (lib.isExtension() || !!lib.peekRelayUrl());
 };
 
 PttReader.prototype.setEnabled = function(enabled) {
@@ -140,6 +142,10 @@ PttReader.prototype.onTerminalUpdate = function() {
 // set as a fallback.
 PttReader.prototype.ensureOver18 = function() {
   if (this.cookieReady) return this.cookieReady;
+  if (!lib.isExtension()) {  // web version: the relay sends the cookie
+    this.cookieReady = Promise.resolve();
+    return this.cookieReady;
+  }
   var addRule = new Promise(function(resolve) {
     var dnr = chrome.declarativeNetRequest;
     if (!(dnr && dnr.updateSessionRules)) {
@@ -181,11 +187,19 @@ PttReader.prototype.ensureOver18 = function() {
 };
 
 PttReader.prototype.fetchDoc = function(url) {
+  var viaRelay = !lib.isExtension();
   return this.ensureOver18().then(function() {
-    return fetch(url, { credentials: 'include' });
+    if (!viaRelay) return fetch(url, { credentials: 'include' });
+    var page = lib.relayPageUrl(url);
+    if (!page) throw new Error(i18n('reader_err_noRelay'));
+    return fetch(page, { credentials: 'omit' }).catch(function() {
+      throw new Error(i18n('reader_err_relay'));  // old relay without /page, or offline
+    });
   }).then(function(res) {
-    if (/\/ask\/over18/.test(res.url)) throw new Error(i18n('reader_err_over18'));
+    if (/\/ask\/over18/.test(res.url) || res.status === 451) throw new Error(i18n('reader_err_over18'));
     if (res.status === 404) throw new Error(i18n('reader_err_notOnWeb'));
+    if (viaRelay && res.status === 429) throw new Error(i18n('reader_err_relayBusy'));
+    if (viaRelay && (res.status === 403 || res.status === 502)) throw new Error(i18n('reader_err_relay'));
     if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.text();
   }).then(function(html) {
@@ -946,13 +960,14 @@ PttReader.prototype.linkBlock = function(url, mediaOnly) {
 
 // ---- link previews ----------------------------------------------------------
 // Fetching arbitrary sites needs an optional permission that the user grants
-// once from a card ("顯示網址預覽").
+// once from a card ("顯示網址預覽"). Not in the web version: the relay only
+// fetches PTT pages, so the cards stay plain links there.
 
 PttReader.PREVIEW_ORIGINS = ['http://*/*', 'https://*/*'];
 
 PttReader.prototype.previewPermission = function() {
   return new Promise(function(resolve) {
-    if (!(chrome.permissions && chrome.permissions.contains)) {
+    if (!lib.isExtension() || !(chrome.permissions && chrome.permissions.contains)) {
       resolve(false);
       return;
     }
@@ -974,6 +989,7 @@ PttReader.prototype.loadPreviews = function(root) {
 
 PttReader.prototype.offerPreview = function(card, root) {
   var self = this;
+  if (!lib.isExtension()) return;  // web version: no previews (see above)
   if (card.querySelector('.jjr-card-allow')) return;
   var btn = PttReader.el('button', 'jjr-card-allow', i18n('reader_allowPreview'));
   btn.type = 'button';

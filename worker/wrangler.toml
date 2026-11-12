@@ -11,3 +11,10 @@ ALLOWED_ORIGINS = "https://killnopig.github.io,http://localhost:8000,http://127.
 name = "CONNECT_LIMITER"
 namespace_id = "1001"
 simple = { limit = 10, period = 60 }
+
+# Article pages fetched for the web version's article view, per visitor IP.
+# Loading ahead fetches a few pages per article, so this is higher.
+[[ratelimits]]
+name = "PAGE_LIMITER"
+namespace_id = "1002"
+simple = { limit = 120, period = 60 }

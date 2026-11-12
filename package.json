@@ -1,6 +1,6 @@
 {
   "name": "pttchrome",
-  "version": "1.31.0",
+  "version": "1.32.0",
   "devDependencies": {
     "grunt": "1.0.1",
     "grunt-contrib-concat": "1.0.1",
@@ -10,6 +10,6 @@
   },
   "scripts": {
     "build": "node tools/sync-version.js && grunt && node extension/build.js",
-    "test": "node test/run.js"
+    "test": "node test/run.js && node test/worker.mjs"
   }
 }

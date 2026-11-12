@@ -50,6 +50,23 @@ lib.getRelayUrl = function() {
   return '';
 };
 
+// The relay already in use (from the page URL, storage or the default),
+// without asking for one.
+lib.peekRelayUrl = function() {
+  var fromQuery = getQueryVariable('relay');
+  if (fromQuery) return lib.normalizeRelayUrl(decodeURIComponent(fromQuery));
+  return lib.safeGetItem(lib.RELAY_STORAGE_KEY) || lib.DEFAULT_RELAY_URL || '';
+};
+
+// Web version: PTT web pages are fetched through the relay (/page), since a
+// web page can't read www.ptt.cc itself. '' when there is no relay.
+lib.relayPageUrl = function(url) {
+  var relay = lib.peekRelayUrl();
+  if (!relay) return '';
+  return relay.replace(/^wss:\/\//, 'https://').replace(/^ws:\/\//, 'http://') +
+    '/page?url=' + encodeURIComponent(url);
+};
+
 lib.safeGetItem = function(key) {
   try {
     return window.localStorage.getItem(key);
