@@ -387,7 +387,8 @@ JJMobile.prototype.lookPresets = function(pane, screen) {
   var slots = JJMobile.store(JJMobile.LOOK_SLOTS_KEY) || {};
   var box = el('div', 'jjm-set jjm-set-col jjm-looks');
   box.appendChild(el('div', 'jjm-set-title', '建議組合'));
-  var chips = el('div', 'jjm-chips');
+  // one row: 預設 / 開發者建議 / 自訂1 / 自訂2 (an empty one is dimmed)
+  var chips = el('div', 'jjm-chips jjm-chips-row jjm-looks-pick');
   var apply = function(look, name) {
     self.applyLook(look);
     if (self.app.showToast) self.app.showToast('已套用「' + name + '」', 1500);
@@ -397,7 +398,7 @@ JJMobile.prototype.lookPresets = function(pane, screen) {
   chips.appendChild(JJMobile.button('jjm-chip', '開發者建議', function() { apply(JJMobile.LOOK_DEV, '開發者建議'); }));
   ['1', '2'].forEach(function(n) {
     var has = !!slots[n];
-    var b = JJMobile.button('jjm-chip' + (has ? '' : ' jjm-empty'), '自訂' + n + (has ? '' : '（空）'), function() {
+    var b = JJMobile.button('jjm-chip' + (has ? '' : ' jjm-empty'), '自訂' + n, function() {
       if (has) apply(slots[n], '自訂' + n);
       else if (self.app.showToast) self.app.showToast('自訂' + n + ' 還沒存，先按下面的「存自訂' + n + '」', 2500);
     });

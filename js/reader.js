@@ -1266,6 +1266,30 @@ PttReader.prototype.render = function(article, h) {
   this.loadPreviews(page);
 };
 
+// The collapsed report's one line: data-centre findings first (the most
+// telling) as "機房：Zenlayer×1", then the other kinds by name ("秒推：…" ->
+// 秒推). No account names here; they are in the expanded lines.
+PttReader.factSummary = function(lines) {
+  var hostLine = '';
+  var kinds = [];
+  lines.forEach(function(t) {
+    t = String(t);
+    if (!hostLine && /^(同機房|機房)/.test(t)) {
+      // "同機房：DigitalOcean 2 個帳號（a、b）；AWS 1 個帳號（c）" -> "同機房：DigitalOcean×2、AWS×1"
+      var provs = [], m, re = /(?:^|；)\s*(?:[^：；]*：)?\s*([^；：（]+?)\s+(\d+)\s*個帳號/g;
+      while ((m = re.exec(t))) provs.push(m[1].trim() + '×' + m[2]);
+      hostLine = t.split('：')[0].replace(/^機房／VPN IP/, '機房') + '：' +
+                 (provs.join('、') || t.split('：').slice(1).join('：').replace(/（[^）]*）/g, ''));
+      return;
+    }
+    var k = t.split(/[：:]/)[0].replace(/^疑似/, '').trim();
+    var n = /（(\d+) 組）/.exec(k);
+    k = k.replace(/（\d+ 組）/, '') + (n ? '×' + n[1] : '');
+    if (k && kinds.indexOf(k) < 0) kinds.push(k);
+  });
+  return { hostLine: hostLine, kinds: kinds };
+};
+
 // Box above the pushes listing what the fact-check rules found, with a
 // button that asks the AI about the whole thread.
 PttReader.prototype.factReportNode = function(article) {
@@ -1282,24 +1306,7 @@ PttReader.prototype.factReportNode = function(article) {
   if (!expanded) box.classList.add('jjt-fact-closed');
   var head = el('div', 'jjt-fact-head');
   head.appendChild(el('span', 'jjt-fact-title', '真.事實查核中心'));
-  // one line, data-centre findings first and in full (the most telling),
-  // then the other kinds by name ("秒推：…" -> 秒推)
-  var hostLine = '';
-  var kinds = [];
-  lines.forEach(function(t) {
-    t = String(t);
-    if (!hostLine && /^(同機房|機房)/.test(t)) {
-      // "同機房：DigitalOcean 2 個帳號（a、b）；AWS 1 個帳號（c）" -> "同機房：DigitalOcean×2、AWS×1"
-      var provs = [], m, re = /(?:^|；)\s*(?:[^：；]*：)?\s*([^；：（]+?)\s+(\d+)\s*個帳號/g;
-      while ((m = re.exec(t))) provs.push(m[1].trim() + '×' + m[2]);
-      hostLine = t.split('：')[0].replace(/^機房／VPN IP/, '機房') + '：' + (provs.join('、') || t.split('：').slice(1).join('：'));
-      return;
-    }
-    var k = t.split(/[：:]/)[0].replace(/^疑似/, '').trim();
-    var n = /（(\d+) 組）/.exec(k);
-    k = k.replace(/（\d+ 組）/, '') + (n ? '×' + n[1] : '');
-    if (k && kinds.indexOf(k) < 0) kinds.push(k);
-  });
+  var sum = PttReader.factSummary(lines), hostLine = sum.hostLine, kinds = sum.kinds;
   var sumEl = el('span', 'jjt-fact-sum');
   sumEl.title = '僅供參考，不代表一定是網軍';
   if (!lines.length) {

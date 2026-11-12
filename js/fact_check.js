@@ -481,7 +481,9 @@ FactCheck.prototype.analyze = function(article) {
       var shared = provs.filter(function(pv) { return Object.keys(byProvider[pv]).length >= 2; });
       var parts = provs.map(function(pv) {
         var accs = Object.keys(byProvider[pv]);
-        return pv + ' ' + accs.length + ' 個帳號';
+        // the accounts are only in the expanded report: the collapsed line
+        // keeps just "Zenlayer×1" (PttReader.factReportNode)
+        return pv + ' ' + accs.length + ' 個帳號（' + accs.slice(0, 5).join('、') + (accs.length > 5 ? '…' : '') + '）';
       });
       report.unshift((shared.length ? '同機房：' : '機房／VPN IP：') + parts.join('；'));
     }
