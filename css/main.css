@@ -1807,3 +1807,8 @@ body.jj-mobile { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px 12px; border-radius: 12px;
   border: 1px solid #2a2e2a; background: #141614; color: #ecefe8; font-size: 16px; outline: none;
 }
+
+/* 版面 → 建議組合 */
+.jjm-looks { margin: 12px 14px 0; border: 1px solid var(--line); border-radius: 14px; gap: 8px; }
+.jjm .jjm-chip.jjm-empty { opacity: .55; }
+.jjm .jjm-chip-small { font-size: 13px; min-height: 32px; padding: 4px 10px; }

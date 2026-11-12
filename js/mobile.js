@@ -1786,6 +1786,29 @@ JJMobile.prototype.renderSettings = function(screen) {
   });
   imp.appendChild(file);
   imp.appendChild(JJMobile.button('jjm-btn jjm-btn-main', '選擇設定檔匯入', function() { file.value = ''; file.click(); }));
+  // export: the same file the extension's 備份成檔案 makes, through
+  // Android's share sheet (雲端硬碟、LINE、檔案…)
+  imp.appendChild(el('div', 'jjm-set-sub', '匯出：存成同樣格式的 json，可以存到雲端硬碟、傳 LINE，電腦擴充版也能匯入。'));
+  imp.appendChild(JJMobile.button('jjm-btn', '匯出設定檔', function() {
+    var up = self.app.updater, ds = self.app.driveSync;
+    if (!ds || !ds.snapshot) return;
+    var data = ds.snapshot();
+    data.kind = 'settings-export';
+    data.exportedAt = new Date().toISOString();
+    data.jjpttVersion = JJMobile.version(self.myBuild()) + ' (app)';
+    data.appLook = self.getLook ? self.getLook() : undefined;
+    var d = new Date(), pad = function(n) { return (n < 10 ? '0' : '') + n; };
+    var name = 'jjptt-settings-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '.json';
+    var text = JSON.stringify(data, null, 2);
+    var C = window.Capacitor, plugin = C && C.Plugins && C.Plugins.ApkUpdater;
+    if (plugin && plugin.shareText) {
+      plugin.shareText({ name: name, text: text }).catch(function(e) {
+        if (self.app.showToast) self.app.showToast('匯出失敗：' + (e && e.message || e), 3000);
+      });
+    } else if (up && up.exportSettings) {
+      up.exportSettings();
+    }
+  }));
   var ie = section('general', '同步');
   ie.appendChild(imp);
 
@@ -1955,9 +1978,90 @@ JJMobile.prototype.demoBoards = function() {
   return frame;
 };
 
+// 版面 presets: 預設, 開發者建議, and two of one's own. A look is every
+// 版面 setting in one object.
+JJMobile.LOOK_SLOTS_KEY = 'jjptt.m.looks';
+JJMobile.LOOK_DEFAULT = { text: 17, push: null, list: null, lh: 1.65, listGap: 12, pushGap: 10, inline: false,
+                          floor: '', nav: ['bottom'], ui: 1, tab: 10 };
+JJMobile.LOOK_DEV = { text: 17, push: 15, list: 17, lh: 1.5, listGap: 6, pushGap: 4, inline: false,
+                      floor: '', nav: ['bottom', 'right'], ui: 1, tab: 15 };
+JJMobile.prototype.getLook = function() {
+  return { text: this.fontPx, push: (this.fonts || {}).push || null, list: (this.fonts || {}).list || null,
+           lh: this.lineHeight || 1.65, listGap: this.listGap, pushGap: this.pushGap, inline: !!this.pushInline,
+           floor: this.floorColor || '', nav: JJMobile.navPlaces(), ui: this.uiZoom || 1,
+           tab: +JJMobile.store(JJMobile.TAB_SIZE_KEY) || JJMobile.TAB_SIZE };
+};
+JJMobile.prototype.applyLook = function(l) {
+  l = l || JJMobile.LOOK_DEFAULT;
+  this.setFont(l.text || 17);
+  this.setFontOf('push', l.push || null);
+  this.setFontOf('list', l.list || null);
+  this.setLineHeight(l.lh || 1.65);
+  this.setListGap(typeof l.listGap === 'number' ? l.listGap : 12);
+  this.setPushStyle(typeof l.pushGap === 'number' ? l.pushGap : 10, !!l.inline);
+  this.setFloorColor(l.floor || '');
+  JJMobile.store(JJMobile.NAV_KEY, Array.isArray(l.nav) ? l.nav : ['bottom']);
+  this.setUiZoom(l.ui || 1);
+  JJMobile.store(JJMobile.TAB_SIZE_KEY, l.tab || JJMobile.TAB_SIZE);
+  JJMobile.store(JJMobile.TAB_KEY, null);
+  if (this.stack[0] && this.stack[0].type === 'home') this.stack[0].tab = null;
+  this.homeDirty = true;
+};
+
+JJMobile.prototype.lookPresets = function(pane, screen) {
+  var self = this;
+  var el = JJMobile.el;
+  var slots = JJMobile.store(JJMobile.LOOK_SLOTS_KEY) || {};
+  var box = el('div', 'jjm-set jjm-set-col jjm-looks');
+  box.appendChild(el('div', 'jjm-set-title', '建議組合'));
+  var chips = el('div', 'jjm-chips');
+  var apply = function(look, name) {
+    self.applyLook(look);
+    if (self.app.showToast) self.app.showToast('已套用「' + name + '」', 1500);
+    self.reload(screen);
+  };
+  chips.appendChild(JJMobile.button('jjm-chip', '預設', function() { apply(JJMobile.LOOK_DEFAULT, '預設'); }));
+  chips.appendChild(JJMobile.button('jjm-chip', '開發者建議', function() { apply(JJMobile.LOOK_DEV, '開發者建議'); }));
+  ['1', '2'].forEach(function(n) {
+    var has = !!slots[n];
+    var b = JJMobile.button('jjm-chip' + (has ? '' : ' jjm-empty'), '自訂' + n + (has ? '' : '（空）'), function() {
+      if (has) apply(slots[n], '自訂' + n);
+      else if (self.app.showToast) self.app.showToast('自訂' + n + ' 還沒存，先按下面的「存成自訂' + n + '」', 2500);
+    });
+    chips.appendChild(b);
+  });
+  box.appendChild(chips);
+  var save = el('div', 'jjm-chips');
+  ['1', '2'].forEach(function(n) {
+    save.appendChild(JJMobile.button('jjm-chip jjm-chip-small', '把現在的存成自訂' + n, function() {
+      slots[n] = self.getLook();
+      JJMobile.store(JJMobile.LOOK_SLOTS_KEY, slots);
+      if (self.app.showToast) self.app.showToast('已存成自訂' + n, 1500);
+      self.reload(screen);
+    }));
+  });
+  save.appendChild(JJMobile.button('jjm-chip jjm-chip-small', '複製設定碼', function() {
+    var code = 'JJLOOK' + JSON.stringify(self.getLook());
+    var done = function() { if (self.app.showToast) self.app.showToast('已複製，可以貼給別人或開發者', 2000); };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done, function() { window.prompt('複製這段：', code); });
+      else window.prompt('複製這段：', code);
+    } catch (e) { window.prompt('複製這段：', code); }
+  }));
+  save.appendChild(JJMobile.button('jjm-chip jjm-chip-small', '貼上設定碼', function() {
+    var code = window.prompt('貼上別人給你的設定碼：', '');
+    if (!code) return;
+    try { apply(JSON.parse(String(code).trim().replace(/^JJLOOK/, '')), '設定碼'); }
+    catch (e) { if (self.app.showToast) self.app.showToast('這不是設定碼', 2000); }
+  }));
+  box.appendChild(save);
+  pane.appendChild(box);
+};
+
 JJMobile.prototype.layoutPane = function(pane, screen) {
   var self = this;
   var el = JJMobile.el;
+  this.lookPresets(pane, screen);
   var gapWord = function(lo) {
     return function(g) { return g <= lo ? '最緊' : g <= lo + 4 ? '緊' : g <= lo + 10 ? '標準' : g <= lo + 16 ? '鬆' : '最鬆'; };
   };

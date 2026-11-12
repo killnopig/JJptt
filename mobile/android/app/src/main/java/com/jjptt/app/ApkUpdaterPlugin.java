@@ -55,6 +55,34 @@ public class ApkUpdaterPlugin extends Plugin {
     }
 
     /** A small text file from JJptt's release (version.json), redirects followed. */
+    // Settings export: writes the text to a file in the app's cache and opens
+    // Android's share sheet (save to Drive / Files, send by LINE...).
+    @PluginMethod
+    public void shareText(PluginCall call) {
+        String name = call.getString("name", "jjptt-settings.json");
+        String text = call.getString("text", "");
+        try {
+            File dir = new File(getContext().getCacheDir(), "export");
+            if (!dir.exists()) dir.mkdirs();
+            File out = new File(dir, name.replaceAll("[^A-Za-z0-9._-]", "_"));
+            FileOutputStream fo = new FileOutputStream(out);
+            fo.write(text.getBytes("UTF-8"));
+            fo.close();
+            Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", out);
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType("application/json");
+            send.putExtra(Intent.EXTRA_STREAM, uri);
+            send.putExtra(Intent.EXTRA_SUBJECT, name);
+            send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            Intent chooser = Intent.createChooser(send, "匯出 JJptt 設定");
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(chooser);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject(e.getMessage());
+        }
+    }
+
     @PluginMethod
     public void fetchText(PluginCall call) {
         final String url = call.getString("url", "");
