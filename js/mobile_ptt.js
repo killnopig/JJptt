@@ -204,7 +204,11 @@ JJPtt.prototype.pastLogin = function() {
       menu: /【\s*主功能表\s*】|主功能表/,
       hurdle: /按任意鍵|請按任意鍵|按任一鍵|您要刪除以上錯誤嘗試|尚未完成的文章|有一篇文章尚未完成/
     }, 15000).then(function(k) {
-      if (k === 'wrong') throw new Error('帳號或密碼錯誤');
+      if (k === 'wrong') {
+        // PTT's own words, so a misread screen can be told from a typo
+        var said = (self.screen().split('\n').filter(function(l) { return /密碼不對|無此帳號|帳號不存在/.test(l); })[0] || '').trim();
+        throw new Error('帳號或密碼錯誤' + (said ? '（PTT：' + said.slice(0, 40) + '）' : ''));
+      }
       if (k === 'busy') throw new Error('PTT 現在很忙，請稍後再試');
       if (k === 'menu') return null;
       if (k === 'dup') self.send(dupAnswer);

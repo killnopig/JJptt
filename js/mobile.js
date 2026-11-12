@@ -279,6 +279,10 @@ JJMobile.prototype.accountSheet = function(then) {
   pass.type = 'password';
   pass.placeholder = '密碼';
   pass.setAttribute('autocomplete', 'current-password');
+  // when shown as text, keyboards must not capitalise or correct it
+  pass.setAttribute('autocapitalize', 'off');
+  pass.setAttribute('autocorrect', 'off');
+  pass.setAttribute('spellcheck', 'false');
   var saved = this.app.pref && this.app.pref.logins;
   if (saved && saved[0]) user.value = saved[0];
   var remember = el('label', 'jjm-check');
@@ -290,7 +294,19 @@ JJMobile.prototype.accountSheet = function(then) {
   var err = el('div', 'jjm-form-error');
   var go = el('button', 'jjm-btn jjm-btn-main', '登入');
   form.appendChild(user);
-  form.appendChild(pass);
+  // the password with an eye to see what was typed
+  var passRow = el('div', 'jjm-pass');
+  passRow.appendChild(pass);
+  var eye = JJMobile.button('jjm-eye', '👁', function() {
+    var show = pass.type === 'password';
+    pass.type = show ? 'text' : 'password';
+    eye.classList.toggle('jjm-on', show);
+    eye.setAttribute('aria-label', show ? '隱藏密碼' : '顯示密碼');
+    pass.focus();
+  });
+  eye.setAttribute('aria-label', '顯示密碼');
+  passRow.appendChild(eye);
+  form.appendChild(passRow);
   form.appendChild(remember);
   form.appendChild(err);
   form.appendChild(go);
