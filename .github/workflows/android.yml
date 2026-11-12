@@ -42,12 +42,21 @@ jobs:
           node build.js
           npx cap sync android
 
-      - name: Build the APK
+      # a release build, signed with JJptt's own key (Secrets), rotated from
+      # the old public debug key so phones update in place (sign-release.sh)
+      - name: Build and sign the APK
         working-directory: mobile/android
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          JJPTT_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          JJPTT_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
-          cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/JJptt.apk"
+          chmod +x gradlew sign-release.sh
+          ./gradlew assembleRelease --no-daemon
+          export JJPTT_KEYSTORE="$RUNNER_TEMP/jjptt-release.p12"
+          echo "$KEYSTORE_B64" | base64 -d > "$JJPTT_KEYSTORE"
+          ./sign-release.sh app/build/outputs/apk/release/app-release-unsigned.apk "$GITHUB_WORKSPACE/JJptt.apk"
+          rm -f "$JJPTT_KEYSTORE"
           # what the app reads to know whether it is the newest build
           echo "{\"run\": ${GITHUB_RUN_NUMBER}, \"sha\": \"${GITHUB_SHA::7}\"}" > "$GITHUB_WORKSPACE/version.json"
 

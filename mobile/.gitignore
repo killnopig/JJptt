@@ -1,2 +1,6 @@
 node_modules/
 www/
+# release signing keys never go into the repo
+*.p12
+*.jks
+!android/app/jjptt-debug.keystore

@@ -19,9 +19,11 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    // One fixed key for the test builds, so a new APK installs over the old
-    // one (with a different key Android makes you uninstall first and the
-    // settings are lost). It is a debug key, not a secret.
+    // The debug key: only for builds on one's own computer (assembleDebug).
+    // It is public, so the APKs people install are release builds signed
+    // with JJptt's own key by CI (sign-release.sh, key in GitHub Secrets),
+    // rotated from this one. Since that rotation a phone with the release
+    // installed refuses a debug build over it: uninstall it first.
     signingConfigs {
         jjpttDebug {
             storeFile file("jjptt-debug.keystore")
