@@ -571,6 +571,13 @@ testAsync('login: wrong password says so and is not logged in', async function()
   assert.strictEqual(f.ptt.user, '');
 });
 
+testAsync('login: an account that starts in 【分類看板】 is logged in', async function() {
+  var s = LOGIN.slice();
+  s[4] = ['【分類看板】                    批踢踢實業坊\n  >  1   市民廣場   報告站長 PTT咬我\n分類看板  (m)加入最愛 (v)已讀/未讀 (t)標記 (y)只列最愛', {}];
+  var f = fakePtt(s);
+  await f.ptt.login('tester', 'right');
+  assert.strictEqual(f.ptt.state, 'in');
+});
 testAsync('login: an old 「密碼不對或無此帳號」 still on the screen is not PTT\'s answer', async function() {
   var old = '密碼不對或無此帳號。請檢查大小寫及有無輸入錯誤。';
   var s = [
