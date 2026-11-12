@@ -1791,3 +1791,9 @@ body.jj-mobile { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .jjm-fact-value small { font-size: 10px; color: var(--sub); }
 .jjm-fact-rules { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; color: var(--text); }
 .jjm-fact-about .jjm-link-btn { align-self: flex-start; }
+
+/* floating 上一篇/下一篇: see-through so the text behind stays readable;
+   solid only while pressed */
+.jjm .jjm-sidenav .jjm-btn { opacity: 1; background: rgba(40, 44, 40, .28); color: rgba(236, 239, 232, .7); box-shadow: none; border: 1px solid rgba(255, 255, 255, .12); }
+.jjm .jjm-sidenav .jjm-btn-main { background: rgba(156, 204, 101, .22); color: rgba(220, 240, 200, .8); border-color: rgba(156, 204, 101, .35); }
+.jjm .jjm-sidenav .jjm-btn:active { background: rgba(156, 204, 101, .85); color: #11180a; }
