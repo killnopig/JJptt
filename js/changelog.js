@@ -3,6 +3,13 @@
 // extension/manifest.json and CHANGELOG.md.
 var JJPTT_CHANGELOG = [
   {
+    version: '1.32.0',
+    date: '2026-11-12',
+    changes: [
+      '設定 → 同步、備份與更新 → Google Drive 寫出連結的是哪個 Google 帳號（名稱和 Gmail），中斷連結後就不顯示；之前已經連結的，下次同步時會自動補上'
+    ]
+  },
+  {
     version: '1.31.0',
     date: '2026-11-12',
     changes: [

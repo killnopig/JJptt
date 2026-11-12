@@ -20,6 +20,7 @@ DriveSync.FILE_NAME = 'jjptt-settings.json';
 DriveSync.KEY_ENABLED = 'jjptt.drive.enabled';
 DriveSync.KEY_TOKEN = 'jjptt.drive.token';
 DriveSync.KEY_UPDATED = 'jjptt.drive.localUpdatedAt';
+DriveSync.KEY_ACCOUNT = 'jjptt.drive.account';
 DriveSync.PUSH_DELAY = 1500;
 
 DriveSync.prototype.clientId = function() {
@@ -54,6 +55,7 @@ DriveSync.prototype.refreshUi = function() {
   $('#drive_connect').toggle(configured && !enabled);
   $('#drive_syncNow').toggle(configured && enabled);
   $('#drive_disconnect').toggle(configured && enabled);
+  this.showAccount();
   if (!configured) {
     this.setStatus('drive_status_notConfigured');
   } else if (!enabled) {
@@ -68,6 +70,43 @@ DriveSync.prototype.setupUi = function() {
   $('#drive_syncNow').text(i18n('drive_syncNow')).off().click(function() { self.syncNow(); });
   $('#drive_disconnect').text(i18n('drive_disconnect')).off().click(function() { self.disconnect(); });
   this.refreshUi();
+};
+
+// ---- linked account -------------------------------------------------------
+
+DriveSync.prototype.account = function() {
+  try {
+    return JSON.parse(lib.safeGetItem(DriveSync.KEY_ACCOUNT) || 'null');
+  } catch (e) {
+    return null;
+  }
+};
+
+// "已連結的 Google 帳號：王小明（someone@gmail.com）" under the description.
+DriveSync.prototype.showAccount = function() {
+  var a = this.isEnabled() ? this.account() : null;
+  var label = '';
+  if (a && (a.name || a.email)) {
+    label = a.name && a.email ? a.name + '（' + a.email + '）' : (a.name || a.email);
+  }
+  $('#drive_account').text(label ? (i18n('drive_account') || '') + label : '')
+    .css('display', label ? 'block' : 'none');
+};
+
+// Asks Drive who the token belongs to (works with the drive.appdata scope).
+DriveSync.prototype.fetchAccount = function(token) {
+  var self = this;
+  return this.api(token, 'GET',
+    'https://www.googleapis.com/drive/v3/about?fields=user(displayName,emailAddress)'
+  ).then(function(data) {
+    var u = (data && data.user) || {};
+    lib.safeSetItem(DriveSync.KEY_ACCOUNT, JSON.stringify({
+      name: u.displayName || '', email: u.emailAddress || ''
+    }));
+    self.showAccount();
+  }).catch(function(e) {
+    console.log('drive account lookup failed', e);
+  });
 };
 
 // ---- tokens -------------------------------------------------------------
@@ -299,7 +338,10 @@ DriveSync.prototype.sync = function(interactive) {
       return false;
     }
     self.setStatus('drive_status_syncing');
-    return self.findFile(token).then(function(file) {
+    var who = self.account() ? Promise.resolve() : self.fetchAccount(token);
+    return who.then(function() {
+      return self.findFile(token);
+    }).then(function(file) {
       if (!file) return self.upload(token, null, self.snapshot());
       return self.download(token, file.id).then(function(remote) {
         var remoteAt = (remote && remote.updatedAt) || 0;
@@ -338,6 +380,10 @@ DriveSync.prototype.connect = function() {
       return;
     }
     lib.safeSetItem(DriveSync.KEY_ENABLED, '1');
+    try {
+      window.localStorage.removeItem(DriveSync.KEY_ACCOUNT);  // may be a different account now
+    } catch (e) {
+    }
     self.refreshUi();
     self.sync(false);
   });
@@ -356,6 +402,7 @@ DriveSync.prototype.disconnect = function() {
   this.clearToken();
   try {
     window.localStorage.removeItem(DriveSync.KEY_ENABLED);
+    window.localStorage.removeItem(DriveSync.KEY_ACCOUNT);
   } catch (e) {
   }
   this.refreshUi();

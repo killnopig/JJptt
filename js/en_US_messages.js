@@ -432,6 +432,9 @@ locale.en_US = {
   "drive_disconnect": {
     "message": "Disconnect"
   },
+  "drive_account": {
+    "message": "Linked Google account: "
+  },
   "drive_status_notConfigured": {
     "message": "Google client ID not set up yet (see README)"
   },

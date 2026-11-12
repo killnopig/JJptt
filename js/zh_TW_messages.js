@@ -429,6 +429,9 @@ locale.zh_TW = {
   "drive_disconnect": {
     "message": "中斷連結"
   },
+  "drive_account": {
+    "message": "已連結的 Google 帳號："
+  },
   "drive_status_notConfigured": {
     "message": "尚未設定 Google 用戶端 ID（見 README）"
   },
