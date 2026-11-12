@@ -1371,47 +1371,197 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 
 
 /* ---- JJptt on phones (Android app: body.jj-mobile, js/mobile.js) ---- */
-#jjReaderNav, #jjLogin { display: none; }
-body.jj-mobile #jjReaderNav {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 3100;
-  gap: 6px; padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
-  background: rgba(20, 20, 20, .96); border-top: 1px solid #333;
-  height: 60px; box-sizing: border-box;
+/* No terminal: the app is .jjm (bar on top, one screen at a time). */
+.jjm { display: none; }
+body.jj-mobile #BBSWindow, body.jj-mobile #connectionAlert, body.jj-mobile #sideMenus,
+body.jj-mobile #jjReader, body.jj-mobile #t { display: none !important; }
+body.jj-mobile { background: #111; overflow: hidden; }
+body.jj-mobile .jjm {
+  --jjm-fs: 17px;
+  --bg: #111312; --card: #1b1e1b; --line: #2a2e2a; --text: #ecefe8; --sub: #9aa394;
+  --accent: #9ccc65; --accent-ink: #11180a; --warn: #ff8a65; --watch: #b39ddb; --note: #4dd0e1;
+  position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--bg); color: var(--text);
+  font-family: -apple-system, "Noto Sans TC", "PingFang TC", "Roboto", sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
-body.jj-mobile #jjReaderNav button {
-  flex: 1 1 0; height: 46px; border: 0; border-radius: 8px;
-  background: #3a3a3a; color: #eee; font-size: 16px; -webkit-tap-highlight-color: transparent;
-}
-body.jj-mobile #jjReaderNav button:active { background: #5a5a5a; }
-/* the terminal takes swipes and taps itself (no page scrolling / zooming) */
-body.jj-mobile #BBSWindow.jj-gestures { touch-action: none; }
+.jjm button { font: inherit; color: inherit; background: none; border: 0; padding: 0; text-align: left; }
 
-/* login page over PTT's welcome screen */
-body.jj-mobile #jjLogin {
-  position: fixed; inset: 0; z-index: 3200; flex-direction: column; align-items: center;
-  justify-content: center; gap: 10px; padding: 24px; box-sizing: border-box;
-  background: radial-gradient(circle at 50% 30%, #2c3a1c 0%, #0b0f07 70%); color: #eee;
-  font-family: -apple-system, "Noto Sans TC", "PingFang TC", sans-serif; overflow-y: auto;
+/* top bar */
+.jjm-bar {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 4px; height: 56px;
+  padding: env(safe-area-inset-top) 6px 0; background: var(--bg); border-bottom: 1px solid var(--line);
 }
-#jjLogin .jj-login-logo { width: 132px; height: 132px; border-radius: 28px; box-shadow: 0 8px 30px rgba(0,0,0,.5); }
-#jjLogin .jj-login-name { font-size: 30px; font-weight: 700; letter-spacing: 1px; }
-#jjLogin .jj-login-tag { font-size: 14px; color: #b8c6a2; margin-bottom: 8px; text-align: center; }
-#jjLogin .jj-login-status { font-size: 16px; color: #cfd8c0; min-height: 22px; }
-#jjLogin .jj-login-form { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 340px; }
-#jjLogin input[type=text], #jjLogin input[type=password] {
-  height: 50px; padding: 0 14px; border-radius: 10px; border: 1px solid #556b3a;
-  background: rgba(255,255,255,.08); color: #fff; font-size: 18px; outline: none;
+.jjm-title { flex: 1 1 auto; min-width: 0; font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jjm-actions { display: flex; flex: 0 0 auto; }
+.jjm .jjm-icon {
+  width: 48px; height: 48px; border-radius: 24px; font-size: 22px; text-align: center; line-height: 48px; color: var(--text);
 }
-#jjLogin input:focus { border-color: #a7c97c; }
-#jjLogin .jj-login-remember { font-weight: normal; font-size: 15px; color: #d6dfc8; display: flex; align-items: center; gap: 6px; }
-#jjLogin .jj-login-remember input { width: 20px; height: 20px; margin: 0; }
-#jjLogin .jj-login-error { color: #ff8a80; font-size: 15px; min-height: 20px; }
-#jjLogin .jj-login-go {
-  height: 52px; border: 0; border-radius: 12px; background: #8db45c; color: #10170a;
-  font-size: 19px; font-weight: 700;
+.jjm .jjm-icon:active { background: rgba(255,255,255,.1); }
+.jjm .jjm-back { font-size: 38px; line-height: 44px; }
+.jjm .jjm-icon.jjm-on { color: #ffd54f; }
+
+/* screens */
+.jjm-views { flex: 1 1 auto; position: relative; overflow: hidden; }
+.jjm-view {
+  position: absolute; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom)); overscroll-behavior: contain;
 }
-#jjLogin .jj-login-go:active { background: #a7c97c; }
-#jjLogin .jj-login-guest { height: 40px; border: 0; background: none; color: #b8c6a2; font-size: 15px; text-decoration: underline; }
+.jjm-section { padding: 22px 18px 8px; font-size: 14px; font-weight: 700; color: var(--sub); letter-spacing: .5px; }
+.jjm-hint { padding: 6px 18px 14px; color: var(--sub); font-size: 15px; }
+.jjm-loading { padding: 32px 18px; text-align: center; color: var(--sub); font-size: 16px; }
+.jjm-error { padding: 28px 18px; text-align: center; color: var(--warn); font-size: 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.jjm-more { padding: 18px; text-align: center; color: var(--sub); font-size: 15px; min-height: 20px; }
+
+.jjm .jjm-btn {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px;
+  border-radius: 12px; background: var(--card); border: 1px solid var(--line); font-size: 16px; font-weight: 600; text-align: center;
+}
+.jjm .jjm-btn:active { background: #262a26; }
+.jjm .jjm-btn-main { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+/* search box */
+.jjm-search { padding: 14px 14px 0; }
+.jjm-search input, .jjm-sheet-form input {
+  width: 100%; box-sizing: border-box; height: 50px; padding: 0 16px; border-radius: 14px;
+  border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 17px; outline: none;
+}
+.jjm-search input:focus, .jjm-sheet-form input:focus { border-color: var(--accent); }
+
+/* rows: boards and articles */
+.jjm-list { display: flex; flex-direction: column; }
+.jjm .jjm-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; min-height: 60px;
+  padding: 12px 18px; border-bottom: 1px solid var(--line);
+}
+.jjm .jjm-row:active { background: rgba(255,255,255,.05); }
+.jjm-row-main { flex: 1 1 auto; min-width: 0; }
+.jjm-row-title { font-size: 18px; font-weight: 600; }
+.jjm-row-sub { font-size: 14px; color: var(--sub); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jjm-badge { flex: 0 0 auto; font-size: 13px; color: var(--sub); background: var(--card); border-radius: 10px; padding: 3px 9px; }
+
+.jjm .jjm-article { flex-direction: column; align-items: stretch; gap: 6px; }
+.jjm-article-title { font-size: var(--jjm-fs); line-height: 1.4; font-weight: 500; }
+.jjm-article-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--sub); }
+.jjm-author { color: var(--sub); }
+.jjm-author.jjm-watch { color: var(--watch); }
+.jjm-author.jjm-noted { color: var(--note); }
+.jjm-date { margin-left: auto; }
+.jjm .jjm-read .jjm-article-title { color: var(--sub); font-weight: 400; }
+.jjm .jjm-pinned { background: rgba(156, 204, 101, .06); }
+.jjm .jjm-deleted .jjm-article-title { color: #5d635a; font-style: italic; }
+.jjm .jjm-faded { opacity: .35; }
+.jjm-tag { font-size: 12px; color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 0 5px; }
+.jjm-nrec { min-width: 26px; text-align: center; font-size: 13px; font-weight: 700; border-radius: 7px; padding: 1px 6px; }
+.jjm-nrec-hot { background: #e53935; color: #fff; }
+.jjm-nrec-10 { background: #f9a825; color: #1a1300; }
+.jjm-nrec-1 { background: #2e7d32; color: #e8f5e9; }
+.jjm-nrec-boo { background: #3a3d3a; color: #a5aaa2; }
+
+/* article */
+.jjm-reading { font-size: var(--jjm-fs); }
+.jjm-head { padding: 18px 18px 14px; border-bottom: 1px solid var(--line); }
+.jjm-head-title { margin: 0 0 10px; font-size: calc(var(--jjm-fs) + 4px); line-height: 1.4; font-weight: 700; color: var(--text); }
+.jjm-head-info { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 14px; color: var(--sub); }
+.jjm .jjm-user {
+  min-height: 34px; padding: 0 12px; border-radius: 17px; background: var(--card); border: 1px solid var(--line);
+  font-size: 15px; font-weight: 600; color: var(--accent);
+}
+.jjm-body { padding: 16px 18px 8px; line-height: 1.65; }
+.jjm-body .jjt-line { white-space: pre-wrap; word-break: break-word; min-height: 1em; }
+.jjm-body .jjt-line span, .jjm-push-text span { background: transparent !important; }
+.jjm-body .jjm-quote { color: #8d958a; border-left: 3px solid #3a3e3a; padding-left: 10px; }
+.jjm-body .jjm-quote span { color: inherit !important; }
+.jjm-body .jjm-sys { color: #6f776b; font-size: .82em; }
+.jjm-body .jjm-sys span { color: inherit !important; }
+.jjm a, .jjm .jjt-link { color: #81d4fa; text-decoration: none; word-break: break-all; }
+.jjm .jjr-media { margin: 10px 0 14px; }
+.jjm .jjr-img { display: block; max-width: 100%; max-height: 70vh; border-radius: 10px; }
+.jjm .jjr-card {
+  display: flex; gap: 12px; padding: 10px; border-radius: 12px; background: var(--card); border: 1px solid var(--line);
+  color: var(--text); text-decoration: none; overflow: hidden;
+}
+.jjm .jjr-card-thumb { width: 96px; height: 72px; object-fit: cover; border-radius: 8px; flex: 0 0 auto; }
+.jjm .jjr-card.jjr-yt { flex-direction: column; }
+.jjm .jjr-card.jjr-yt .jjr-card-thumb { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+.jjm .jjr-card-text { min-width: 0; font-size: 15px; line-height: 1.4; }
+.jjm .jjr-card-host { color: var(--sub); font-size: 13px; }
+
+/* 真.事實查核中心 report (built by PttReader.factReportNode) */
+.jjm .jjm-fact {
+  margin: 12px 14px 4px; padding: 14px; border-radius: 14px; background: #241f14; border: 1px solid #5c4b1f;
+  font-size: 15px; line-height: 1.5; color: #f3e9d2;
+}
+.jjm .jjm-fact .jjt-fact-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.jjm .jjm-fact .jjt-fact-title { font-weight: 800; color: #ffcc66; }
+.jjm .jjm-fact .jjt-fact-sum { flex: 1 1 100%; order: 3; }
+.jjm .jjm-fact .jjt-fact-host { color: #ff8a65; font-weight: 700; margin-right: 6px; }
+.jjm .jjm-fact .jjt-fact-toggle { color: #ffcc66; margin-left: auto; padding: 6px 0; }
+.jjm .jjm-fact .jjt-fact-ai {
+  order: 4; margin-top: 8px; min-height: 44px; padding: 0 16px; border-radius: 22px;
+  background: #ffb74d; color: #2a1a00; font-weight: 700; border: 0;
+}
+.jjm .jjm-fact .jjt-fact-line { margin-top: 6px; }
+.jjm .jjm-fact.jjt-fact-closed .jjt-fact-line { display: none; }
+
+/* pushes */
+.jjm-pushes { display: flex; flex-direction: column; }
+.jjm-push { padding: 10px 18px 12px; border-bottom: 1px solid var(--line); }
+.jjm-push[data-level="warn"] { box-shadow: inset 4px 0 0 var(--warn); }
+.jjm-push[data-level="watch"] { box-shadow: inset 4px 0 0 var(--watch); }
+.jjm-push[data-level="note"] { box-shadow: inset 4px 0 0 var(--note); }
+.jjm-push-head { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--sub); }
+.jjm-push-tag { font-weight: 800; width: 22px; text-align: center; }
+.jjm-push-up { color: #9ccc65; }
+.jjm-push-down { color: #ef5350; }
+.jjm-push-arrow { color: #8d958a; }
+.jjm .jjm-push-id {
+  font-size: 15px; font-weight: 700; color: #ffd54f; min-height: 32px; padding: 0 4px; margin-left: -4px;
+  border-radius: 8px;
+}
+.jjm .jjm-push-id[style*="--jj-repeat"] { color: var(--jj-repeat); }
+.jjm .jjm-push-id:active { background: rgba(255,255,255,.08); }
+.jjm-push-time { margin-left: auto; font-size: 13px; }
+.jjm-push-floor { font-size: 12px; color: #6f776b; min-width: 36px; text-align: right; }
+.jjm-push-text { white-space: pre-wrap; word-break: break-word; line-height: 1.55; margin: 2px 0 0 30px; color: var(--text); }
+.jjm-push-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0 30px; }
+.jjm-pchip { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #2a2e2a; color: #c5ccc0; }
+.jjm-pchip-warn { background: rgba(255, 138, 101, .16); color: #ffab91; }
+.jjm-pchip-watch { background: rgba(179, 157, 219, .18); color: #d1c4e9; }
+.jjm-pchip-note { background: rgba(77, 208, 225, .15); color: #b2ebf2; }
+.jjm-pchip-grey { background: transparent; border: 1px solid #3a3e3a; color: #8d958a; }
+.jjm-push .jjr-media { margin: 8px 0 0 30px; }
+
+.jjm-endnav { display: flex; gap: 10px; padding: 20px 14px 8px; }
+.jjm-endnav .jjm-btn { flex: 1 1 0; }
+
+/* bottom sheets */
+.jjm-shade { position: fixed; inset: 0; z-index: 4000; background: rgba(0,0,0,.55); display: flex; align-items: flex-end; }
+.jjm-sheet {
+  width: 100%; box-sizing: border-box; max-height: 85vh; overflow-y: auto;
+  padding: 8px 16px calc(18px + env(safe-area-inset-bottom)); border-radius: 18px 18px 0 0;
+  background: #1d201d; color: #ecefe8; font-family: -apple-system, "Noto Sans TC", "Roboto", sans-serif;
+}
+.jjm-sheet-grip { width: 40px; height: 5px; border-radius: 3px; background: #444; margin: 4px auto 10px; }
+.jjm-sheet-title { font-size: 18px; font-weight: 700; padding: 4px 4px 12px; }
+.jjm-sheet-list { display: flex; flex-direction: column; }
+.jjm-sheet button { font: inherit; color: inherit; background: none; border: 0; }
+.jjm-sheet .jjm-sheet-item { min-height: 54px; padding: 0 6px; text-align: left; font-size: 17px; border-bottom: 1px solid #2a2e2a; }
+.jjm-sheet .jjm-sheet-item:active { background: rgba(255,255,255,.06); }
+.jjm-sheet-form { display: flex; flex-direction: column; gap: 14px; }
+.jjm-sheet-form input {
+  width: 100%; box-sizing: border-box; height: 52px; padding: 0 16px; border-radius: 14px;
+  border: 1px solid #2a2e2a; background: #141614; color: #ecefe8; font-size: 18px; outline: none;
+}
+.jjm-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.jjm-sheet .jjm-chip, .jjm .jjm-chip {
+  min-height: 42px; padding: 0 16px; border-radius: 21px; border: 1px solid #3a3e3a; font-size: 15px;
+}
+.jjm-sheet .jjm-chip.jjm-on { background: #9ccc65; color: #11180a; border-color: #9ccc65; font-weight: 700; }
+.jjm-sheet .jjm-btn {
+  min-height: 50px; border-radius: 12px; font-size: 17px; font-weight: 700; text-align: center;
+}
+.jjm-sheet .jjm-btn-main { background: #9ccc65; color: #11180a; }
+.jjm-font .jjm-chip { flex: 1 1 0; text-align: center; }
 
 /* settings: one column, sections as a row of tabs on top */
 body.jj-mobile #prefModal > .modal-dialog { width: 100%; min-width: 0; height: 100%; min-height: 0; margin: 0; }

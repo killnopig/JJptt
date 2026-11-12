@@ -5,6 +5,11 @@ $(document).ready(function() {
   setupI18n();
 
   pttchrome.app = new pttchrome.App(function(app) {
+    if (app.mobile && app.mobile.enabled()) {
+      // the Android app reads PTT's web pages: no terminal (js/mobile.js)
+      app.mobile.start();
+      return;
+    }
     app.setInputAreaFocus();
     if (!site) {
       site = 'ptt.cc';
