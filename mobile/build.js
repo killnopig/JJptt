@@ -14,4 +14,6 @@ for (const f of ['icon_16.png', 'icon_48.png', 'icon_128.png', 'icon_512.png', '
   fs.copyFileSync(path.join(ext, f), path.join(out, f));
 }
 fs.copyFileSync(path.join(ext, 'app.html'), path.join(out, 'index.html'));
+// the app's own icon (the home screen title)
+fs.copyFileSync(path.join(__dirname, 'assets', 'jjptt-app-icon-192.png'), path.join(out, 'app-icon.png'));
 console.log('mobile/www updated');

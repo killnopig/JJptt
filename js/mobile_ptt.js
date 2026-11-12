@@ -17,6 +17,11 @@ function JJPtt(app) {
 }
 
 JJPtt.STEP_MS = 100;
+JJPtt.KICK_KEY = 'jjptt.m.kickOthers';
+
+JJPtt.kickOthers = function() {
+  try { return window.localStorage.getItem(JJPtt.KICK_KEY) === '1'; } catch (e) { return false; }
+};
 JJPtt.TIMEOUT_MS = 15000;
 
 // ---- article code (AID) from the web address ----------------------------------
@@ -186,7 +191,9 @@ JJPtt.prototype.doLogin = function(user, pass) {
 // After the password: answer what PTT asks until the main menu.
 JJPtt.prototype.pastLogin = function() {
   var self = this;
-  var dupAnswer = this.app.pref && this.app.pref.values && this.app.pref.values.deleteDupLogin ? 'y\r' : 'n\r';
+  // the app's own choice, off unless turned on: logging in on the phone
+  // must not throw the computer's PTT off
+  var dupAnswer = JJPtt.kickOthers() ? 'y\r' : 'n\r';
   var until = Date.now() + 25000;
   var step = function() {
     if (Date.now() > until) return Promise.reject(new Error('登入逾時，請再試一次'));

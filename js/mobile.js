@@ -176,12 +176,20 @@ JJMobile.prototype.render = function(screen) {
   if (screen.type === 'home') this.renderHome(screen);
   else if (screen.type === 'board') this.renderBoard(screen);
   else if (screen.type === 'article') this.renderArticle(screen);
+  else if (screen.type === 'settings') this.renderSettings(screen);
 };
 
 JJMobile.prototype.setBar = function(screen) {
   var self = this;
   this.backBtn.style.visibility = this.stack.length > 1 ? 'visible' : 'hidden';
   this.titleEl.textContent = screen.title || 'JJptt';
+  if (screen.type === 'home') {  // the app icon in front of the name
+    var logo = JJMobile.el('img', 'jjm-logo');
+    logo.src = 'app-icon.png';
+    logo.alt = '';
+    logo.addEventListener('error', function() { logo.remove(); });
+    this.titleEl.insertBefore(logo, this.titleEl.firstChild);
+  }
   this.actions.innerHTML = '';
   var add = function(text, label, fn) {
     var b = JJMobile.button('jjm-icon', text, fn);
@@ -201,12 +209,14 @@ JJMobile.prototype.setBar = function(screen) {
   } else if (screen.type === 'article') {
     add('Aa', '字的大小', function() { self.fontSheet(); });
     add('⟳', '重新整理', function() { self.reload(screen); });
+  } else if (screen.type === 'settings') {
+    // nothing on the right
   } else {
     var st = this.ptt ? this.ptt.state : 'off';
     var acct = add(st === 'in' ? this.ptt.user : st === 'connecting' ? '登入中…' : '登入', '帳號', function() { self.accountSheet(); });
     acct.classList.add('jjm-acct');
     if (st === 'in') acct.classList.add('jjm-acct-in');
-    add('⚙', '設定', function() { self.openSettings(); });
+    add('⚙', '設定', function() { self.open({ type: 'settings' }); });
   }
 };
 
@@ -341,7 +351,6 @@ JJMobile.prototype.renderHome = function(screen) {
   var el = JJMobile.el;
   var v = screen.view;
   screen.title = 'JJptt';
-  this.titleEl.textContent = 'JJptt';
 
   var form = el('form', 'jjm-search');
   var input = el('input');
@@ -1073,4 +1082,347 @@ JJMobile.prototype.fontSheet = function() {
     box.appendChild(b);
   });
   this.showSheet('字的大小', box);
+};
+
+// ---- settings ---------------------------------------------------------------------------
+//
+// The app's own settings screen: only what matters on a phone (reading,
+// fact check, lists, account). Fact-check rules come from the extension's
+// settings page (index.html), so a new rule shows up here by itself.
+
+JJMobile.SKIP_PREFS = { showSuspectPrefix: 1, suspectPrefix: 1, suspectSameIpText: 1, suspectAuthorIpText: 1 };
+
+JJMobile.prototype.setPref = function(key, value) {
+  var pref = this.app.pref;
+  if (!pref) return;
+  pref.values[key] = value;
+  var v = {};
+  v[key] = value;
+  pref.setStorage({ values: v });
+  this.app.onPrefChange(pref, key);
+};
+
+// "名稱：說明" -> [名稱, 說明]
+JJMobile.splitLabel = function(text) {
+  text = String(text || '');
+  var i = text.indexOf('：');
+  if (i > 0 && i < 24) return [text.slice(0, i), text.slice(i + 1)];
+  return [text, ''];
+};
+
+JJMobile.prototype.renderSettings = function(screen) {
+  var self = this;
+  var el = JJMobile.el;
+  var v = screen.view;
+  var pref = this.app.pref;
+  screen.title = '設定';
+  this.titleEl.textContent = '設定';
+  if (!pref || !pref.values) {
+    v.appendChild(el('div', 'jjm-loading', '設定還在載入，請稍候再開'));
+    return;
+  }
+  var section = function(title, note) {
+    v.appendChild(el('div', 'jjm-section', title));
+    if (note) v.appendChild(el('div', 'jjm-hint', note));
+    var box = el('div', 'jjm-group');
+    v.appendChild(box);
+    return box;
+  };
+
+  // account
+  var acc = section('帳號');
+  var st = this.ptt.state;
+  acc.appendChild(this.setRow(st === 'in' ? '已登入 ' + this.ptt.user : '登入 PTT',
+    st === 'in' ? '點這裡登出' : '登入後可以推文、回文', function() { self.accountSheet(function() { self.reload(screen); }); }));
+  acc.appendChild(this.localToggleRow(JJPtt.KICK_KEY, '登入時踢掉其他地方的連線', '關著 = 保留電腦或別的手機上開著的 PTT'));
+
+  // reading
+  var rd = section('閱讀');
+  rd.appendChild(this.numberRow('readerPrefetchCount', '先讀好接下來幾篇', '0 = 不預先讀取，最多 10', 0, 10));
+  rd.appendChild(this.toggleRow('readerPrefetchImages', '預先讀取時連圖片一起下載', '換篇更快，但流量多很多'));
+  rd.appendChild(this.toggleRow('readerLowResImages', '用低解析度圖片', '載入快、省流量；點圖片看原圖'));
+  rd.appendChild(this.toggleRow('readerGroupRuns', '同一個人的連續推文排在一起', '被別人插話打斷的也排回一起，樓層照舊'));
+  var fontRow = el('div', 'jjm-set');
+  fontRow.appendChild(el('div', 'jjm-set-title', '字的大小'));
+  var fonts = el('div', 'jjm-chips');
+  [['小', 15], ['中', 17], ['大', 19], ['特大', 22]].forEach(function(f) {
+    var b = JJMobile.button('jjm-chip' + (self.fontPx === f[1] ? ' jjm-on' : ''), f[0], function() {
+      self.setFont(f[1]);
+      Array.prototype.forEach.call(fonts.children, function(x) { x.classList.remove('jjm-on'); });
+      b.classList.add('jjm-on');
+    });
+    fonts.appendChild(b);
+  });
+  fontRow.appendChild(fonts);
+  rd.appendChild(fontRow);
+
+  // lists
+  var ls = section('名單');
+  ls.appendChild(this.choiceRow('blacklistMode', '黑名單的人', [[0, '淡化'], [1, '隱藏'], [2, '不管']]));
+  ls.appendChild(this.listRow('黑名單', Object.keys(pref.blacklistedUserIds || {}), {},
+    function(id) { self.app.doAddBlacklistUserId(id); }, function(id) { self.app.doRemoveBlacklistUserId(id); }, screen));
+  ls.appendChild(this.tempListRow(screen));
+  ls.appendChild(this.textRow('blacklistedTitleKeywords', '標題關鍵字黑名單', '用逗號隔開，標題有這些字的文章淡化或隱藏'));
+  ls.appendChild(this.toggleRow('autoBlacklistSameUrl', '同網址洗版自動封鎖', '24 小時內把同一網址貼在超過 3 篇，加入黑名單 24 小時'));
+  ls.appendChild(this.toggleRow('watchlistEnabled', '觀察名單', '推文旁標「觀察」，列表上作者變紫色'));
+  ls.appendChild(this.listRow('觀察名單', Object.keys(pref.watchlistedUserIds || {}), pref.watchlistedUserIds || {},
+    function(id) { self.app.doAddWatchUserId(id); }, function(id) { self.app.doRemoveWatchUserId(id); }, screen));
+  ls.appendChild(this.toggleRow('customListEnabled', '自訂名單', '推文旁標名單名稱，列表上作者變青色'));
+  ls.appendChild(this.textRow('customListName', '自訂名單的名稱', '預設「網軍」'));
+  ls.appendChild(this.listRow(pref.customListName(), Object.keys(pref.notedUserIds || {}), pref.notedUserIds || {},
+    function(id) { self.app.doSetUserNote(id); }, function(id) { self.app.doRemoveUserNote(id); }, screen));
+
+  // fact check (from the extension's settings page)
+  var fc = section('真.事實查核中心', '只是疑點，不代表一定是網軍。');
+  this.factRows(fc, screen);
+  if (pref.values.aiService !== undefined && typeof PREF_OPTIONS !== 'undefined' && PREF_OPTIONS.aiService) {
+    fc.appendChild(this.choiceRow('aiService', '「請 AI 分析」用哪一個',
+      PREF_OPTIONS.aiService.map(function(k, i) { return [i, i18n(k)]; })));
+  }
+
+  // about
+  var ab = section('關於');
+  ab.appendChild(this.setRow('JJptt ' + (typeof JJPTT_VERSION !== 'undefined' ? JJPTT_VERSION : ''), '檢查有沒有新版', function() {
+    window.open('https://github.com/killnopig/JJptt/releases/tag/android-latest', '_blank');
+  }));
+  ab.appendChild(this.setRow('覺得好用？請我喝杯咖啡', 'Ko-fi（自願，不影響任何功能）', function() {
+    window.open('https://ko-fi.com/killnopig', '_blank');
+  }));
+  ab.appendChild(this.setRow('原始碼與回報問題', 'GitHub', function() {
+    window.open('https://github.com/killnopig/JJptt', '_blank');
+  }));
+};
+
+JJMobile.prototype.setRow = function(title, sub, onTap) {
+  var el = JJMobile.el;
+  var row = el('button', 'jjm-set jjm-set-tap');
+  row.type = 'button';
+  var t = el('div', 'jjm-set-text');
+  t.appendChild(el('div', 'jjm-set-title', title));
+  if (sub) t.appendChild(el('div', 'jjm-set-sub', sub));
+  row.appendChild(t);
+  row.appendChild(el('span', 'jjm-set-chev', '›'));
+  return JJMobile.tap(row, onTap);
+};
+
+JJMobile.prototype.toggleRow = function(key, title, sub) {
+  var self = this;
+  var el = JJMobile.el;
+  var vals = this.app.pref.values;
+  var on = vals[key] !== false && vals[key] !== 0 && vals[key] !== undefined;
+  if (typeof DEFAULT_PREFS !== 'undefined' && vals[key] === undefined) on = !!DEFAULT_PREFS[key];
+  var row = el('label', 'jjm-set jjm-toggle');
+  var t = el('div', 'jjm-set-text');
+  t.appendChild(el('div', 'jjm-set-title', title));
+  if (sub) t.appendChild(el('div', 'jjm-set-sub', sub));
+  row.appendChild(t);
+  var box = el('input');
+  box.type = 'checkbox';
+  box.checked = on;
+  box.addEventListener('change', function() {
+    self.setPref(key, box.checked);
+    row.dispatchEvent(new CustomEvent('jjm-toggle', { bubbles: false, detail: box.checked }));
+  });
+  row.appendChild(box);
+  row.appendChild(el('span', 'jjm-switch'));
+  row.setAttribute('data-key', key);
+  return row;
+};
+
+// A switch kept in this phone only (not one of the extension's settings).
+JJMobile.prototype.localToggleRow = function(storeKey, title, sub) {
+  var el = JJMobile.el;
+  var row = el('label', 'jjm-set jjm-toggle');
+  var t = el('div', 'jjm-set-text');
+  t.appendChild(el('div', 'jjm-set-title', title));
+  if (sub) t.appendChild(el('div', 'jjm-set-sub', sub));
+  row.appendChild(t);
+  var box = el('input');
+  box.type = 'checkbox';
+  try { box.checked = window.localStorage.getItem(storeKey) === '1'; } catch (e) {}
+  box.addEventListener('change', function() {
+    try { window.localStorage.setItem(storeKey, box.checked ? '1' : '0'); } catch (e) {}
+  });
+  row.appendChild(box);
+  row.appendChild(el('span', 'jjm-switch'));
+  return row;
+};
+
+JJMobile.prototype.numberRow = function(key, title, sub, min, max) {
+  var self = this;
+  var el = JJMobile.el;
+  var row = el('div', 'jjm-set');
+  var t = el('div', 'jjm-set-text');
+  t.appendChild(el('div', 'jjm-set-title', title));
+  if (sub) t.appendChild(el('div', 'jjm-set-sub', sub));
+  row.appendChild(t);
+  var input = el('input', 'jjm-num');
+  input.type = 'number';
+  input.inputMode = 'numeric';
+  input.value = this.app.pref.values[key];
+  if (min !== undefined) input.min = min;
+  if (max !== undefined) input.max = max;
+  input.addEventListener('change', function() {
+    var n = parseInt(input.value, 10);
+    if (isNaN(n)) return;
+    if (min !== undefined) n = Math.max(min, n);
+    if (max !== undefined) n = Math.min(max, n);
+    input.value = n;
+    self.setPref(key, n);
+  });
+  row.appendChild(input);
+  return row;
+};
+
+JJMobile.prototype.textRow = function(key, title, sub) {
+  var self = this;
+  var el = JJMobile.el;
+  var row = el('div', 'jjm-set jjm-set-col');
+  row.appendChild(el('div', 'jjm-set-title', title));
+  if (sub) row.appendChild(el('div', 'jjm-set-sub', sub));
+  var input = el('input', 'jjm-text');
+  input.type = 'text';
+  input.value = this.app.pref.values[key] || '';
+  input.addEventListener('change', function() { self.setPref(key, input.value.trim()); });
+  row.appendChild(input);
+  return row;
+};
+
+JJMobile.prototype.choiceRow = function(key, title, options) {
+  var self = this;
+  var el = JJMobile.el;
+  var row = el('div', 'jjm-set jjm-set-col');
+  row.appendChild(el('div', 'jjm-set-title', title));
+  var chips = el('div', 'jjm-chips');
+  var cur = parseInt(this.app.pref.values[key], 10) || 0;
+  options.forEach(function(o) {
+    var b = JJMobile.button('jjm-chip' + (o[0] === cur ? ' jjm-on' : ''), o[1], function() {
+      self.setPref(key, o[0]);
+      Array.prototype.forEach.call(chips.children, function(x) { x.classList.remove('jjm-on'); });
+      b.classList.add('jjm-on');
+    });
+    chips.appendChild(b);
+  });
+  row.appendChild(chips);
+  return row;
+};
+
+// A list of IDs: tap ✕ to take one off, type one to add.
+JJMobile.prototype.listRow = function(title, ids, notes, add, remove, screen) {
+  var self = this;
+  var el = JJMobile.el;
+  var row = el('div', 'jjm-set jjm-set-col');
+  row.appendChild(el('div', 'jjm-set-title', title + '（' + ids.length + '）'));
+  var list = el('div', 'jjm-idlist');
+  ids.sort().forEach(function(id) {
+    var item = el('span', 'jjm-idchip');
+    item.appendChild(el('span', '', id + (notes[id] ? '：' + notes[id] : '')));
+    item.appendChild(JJMobile.button('jjm-idx', '✕', function() {
+      remove(id);
+      self.reload(screen);
+    }));
+    list.appendChild(item);
+  });
+  if (!ids.length) list.appendChild(el('span', 'jjm-set-sub', '還沒有人'));
+  row.appendChild(list);
+  var form = el('form', 'jjm-addrow');
+  var input = el('input', 'jjm-text');
+  input.type = 'text';
+  input.placeholder = '加入帳號';
+  input.setAttribute('autocapitalize', 'off');
+  form.appendChild(input);
+  form.appendChild(el('button', 'jjm-btn', '加入'));
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var id = input.value.trim().toLowerCase();
+    if (!/^[a-z0-9]{2,12}$/.test(id)) return;
+    add(id);
+    self.reload(screen);
+  });
+  row.appendChild(form);
+  return row;
+};
+
+// 自動黑名單 (連推 / 同網址洗版): why, where, how long; remove or make permanent.
+JJMobile.prototype.tempListRow = function(screen) {
+  var self = this;
+  var el = JJMobile.el;
+  var pref = this.app.pref;
+  pref.pruneTempBlacklist();
+  var ids = Object.keys(pref.tempBlacklist || {});
+  var row = el('div', 'jjm-set jjm-set-col');
+  row.appendChild(el('div', 'jjm-set-title', '自動黑名單（' + ids.length + '）'));
+  row.appendChild(el('div', 'jjm-set-sub', '連推、同網址洗版自動加入的，24 小時後自己解除'));
+  ids.forEach(function(id) {
+    var info = (pref.tempBlacklistInfo || {})[id] || {};
+    var hours = Math.max(1, Math.round((pref.tempBlacklist[id] - Date.now()) / 3600000));
+    var why = info.kind === 'flood' ? '連推 ' + info.n + ' 則' : info.kind === 'spam' ? '同一網址貼 ' + info.n + ' 篇' : '';
+    var item = el('div', 'jjm-temp');
+    item.appendChild(el('div', 'jjm-temp-id', id));
+    item.appendChild(el('div', 'jjm-set-sub', [why, info.title ? '在 ' + (info.board ? '[' + info.board + '] ' : '') + info.title : '', '剩約 ' + hours + ' 小時'].filter(Boolean).join('・')));
+    var acts = el('div', 'jjm-chips');
+    acts.appendChild(JJMobile.button('jjm-chip', '移除', function() { pref.removeTempBlacklist(id); self.reload(screen); }));
+    acts.appendChild(JJMobile.button('jjm-chip', '改成永久', function() { pref.makeTempBlacklistPermanent(id); self.reload(screen); }));
+    item.appendChild(acts);
+    row.appendChild(item);
+  });
+  return row;
+};
+
+// The fact-check rules, in the order and groups of the extension's settings
+// page: a switch per rule, its numbers under it (greyed out when off).
+JJMobile.prototype.factRows = function(box, screen) {
+  var self = this;
+  var el = JJMobile.el;
+  var vals = this.app.pref.values;
+  var src = document.getElementById('opt_factDetect');
+  var holder = src && src.nextElementSibling;
+  if (!holder) return;
+  var lastToggle = null, params = null, lastHead = null;
+  // a group whose rules are all left out (terminal-only): no heading either
+  var dropEmpty = function() {
+    if (lastHead && lastHead === box.lastChild) box.removeChild(lastHead);
+  };
+  var link = function(toggle, group) {
+    var sync = function() { group.classList.toggle('jjm-off', !toggle.querySelector('input').checked); };
+    toggle.addEventListener('jjm-toggle', sync);
+    sync();
+  };
+  Array.prototype.forEach.call(holder.children, function(n) {
+    var id = n.id || '';
+    if (n.classList.contains('jj-subhead')) {
+      dropEmpty();
+      lastHead = box.appendChild(el('div', 'jjm-subhead', i18n('options_' + id.replace(/^opt_/, ''))));
+      lastToggle = null;
+      return;
+    }
+    if (id === 'fact_historyNote') {
+      box.appendChild(el('div', 'jjm-set-sub jjm-pad', i18n('fact_historyNote')));
+      return;
+    }
+    if (n.classList.contains('jj-row') && n.querySelector('#fact_historyClear')) {
+      box.appendChild(self.setRow('清除累積的跨文章紀錄', '共伴、首殺班底、門檻班底用的；目前 ' + self.app.factCheck.history.count() + ' 篇', function() {
+        if (!window.confirm('清除累積的紀錄？')) return;
+        self.app.factCheck.history.clear();
+        self.reload(screen);
+      }));
+      return;
+    }
+    var key = id.replace(/^opt_/, '');
+    if (!key || JJMobile.SKIP_PREFS[key] || !(key in vals)) return;
+    var label = JJMobile.splitLabel(i18n('options_' + key));
+    if (n.classList.contains('checkbox') && typeof vals[key] === 'boolean') {
+      var t = self.toggleRow(key, label[0], label[1]);
+      box.appendChild(t);
+      lastToggle = t;
+      params = el('div', 'jjm-params');
+      box.appendChild(params);
+      link(t, params);
+    } else if (n.classList.contains('jj-param') || n.classList.contains('form-group')) {
+      var row = typeof vals[key] === 'number' || /^\d+$/.test(String(vals[key])) ?
+        self.numberRow(key, label[0], label[1]) : self.textRow(key, label[0], label[1]);
+      (lastToggle && params ? params : box).appendChild(row);
+    }
+  });
+  dropEmpty();
 };
