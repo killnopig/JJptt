@@ -391,6 +391,7 @@ JJMobile.prototype.setBar = function(screen) {
     add('✎', '發文', function() { self.postSheet(screen); });
     add('⟳', '重新整理', function() { self.reload(screen); });
   } else if (screen.type === 'article') {
+    add('⇣', '到最下面推文', function() { self.toComposer(screen); });
     add('Aa', '字的大小', function() { self.fontSheet(); });
     add('⟳', '重新整理', function() { self.reload(screen); });
   } else if (screen.type === 'settings') {
@@ -1261,6 +1262,15 @@ JJMobile.prototype.postSheet = function(screen) {
   else this.accountSheet(start);
 };
 
+// ⇣ on an article: straight to the push box at the bottom, ready to type.
+JJMobile.prototype.toComposer = function(screen) {
+  var c = screen.view && screen.view.querySelector('.jjm-compose');
+  if (!c) return;
+  c.scrollIntoView({ block: 'end', behavior: 'smooth' });
+  var input = c.querySelector('input');
+  if (input) setTimeout(function() { input.focus({ preventScroll: true }); }, 350);
+};
+
 // After pushing: load the article again, staying at the bottom.
 JJMobile.prototype.reloadAfterPost = function(screen) {
   var self = this;
@@ -1492,18 +1502,30 @@ JJMobile.prototype.closeSheet = function() {
   this.sheet = null;
 };
 
+// Aa on an article: 內文 and 推文 sizes, each on its own row; the sheet stays
+// open so both can be tried on the article behind it.
 JJMobile.prototype.fontSheet = function() {
   var self = this;
-  var box = JJMobile.el('div', 'jjm-chips jjm-font');
-  [['小', 15], ['中', 17], ['大', 19], ['特大', 22]].forEach(function(f) {
-    var b = JJMobile.button('jjm-chip' + (self.fontPx === f[1] ? ' jjm-on' : ''), f[0], function() {
-      self.setFont(f[1]);
-      self.closeSheet();
+  var el = JJMobile.el;
+  var wrap = el('div', 'jjm-sheet-form');
+  ['text', 'push'].forEach(function(which) {
+    wrap.appendChild(el('div', 'jjm-set-title', which === 'text' ? '內文' : '推文'));
+    var box = el('div', 'jjm-chips jjm-font');
+    var now = which === 'text' ? self.fontPx : (self.fonts || {}).push || null;
+    var opts = [['小', 15], ['中', 17], ['大', 19], ['特大', 22]];
+    if (which === 'push') opts.unshift(['同內文', null]);
+    opts.forEach(function(f) {
+      var b = JJMobile.button('jjm-chip' + (now === f[1] ? ' jjm-on' : ''), f[0], function() {
+        self.setFontOf(which, f[1]);
+        Array.prototype.forEach.call(box.children, function(x) { x.classList.remove('jjm-on'); });
+        b.classList.add('jjm-on');
+      });
+      if (f[1]) b.style.fontSize = f[1] + 'px';
+      box.appendChild(b);
     });
-    b.style.fontSize = f[1] + 'px';
-    box.appendChild(b);
+    wrap.appendChild(box);
   });
-  this.showSheet('字的大小', box);
+  this.showSheet('字的大小', wrap);
 };
 
 // ---- settings ---------------------------------------------------------------------------

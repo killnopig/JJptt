@@ -1488,21 +1488,24 @@ body.jj-mobile .jjm {
 .jjm .jjr-card-text { min-width: 0; font-size: 15px; line-height: 1.4; }
 .jjm .jjr-card-host { color: var(--sub); font-size: 13px; }
 
-/* 真.事實查核中心 report (built by PttReader.factReportNode) */
+/* 真.事實查核中心 report (built by PttReader.factReportNode): closed, one
+   compact line -- title, summary, a small AI button, 展開 */
 .jjm .jjm-fact {
-  margin: 12px 14px 4px; padding: 14px; border-radius: 14px; background: #241f14; border: 1px solid #5c4b1f;
-  font-size: 15px; line-height: 1.5; color: #f3e9d2;
+  margin: 8px 14px 2px; padding: 7px 10px; border-radius: 10px; background: #241f14; border: 1px solid #5c4b1f;
+  font-size: 13px; line-height: 1.4; color: #f3e9d2;
 }
-.jjm .jjm-fact .jjt-fact-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
-.jjm .jjm-fact .jjt-fact-title { font-weight: 800; color: #ffcc66; }
-.jjm .jjm-fact .jjt-fact-sum { flex: 1 1 100%; order: 3; }
-.jjm .jjm-fact .jjt-fact-host { color: #ff8a65; font-weight: 700; margin-right: 6px; }
-.jjm .jjm-fact .jjt-fact-toggle { color: #ffcc66; margin-left: auto; padding: 6px 0; }
+.jjm .jjm-fact .jjt-fact-head { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; }
+.jjm .jjm-fact .jjt-fact-title { flex: 0 0 auto; font-weight: 800; color: #ffcc66; order: 0; }
+.jjm .jjm-fact .jjt-fact-sum { flex: 1 1 auto; min-width: 0; order: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jjm .jjm-fact .jjt-fact-host { color: #ff8a65; font-weight: 700; margin-right: 4px; }
 .jjm .jjm-fact .jjt-fact-ai {
-  order: 4; margin-top: 8px; min-height: 44px; padding: 0 16px; border-radius: 22px;
-  background: #ffb74d; color: #2a1a00; font-weight: 700; border: 0;
+  flex: 0 0 auto; order: 2; min-height: 28px; padding: 0 10px; border-radius: 14px;
+  background: #ffb74d; color: #2a1a00; font-weight: 700; font-size: 12px; border: 0;
 }
-.jjm .jjm-fact .jjt-fact-line { margin-top: 6px; }
+.jjm .jjm-fact .jjt-fact-toggle { flex: 0 0 auto; order: 3; color: #ffcc66; padding: 4px 0; font-size: 13px; }
+.jjm .jjm-fact .jjt-fact-line { margin-top: 5px; }
+.jjm .jjm-fact:not(.jjt-fact-closed) .jjt-fact-head { flex-wrap: wrap; }
+.jjm .jjm-fact:not(.jjt-fact-closed) .jjt-fact-sum { flex-basis: 100%; white-space: normal; order: 4; }
 .jjm .jjm-fact.jjt-fact-closed .jjt-fact-line { display: none; }
 
 /* pushes */
