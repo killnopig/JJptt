@@ -195,21 +195,33 @@ JJPtt.prototype.doLogin = function(user, pass) {
       throw err;
     };
   };
+  // how long each step took (設定 → 帳號 shows it)
+  var t0 = Date.now(), last = t0, steps = [];
+  var mark = function(name) {
+    var now = Date.now();
+    steps.push([name, now - last]);
+    last = now;
+    self.lastLogin = { at: t0, total: now - t0, steps: steps };
+  };
   return this.connect().then(function() {
+    mark('連線');
     return self.wait({ user: /請輸入代號/ }, 20000).catch(at('等帳號欄'));
   }).then(function() {
+    mark('帳號欄出現');
     var before = self.screen();
     self.type(user + '\r');
     // only once PTT really asks for the password: what is typed before that
     // is thrown away (that made right passwords fail)
     return self.wait({ pass: /請輸入您的密碼/ }, 15000, before).catch(at('等密碼欄'));
   }).then(function() {
+    mark('密碼欄出現');
     return JJPtt.sleep(300);
   }).then(function() {
     var before = self.screen();
     self.type(pass + '\r');
-    return self.pastLogin(before).catch(at('密碼送出後'));
+    return self.pastLogin(before, mark).catch(at('密碼送出後'));
   }).then(function() {
+    mark('到主選單');
     self.user = user;
     self.pass = pass;
     self.setState('in');
@@ -222,7 +234,7 @@ JJPtt.prototype.doLogin = function(user, pass) {
 };
 
 // After the password: answer what PTT asks until the main menu.
-JJPtt.prototype.pastLogin = function(before) {
+JJPtt.prototype.pastLogin = function(before, mark) {
   var self = this;
   // the app's own choice, off unless turned on: logging in on the phone
   // must not throw the computer's PTT off
@@ -245,6 +257,7 @@ JJPtt.prototype.pastLogin = function(before) {
       }
       if (k === 'busy') throw new Error('PTT 現在很忙，請稍後再試');
       if (k === 'menu') return null;
+      if (mark) mark(k === 'dup' ? '重複登入的問題' : '按任意鍵等畫面');
       if (k === 'dup') self.send(dupAnswer);
       else self.passHurdle();
       return JJPtt.sleep(400).then(step);
@@ -536,13 +549,17 @@ JJPtt.prototype.post = function(board, type, title, text) {
 // ---- 我的最愛 (the account's favourite boards) ---------------------------------------------
 
 // One row of a board list: "   12 ˇGossiping    綜合 ◎[八卦] 亂講話   爆! 板主"
-// -> { name, title }; folders (Σ) and separator lines give null.
+// -> { name, title }; folders (Σ, or 我的最愛's own 「目錄 □」) and
+// separator lines give null.
 JJPtt.parseBoardRow = function(row) {
-  var m = /^\s*[>●]?\s*(\d+)\s+[ˇ\s]?\s*([A-Za-z][\w\-]{1,15})\s+(\S{1,6})\s+([◎●Σ□]?)\s*(.*)$/.exec(row);
-  if (!m || m[4] === 'Σ') return null;
+  var m = /^\s*[>●]?\s*(\d+)\s+[ˇ∨\s]?\s*([A-Za-z][\w\-]{1,15})\s+(\S{1,6})\s+([◎●Σ□]?)\s*(.*)$/.exec(row);
+  if (!m || m[4] === 'Σ' || m[4] === '□' || m[3] === '目錄') return null;
   if (/^-+$/.test(m[2])) return null;
-  var title = m[5].split(/\s{2,}/)[0].replace(/^◎/, '').trim();
-  return { n: +m[1], name: m[2], title: title };
+  var title = m[5].split(/\s{2,}/)[0].replace(/^◎/, '');
+  // a title that fills its column runs straight into the next ones:
+  // 「…三星獅爆!GreenChamb…」, 「…龍布…爆!hasebe/jou…」, 「…規…21 abc」
+  title = title.replace(/(爆!|HOT)\S*$/, '').replace(/…\s*\d{1,3}(\s+\S+)?$/, '…');
+  return { n: +m[1], name: m[2], title: title.trim() };
 };
 
 // Back to the main menu from wherever the connection is.

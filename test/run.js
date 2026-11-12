@@ -741,6 +741,18 @@ test('我的最愛 rows: board name and title; folders and lines skipped', funct
   assert.strictEqual(JJPtt.parseBoardRow('     5 ------------------------------------------'), null);
   assert.strictEqual(JJPtt.parseBoardRow('   編號   看 板   類別   轉信  中   文   敘   述'), null);
 });
+test('我的最愛 rows: folders 「目錄 □」 skipped; full titles cut before 爆!/HOT/人氣 and 板主', function() {
+  assert.strictEqual(JJPtt.parseBoardRow('     1   MyFavFolder 目錄 □使用頻率較低'), null);
+  assert.strictEqual(JJPtt.parseBoardRow('    18   MyFavFolder 目錄 □新的目錄'), null);
+  var t = function(row) { return JJPtt.parseBoardRow(row).title; };
+  assert.strictEqual(t('>    3 ˇGossiping   綜合 ◎[八卦] 板主"又"徵選 徵選文可回文…爆!ubcs/redDe…'), '[八卦] 板主"又"徵選 徵選文可回文…');
+  assert.strictEqual(t('     9 ˇBaseball    棒球 ◎[棒球] 味全龍/軟銀鷹/釀酒人/三星獅爆!GreenChamb…'), '[棒球] 味全龍/軟銀鷹/釀酒人/三星獅');
+  assert.strictEqual(t('    10 ˇNBA         NBA. ◎NBA 26-27賽季 傑梯已無法觸及龍布…爆!hasebe/jou…'), 'NBA 26-27賽季 傑梯已無法觸及龍布…');
+  assert.strictEqual(t('     8 ˇSteam       平台 ◎本板禁止買賣合購代購代刷       HOThn9480412/…'), '本板禁止買賣合購代購代刷');
+  assert.strictEqual(t('    11 ˇmarvel      生二 ◎[媽佛] 你吃了誰煮的麵             21 a6234709'), '[媽佛] 你吃了誰煮的麵');
+  assert.strictEqual(t('     5 ˇC_Chat      閒談 ◎[希洽] 孤獨搖滾劇場版 2027上映    爆!daniel0527…'), '[希洽] 孤獨搖滾劇場版 2027上映');
+  assert.strictEqual(JJPtt.parseBoardRow('    13   JOJO        日本 ◎SBR動畫版網飛熱烈放送中          wxes50608').name, 'JOJO');
+});
 testAsync('我的最愛: main menu, f, two pages, stops at the last one', async function() {
   var head = '【 我 的 最愛 】\n   編號   看 板   類別   轉信  中   文   敘   述\n';
   var page1 = head + [1, 2].map(function(i) { return '   ' + i + ' ˇBoard' + i + '      綜合 ◎[標題' + i + ']  中文' ; }).join('\n');

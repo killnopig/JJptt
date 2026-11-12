@@ -559,6 +559,8 @@ JJMobile.prototype.syncFavs = function(manual) {
     });
     var added = 0;
     mine.forEach(function(f) {
+      // an older sync took 我的最愛's folders (MyFavFolder) for boards
+      if (/^MyFavFolder$/i.test(f.name)) return;
       if (!have[f.name.toLowerCase()]) merged.push(f);
     });
     boards.forEach(function(b) {
@@ -1516,6 +1518,17 @@ JJMobile.prototype.renderSettings = function(screen) {
       box.appendChild(JJMobile.el('div', 'jjm-hint', '背景連線失敗時 PTT 的畫面。截圖給開發者看，就知道哪裡卡住。'));
       box.appendChild(pre);
       self.showSheet('最後一次 PTT 畫面', box);
+    }));
+  }
+  if (this.ptt.lastLogin) {
+    var ll = this.ptt.lastLogin;
+    var sec = function(ms) { return (ms / 1000).toFixed(1) + ' 秒'; };
+    acc.appendChild(this.setRow('最後一次登入花的時間', '共 ' + sec(ll.total) + '（點開看每一步）', function() {
+      var pre = JJMobile.el('pre', 'jjm-screen', ll.steps.map(function(st) { return st[0] + '　' + sec(st[1]); }).join('\n'));
+      var box = JJMobile.el('div', '');
+      box.appendChild(JJMobile.el('div', 'jjm-hint', '每一步等了多久。登入很慢時截圖給開發者看。'));
+      box.appendChild(pre);
+      self.showSheet('最後一次登入', box);
     }));
   }
   acc.appendChild(this.localToggleRow(JJPtt.KICK_KEY, '登入時踢掉其他地方的連線', '關著 = 保留電腦或別的手機上開著的 PTT'));
