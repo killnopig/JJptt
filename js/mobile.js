@@ -2040,19 +2040,66 @@ JJMobile.prototype.lookPresets = function(pane, screen) {
       self.reload(screen);
     }));
   });
-  save.appendChild(JJMobile.button('jjm-chip jjm-chip-small', '複製碼', function() {
-    var code = 'JJLOOK' + JSON.stringify(self.getLook());
-    var done = function() { if (self.app.showToast) self.app.showToast('已複製，可以貼給別人或開發者', 2000); };
+  // 複製碼 / 貼上碼: a sheet to choose which (目前 / 自訂1 / 自訂2)
+  var copyCode = function(look, name) {
+    var code = 'JJLOOK' + JSON.stringify(look);
+    var done = function() {
+      self.closeSheet();
+      if (self.app.showToast) self.app.showToast('已複製「' + name + '」的設定碼', 2000);
+    };
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done, function() { window.prompt('複製這段：', code); });
       else window.prompt('複製這段：', code);
     } catch (e) { window.prompt('複製這段：', code); }
+  };
+  save.appendChild(JJMobile.button('jjm-chip jjm-chip-small', '複製碼', function() {
+    var list = el('div', 'jjm-sheet-list');
+    list.appendChild(JJMobile.button('jjm-sheet-item', '目前的版面', function() { copyCode(self.getLook(), '目前'); }));
+    ['1', '2'].forEach(function(n) {
+      var b = JJMobile.button('jjm-sheet-item', '自訂' + n + (slots[n] ? '' : '（還沒存）'), function() {
+        if (slots[n]) copyCode(slots[n], '自訂' + n);
+      });
+      if (!slots[n]) b.disabled = true;
+      list.appendChild(b);
+    });
+    self.showSheet('複製哪一個的設定碼？', list);
   }));
   save.appendChild(JJMobile.button('jjm-chip jjm-chip-small', '貼上碼', function() {
-    var code = window.prompt('貼上別人給你的設定碼：', '');
-    if (!code) return;
-    try { apply(JSON.parse(String(code).trim().replace(/^JJLOOK/, '')), '設定碼'); }
-    catch (e) { if (self.app.showToast) self.app.showToast('這不是設定碼', 2000); }
+    var form = el('div', 'jjm-sheet-form');
+    var area = el('textarea');
+    area.rows = 3;
+    area.placeholder = '把 JJLOOK 開頭的設定碼貼在這裡';
+    form.appendChild(area);
+    try {
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        navigator.clipboard.readText().then(function(t) { if (/^\s*JJLOOK/.test(t || '')) area.value = t.trim(); }, function() {});
+      }
+    } catch (e) {}
+    var err = el('div', 'jjm-form-error');
+    form.appendChild(err);
+    var read = function() {
+      try { return JSON.parse(String(area.value).trim().replace(/^JJLOOK/, '')); }
+      catch (e) { err.textContent = '這不是設定碼'; return null; }
+    };
+    var row = el('div', 'jjm-chips jjm-chips-row');
+    row.appendChild(JJMobile.button('jjm-btn jjm-btn-main', '套用到目前', function() {
+      var look = read();
+      if (look) { self.closeSheet(); apply(look, '設定碼'); }
+    }));
+    ['1', '2'].forEach(function(n) {
+      row.appendChild(JJMobile.button('jjm-btn', '存到自訂' + n, function() {
+        var look = read();
+        if (!look) return;
+        slots[n] = look;
+        JJMobile.store(JJMobile.LOOK_SLOTS_KEY, slots);
+        self.closeSheet();
+        if (self.app.showToast) self.app.showToast('已存到自訂' + n, 1500);
+        self.reload(screen);
+      }));
+    });
+    form.appendChild(row);
+    self.showSheet('貼上設定碼', form);
+    setTimeout(function() { area.focus(); }, 50);
   }));
   box.appendChild(save);
   pane.appendChild(box);
