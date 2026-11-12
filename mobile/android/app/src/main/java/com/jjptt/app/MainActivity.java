@@ -9,5 +9,9 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(PttSocketPlugin.class);  // direct connection to PTT
         super.onCreate(savedInstanceState);
+        // The terminal sizes each character to fit 80 x 24 on the screen; the
+        // phone's own font size setting must not enlarge the text on top of
+        // that, or the bottom rows (the login prompt...) fall off the screen.
+        getBridge().getWebView().getSettings().setTextZoom(100);
     }
 }
