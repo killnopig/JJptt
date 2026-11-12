@@ -1539,7 +1539,9 @@ body.jj-mobile .jjm {
   padding: calc(var(--jjm-pgap, 10px) * .25) 4px; margin: calc(var(--jjm-pgap, 10px) * -.25) 0 calc(var(--jjm-pgap, 10px) * -.25) -4px;
   border-radius: var(--r-md);
 }
-.jjm .jjm-push-id[style*="--jj-repeat"] { color: var(--jj-repeat); }
+/* someone who pushed several times: their own colour (PushInsights.setRepeatColor
+   sets data-jj-rp and --jj-rp; the rule here used to look for another name and never matched) */
+.jjm .jjm-push-id[data-jj-rp] { color: var(--jj-rp); }
 .jjm .jjm-push-id:active { background: rgba(255,255,255,.08); }
 .jjm-push-time { margin-left: auto; font-size: var(--f-sm); }
 .jjm-push-floor { font-size: var(--f-xs); color: var(--jjm-floor, var(--dim)); min-width: 36px; text-align: right; }

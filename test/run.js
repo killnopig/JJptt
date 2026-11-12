@@ -517,6 +517,12 @@ test('version: the run from the release page, new and old wording', function() {
   assert.strictEqual(JJMobile.runFromRelease('JJptt Android 1.12.0'), 12);
   assert.ok(isNaN(JJMobile.runFromRelease('nothing here')));
 });
+test('repeat pushers: the app CSS uses the colour PushInsights sets (--jj-rp)', function() {
+  var css = fs.readFileSync(path.join(root, 'css/main.css'), 'utf8');
+  assert.ok(/\.jjm \.jjm-push-id\[data-jj-rp\]\s*\{\s*color:\s*var\(--jj-rp\)/.test(css), 'app push ID colour rule');
+  assert.ok(!/--jj-repeat/.test(css), 'no rule waits for a --jj-repeat nobody sets');
+  assert.ok(/setProperty\('--jj-rp'/.test(fs.readFileSync(path.join(root, 'js/push_insights.js'), 'utf8')));
+});
 test('own push: found on the web page by ID and the start of the text', function() {
   var art = { pushes: [{ id: 'other', content: '加油' }, { id: 'MikeEeee', content: '加油啦 大家' }] };
   assert.ok(JJMobile.hasPush(art, { id: 'mikeeeee', text: '加油啦 大家' }));
