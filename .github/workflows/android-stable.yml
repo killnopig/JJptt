@@ -1,0 +1,91 @@
+# Promotes the test build that is on "android-latest" right now to a
+# 正式版: the very same APK (no new build), so what was tried is what people
+# get. Run by hand: Actions → "Android stable release" → Run workflow, or
+#   gh workflow run android-stable.yml -f notes="這版改了什麼"
+#
+# It publishes the APK twice:
+#   android-v<version>-<run>  one release per 正式版 (the history, with notes)
+#   android-stable            always the newest 正式版; what the app checks
+# Neither becomes the repo's "Latest" release (that stays the extension's).
+name: Android stable release
+
+on:
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: 這版改了什麼（給使用者看，可留空）
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-stable
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Take the build on android-latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir dist
+          gh release download android-latest -p JJptt.apk -p version.json -D dist
+          cat dist/version.json
+          RUN=$(node -p "require('./dist/version.json').run")
+          VERSION=$(node -p "require('./dist/version.json').version || ''")
+          SHA=$(node -p "require('./dist/version.json').sha || ''")
+          if [ -z "$VERSION" ] || [ -z "$SHA" ]; then echo "version.json has no version / sha"; exit 1; fi
+          echo "RUN=$RUN" >> "$GITHUB_ENV"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+          echo "FULL_SHA=$(git rev-parse "$SHA")" >> "$GITHUB_ENV"
+
+      - name: Release notes
+        env:
+          NOTES_IN: ${{ inputs.notes }}
+        run: |
+          {
+            echo "JJptt Android 正式版 ${VERSION} (${RUN})（${SHA}）"
+            echo
+            if [ -n "$NOTES_IN" ]; then echo "$NOTES_IN"; echo; fi
+            echo "在手機上點下面的 JJptt.apk 下載安裝；已經裝了的，App 裡 設定 → 關於 → 檢查並自動更新。"
+            echo
+            # the extension's changelog entry for this version (same code)
+            git show "$FULL_SHA:js/changelog.js" > /tmp/changelog.js
+            node -e '
+              const vm = require("vm"), fs = require("fs"), ctx = {};
+              vm.runInNewContext(fs.readFileSync("/tmp/changelog.js", "utf8") + "\nthis.log = JJPTT_CHANGELOG;", ctx);
+              const e = ctx.log.find((x) => x.version === process.env.VERSION);
+              if (e) console.log("JJptt " + e.version + "（" + e.date + "）：\n" + e.changes.map((c) => "- " + c).join("\n"));
+            '
+          } > notes.md
+          cat notes.md
+
+      - name: Publish android-v<version>-<run> and android-stable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="android-v${VERSION}-${RUN}"
+          TITLE="JJptt Android 正式版 ${VERSION} (${RUN})"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "$TAG is already a 正式版"; exit 1
+          fi
+          gh release create "$TAG" dist/JJptt.apk dist/version.json --target "$FULL_SHA" \
+            --title "$TITLE" --notes-file notes.md --latest=false
+          git tag -f android-stable "$FULL_SHA"
+          git push -f origin android-stable
+          if gh release view android-stable >/dev/null 2>&1; then
+            gh release edit android-stable --title "$TITLE" --notes-file notes.md --prerelease=false --latest=false
+            gh release upload android-stable dist/JJptt.apk dist/version.json --clobber
+          else
+            gh release create android-stable dist/JJptt.apk dist/version.json \
+              --title "$TITLE" --notes-file notes.md --latest=false
+          fi

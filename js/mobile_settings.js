@@ -224,6 +224,17 @@ JJMobile.prototype.renderSettings = function(screen) {
   var upd = JJMobile.iconButton('jjm-btn jjm-btn-main jjm-wide', 'reload', '檢查並自動更新', function() { self.checkUpdate(true); });
   panes.about.insertBefore(upd, ab);
   panes.about.insertBefore(el('div', 'jjm-hint', '有新版就直接下載，接著會跳出 Android 的安裝畫面，按「更新」就裝好（設定和登入都會保留）。'), ab);
+  // 正式版 (default) or every 測試版 too
+  var beta = this.localToggleRow(JJMobile.BETA_KEY, '接收測試版',
+    '關著 = 只更新到正式版（試過沒問題的）；打開 = 每次修改都會收到，可能還有問題', false);
+  beta.querySelector('input').addEventListener('change', function() {
+    self.update = null;
+    self.updateAvailable = false;
+    self.checkUpdate(false);
+  });
+  var betaBox = el('div', 'jjm-group jjm-beta');
+  betaBox.appendChild(beta);
+  panes.about.insertBefore(betaBox, ab);
   var cafe = JJMobile.button('jjm-btn jjm-wide jjm-btn-coffee', '☕ 覺得好用？請我喝杯咖啡', function() {
     if (window.confirm('要打開 Ko-fi 贊助頁面嗎？（自願，不影響任何功能）')) window.open('https://ko-fi.com/killnopig', '_blank');
   });

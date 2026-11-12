@@ -72,6 +72,8 @@ jobs:
           # 「版次 0.0.N」 first: builds before 1.33.0 (N) find their run by it
           NOTES="版次 0.0.${GITHUB_RUN_NUMBER}・JJptt Android 測試版 ${VERSION}（${GITHUB_SHA::7}）
 
+          這是測試版：mobile 分支每次修改都會自動出一版，可能還有問題。試過沒問題的會發成正式版（android-stable）。
+
           在手機上點下面的 JJptt.apk 下載，打開安裝（第一次要允許「安裝不明來源的應用程式」）。新版直接裝在舊版上面，設定會保留。"
           if gh release view android-latest >/dev/null 2>&1; then
             gh release edit android-latest --title "JJptt Android 測試版 ${VERSION}" --notes "$NOTES" --prerelease

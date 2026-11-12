@@ -603,6 +603,59 @@ testAsync('app storage: other settings are saved as before', async function() {
   sameJson(JSON.parse(a.local['jjptt.storage']), { values: { fontSize: 20 } });
 });
 
+// ---- Android app: 正式版 / 測試版 channels (JJMobile.latestBuild) ---------
+
+console.log('Android app (update channels)');
+
+// releases: tag -> version.json text, or an Error to reject with
+function channelApp(releases, beta) {
+  var store = {};
+  if (beta) store[JJMobile.BETA_KEY] = '1';
+  global.localStorage = { getItem: function(k) { return k in store ? store[k] : null; }, setItem: function(k, v) { store[k] = v; } };
+  global.Capacitor = { Plugins: { ApkUpdater: { fetchText: function(o) {
+    var tag = /download\/([^\/]+)\//.exec(o.url)[1];
+    var r = releases[tag];
+    if (r instanceof Error) return Promise.reject(r);
+    if (r === undefined) return Promise.reject(new Error('HTTP 404'));
+    return Promise.resolve({ text: r });
+  } } } };
+  global.fetch = function(url) {
+    var tag = /tags\/(.+)$/.exec(url)[1];
+    var r = releases[tag];
+    if (r instanceof Error) return Promise.reject(r);
+    return Promise.resolve({ ok: false, status: r === undefined ? 404 : 500 });
+  };
+  return Object.create(JJMobile.prototype);
+}
+function channelDone() { delete global.Capacitor; delete global.fetch; delete global.localStorage; }
+var V = function(run) { return JSON.stringify({ run: run, version: '1.33.2', sha: 'abc1234' }); };
+
+testAsync('channels: 正式版 by default', async function() {
+  try {
+    var b = await channelApp({ 'android-stable': V(56), 'android-latest': V(60) }).latestBuild();
+    assert.strictEqual(b.run, 56); assert.strictEqual(b.channel, 'stable');
+    assert.ok(/android-stable\/JJptt\.apk$/.test(b.url));
+  } finally { channelDone(); }
+});
+testAsync('channels: 接收測試版 -> the newest test build', async function() {
+  try {
+    var b = await channelApp({ 'android-stable': V(56), 'android-latest': V(60) }, true).latestBuild();
+    assert.strictEqual(b.run, 60); assert.strictEqual(b.channel, 'test');
+    assert.ok(/android-latest\/JJptt\.apk$/.test(b.url));
+  } finally { channelDone(); }
+});
+testAsync('channels: no 正式版 yet -> the test build, as before', async function() {
+  try {
+    var b = await channelApp({ 'android-latest': V(57) }).latestBuild();
+    assert.strictEqual(b.run, 57); assert.strictEqual(b.channel, 'test');
+  } finally { channelDone(); }
+});
+testAsync('channels: no network is an error, not a switch to 測試版', async function() {
+  try {
+    await assert.rejects(channelApp({ 'android-stable': new Error('timeout'), 'android-latest': V(60) }).latestBuild());
+  } finally { channelDone(); }
+});
+
 // ---- Android app: the background PTT connection (js/mobile_ptt.js) ----------
 
 console.log('Android app (JJPtt: login / push / reply)');

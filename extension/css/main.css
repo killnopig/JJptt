@@ -1864,3 +1864,6 @@ body.jj-mobile #jjToast {
 /* 建議組合: 預設 / 開發者建議 / 自訂1 / 自訂2 on one line, each as wide as its words */
 .jjm-chips-row.jjm-looks-pick .jjm-chip { flex: 1 1 auto; padding-left: 8px; padding-right: 8px; }
 .jjm .jjm-chip.jjm-empty { opacity: .45; border-style: dashed; }
+
+/* 關於 → 接收測試版 */
+.jjm-beta { margin-top: 14px; margin-bottom: 14px; }

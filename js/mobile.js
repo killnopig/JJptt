@@ -196,9 +196,24 @@ JJMobile.prototype.start = function() {
 // (build-info.js). Newer -> a bar on the home screen; one tap downloads the
 // APK (ApkUpdaterPlugin, no browser) and opens Android's installer.
 
-JJMobile.RELEASE_API = 'https://api.github.com/repos/killnopig/JJptt/releases/tags/android-latest';
+// Two channels, each a GitHub release whose files are replaced in place:
+//   android-stable  正式版: a test build that was tried and then promoted
+//                   (the "Android stable release" workflow), the default
+//   android-latest  測試版: every push to the mobile branch (設定 → 關於 →
+//                   接收測試版)
+// While there is no 正式版 yet, the 測試版 is what everyone gets.
+JJMobile.TAG_STABLE = 'android-stable';
+JJMobile.TAG_TEST = 'android-latest';
+JJMobile.BETA_KEY = 'jjptt.m.betaChannel';
+JJMobile.RELEASE_API_BASE = 'https://api.github.com/repos/killnopig/JJptt/releases/tags/';
+JJMobile.RELEASE_DL_BASE = 'https://github.com/killnopig/JJptt/releases/download/';
+JJMobile.RELEASE_API = JJMobile.RELEASE_API_BASE + JJMobile.TAG_TEST;
 
-JJMobile.RELEASE_DL = 'https://github.com/killnopig/JJptt/releases/download/android-latest/';
+JJMobile.RELEASE_DL = JJMobile.RELEASE_DL_BASE + JJMobile.TAG_TEST + '/';
+
+JJMobile.wantsTest = function() {
+  try { return window.localStorage.getItem(JJMobile.BETA_KEY) === '1'; } catch (e) { return false; }
+};
 
 JJMobile.version = function(run, ver) {
   if (isNaN(run)) return '?';
@@ -223,16 +238,29 @@ JJMobile.runFromRelease = function(text) {
 // (no limit on how often); GitHub's API (60 a hour per network, often used
 // up on phone networks) only when that fails.
 JJMobile.prototype.latestBuild = function() {
+  var self = this;
+  var mark = function(channel) { return function(b) { b.channel = channel; return b; }; };
+  if (JJMobile.wantsTest()) return this.buildOn(JJMobile.TAG_TEST).then(mark('test'));
+  return this.buildOn(JJMobile.TAG_STABLE).then(mark('stable'), function(err) {
+    // no 正式版 published yet: the 測試版, as before there were two
+    if (/\b404\b/.test(String((err && err.message) || err))) return self.buildOn(JJMobile.TAG_TEST).then(mark('test'));
+    throw err;
+  });
+};
+
+// The build on one channel's release (tag).
+JJMobile.prototype.buildOn = function(tag) {
   var C = window.Capacitor;
   var plugin = C && C.Plugins && C.Plugins.ApkUpdater;
+  var dl = JJMobile.RELEASE_DL_BASE + tag + '/';
   var fromFile = plugin && plugin.fetchText ?
-    plugin.fetchText({ url: JJMobile.RELEASE_DL + 'version.json' }).then(function(r) {
+    plugin.fetchText({ url: dl + 'version.json' }).then(function(r) {
       var v = JSON.parse(r.text);
       if (typeof v.run !== 'number' || v.run <= 0) throw new Error('no run');
-      return { run: +v.run, version: typeof v.version === 'string' ? v.version : '', url: JJMobile.RELEASE_DL + 'JJptt.apk' };
+      return { run: +v.run, version: typeof v.version === 'string' ? v.version : '', url: dl + 'JJptt.apk' };
     }) : Promise.reject(new Error('no plugin'));
   return fromFile.catch(function() {
-    return fetch(JJMobile.RELEASE_API, { headers: { 'Accept': 'application/vnd.github+json' } }).then(function(r) {
+    return fetch(JJMobile.RELEASE_API_BASE + tag, { headers: { 'Accept': 'application/vnd.github+json' } }).then(function(r) {
       if (r.status === 403) throw new Error('GitHub 暫時不給查（這個網路查太多次了），等一下再試或換 Wi-Fi');
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
@@ -285,7 +313,9 @@ JJMobile.prototype.refreshVersion = function() {
   var top = this.stack[this.stack.length - 1];
   if (!top || top.type !== 'home' || !this.titleEl) return;
   var text = this.updateNote ||
-    (this.updateAvailable ? '更新到 ' + JJMobile.version(this.update.run, this.update.version) : JJMobile.version(this.myBuild(), this.myVersion()) + '・檢查更新');
+    (this.updateAvailable ? '更新到 ' + JJMobile.version(this.update.run, this.update.version) +
+      (this.update.channel === 'test' && JJMobile.wantsTest() ? ' 測試版' : '') :
+      JJMobile.version(this.myBuild(), this.myVersion()) + '・檢查更新');
   var b = JJMobile.button('jjm-verbtn' + (this.updateAvailable ? ' jjm-verbtn-new' : ''), text, function() {
     if (self.updating) return;
     if (self.updateAvailable) self.installUpdate();
