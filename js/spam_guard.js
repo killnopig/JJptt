@@ -80,17 +80,26 @@ SpamGuard.prototype.record = function(article) {
   });
 
   var pref = this.app.pref;
+  var batch = [], queued = {};
   for (var k in touched) {
     var parts = k.split('\n');
     var id = parts[0], url = parts[1];
     var count = Object.keys(seen[id][url]).length;
-    if (count > SpamGuard.LIMIT && pref && !pref.isBlacklisted(id)) {
-      pref.addTempBlacklist(id, SpamGuard.WINDOW, {
+    // not anyone the user took off the blacklist by hand in the last 24 hours
+    if (count > SpamGuard.LIMIT && pref && !queued[id] && pref.mayAutoBlacklist(id)) {
+      queued[id] = true;
+      batch.push({ id: id, ms: SpamGuard.WINDOW, info: {
         kind: 'spam', n: count, link: url, url: article.url,
         title: article.meta['標題'] || '', board: article.meta['看板'] || ''
-      });
-      this.app.showToast(i18n('spam_autoBlacklisted').replace('%s', id).replace('%n', count), 5000);
+      } });
     }
+  }
+  if (batch.length) {
+    pref.addTempBlacklistMany(batch);
+    var app = this.app;
+    batch.forEach(function(b) {
+      app.showToast(i18n('spam_autoBlacklisted').replace('%s', b.id).replace('%n', b.info.n) + pref.autoBlacklistWhere(b.info), 5000);
+    });
   }
   this.save(seen);
 };

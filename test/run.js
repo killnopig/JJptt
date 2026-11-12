@@ -7,11 +7,13 @@ var fs = require('fs');
 var path = require('path');
 var vm = require('vm');
 var assert = require('assert');
-
 var root = path.join(__dirname, '..');
+
 global.window = global;
 global.document = { addEventListener: function() {}, createElement: function() { return {}; } };
-global.i18n = function(k) { return k; };
+global.locale = {};
+vm.runInThisContext(fs.readFileSync(path.join(root, 'js/zh_TW_messages.js'), 'utf8'));
+global.i18n = function(k) { return (locale.zh_TW[k] && locale.zh_TW[k].message) || k; };
 global.$ = function() { return { length: 0 }; };
 global.lib = { safeGetItem: function(k) { return global.lib.store[k] || null; },
                safeSetItem: function(k, v) { global.lib.store[k] = v; }, store: {} };
@@ -47,11 +49,15 @@ function article(pushes, author) {
 
 // A real PttChromePref with storage / screen calls stubbed out.
 function makePref(values) {
-  var app = { view: { redraw: function() {} }, reader: null, showToast: function() {} };
+  var app = { redraws: 0, toasts: [], reader: null };
+  app.view = { redraw: function() { app.redraws++; } };
+  app.showToast = function(t) { app.toasts.push(t); };
+  app.doAddBlacklistUserId = function(id) { app.pref.blacklistedUserIds[id] = true; };
   var pref = new PttChromePref(app, function() {});
   pref.values = Object.assign({}, DEFAULT_PREFS, values || {});
   pref.setStorage = function() {};
   pref.refreshTempBlacklistOnUi = function() {};
+  pref.refreshBlacklistOnUi = function() {};
   app.pref = pref;
   return pref;
 }
@@ -244,6 +250,62 @@ test('same URL in 4 articles: blacklisted with the reason', function() {
   assert.strictEqual(info.n, 4);
   assert.strictEqual(info.link, 'example.com/buy');
   assert.strictEqual(info.title, '文4');
+});
+
+function spamArticle(i, id) {
+  return { url: 'https://www.ptt.cc/bbs/Test/M.' + i + '.A.html', text: '',
+           meta: { '作者': 'op', '標題': '文' + i, '看板': 'Test' },
+           pushes: [{ id: id || 'spammer', content: 'https://example.com/buy' }] };
+}
+
+test('spam: taken off by hand, not put back when the article is opened again', function() {
+  lib.store = {};
+  var pref = makePref();
+  var guard = new SpamGuard(pref.app);
+  for (var i = 1; i <= 4; ++i) guard.record(spamArticle(i));
+  assert.ok(pref.isBlacklisted('spammer'));
+  pref.removeTempBlacklist('spammer');
+  guard.record(spamArticle(4));
+  guard.record(spamArticle(5));
+  assert.ok(!pref.isBlacklisted('spammer'));
+});
+test('spam: keep-removed rule off: put back', function() {
+  lib.store = {};
+  var pref = makePref({ factFloodRunKeepRemoved: false });
+  var guard = new SpamGuard(pref.app);
+  for (var i = 1; i <= 4; ++i) guard.record(spamArticle(i));
+  pref.removeTempBlacklist('spammer');
+  guard.record(spamArticle(4));
+  assert.ok(pref.isBlacklisted('spammer'));
+});
+test('spam: the toast names the article', function() {
+  lib.store = {};
+  var pref = makePref();
+  var guard = new SpamGuard(pref.app);
+  for (var i = 1; i <= 4; ++i) guard.record(spamArticle(i));
+  assert.strictEqual(pref.app.toasts.length, 1);
+  assert.ok(pref.app.toasts[0].indexOf('[Test] 文4') >= 0, pref.app.toasts[0]);
+});
+
+// ---- automatic blacklist: batch, toast, permanent ---------------------------------
+
+console.log('自動黑名單');
+
+test('3 flooders in one article: one redraw, 3 toasts naming the article', function() {
+  var ps = many('a1', 10, 1).concat(many('a2', 10, 1), many('a3', 10, 1));
+  var r = analyze(article(ps));
+  ['a1', 'a2', 'a3'].forEach(function(id) { assert.ok(r.pref.isBlacklisted(id), id); });
+  assert.strictEqual(r.pref.app.redraws, 1);
+  assert.strictEqual(r.pref.app.toasts.length, 3);
+  r.pref.app.toasts.forEach(function(t) { assert.ok(t.indexOf('[Test] [問卦] 測試') >= 0, t); });
+});
+test('make permanent: moves from the temporary list to the blacklist', function() {
+  var r = analyze(article(many('aaa', 10, 1)));
+  r.pref.makeTempBlacklistPermanent('aaa');
+  assert.ok(!('aaa' in r.pref.tempBlacklist));
+  assert.ok(!('aaa' in r.pref.tempBlacklistInfo));
+  assert.ok(r.pref.blacklistedUserIds.aaa);
+  assert.ok(r.pref.isBlacklisted('aaa'));
 });
 
 // ---- settings defaults ----------------------------------------------------------

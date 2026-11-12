@@ -414,14 +414,17 @@ FactCheck.prototype.analyze = function(article) {
                   (exempt7.length ? '；' + exempt7.join('、') + ' 你手動移除過，24 小時內不再加入' : ''));
       setTimeout(function() {
         var pref = self7.app.pref;
-        fl.forEach(function(id) {
-          if (pref && !pref.isBlacklisted(id) && !(keep7 && pref.isFloodExempt && pref.isFloodExempt(id))) {
-            pref.addTempBlacklist(id, 24 * 3600 * 1000, {
-              kind: 'flood', n: flooders[id], url: article.url || '',
-              title: (article.meta && article.meta['標題']) || '', board: (article.meta && article.meta['看板']) || ''
-            });
-            if (self7.app.showToast) self7.app.showToast(i18n('flood_autoBlacklisted').replace('%s', id).replace('%n', flooders[id]), 5000);
-          }
+        if (!pref) return;
+        var batch = fl.filter(function(id) { return pref.mayAutoBlacklist(id); }).map(function(id) {
+          return { id: id, ms: 24 * 3600 * 1000, info: {
+            kind: 'flood', n: flooders[id], url: article.url || '',
+            title: (article.meta && article.meta['標題']) || '', board: (article.meta && article.meta['看板']) || ''
+          } };
+        });
+        pref.addTempBlacklistMany(batch);
+        batch.forEach(function(b) {
+          if (self7.app.showToast) self7.app.showToast(i18n('flood_autoBlacklisted').replace('%s', b.id).replace('%n', b.info.n) +
+                                                       pref.autoBlacklistWhere(b.info), 5000);
         });
       }, 0);
     }

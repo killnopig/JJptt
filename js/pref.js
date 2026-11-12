@@ -35,18 +35,27 @@ PttChromePref.prototype = {
   // info (optional) says why, for the list in settings:
   // { kind: 'flood' | 'spam', n: count, link: spammed URL, url / title / board: the article }
   addTempBlacklist: function(id, ms, info) {
-    id = String(id).toLowerCase();
+    this.addTempBlacklistMany([{ id: id, ms: ms, info: info }]);
+  },
+
+  // Several at once (one article can catch a few), then one redraw.
+  addTempBlacklistMany: function(list) {
+    if (!list.length) return;
     this.pruneTempBlacklist();
-    this.tempBlacklist[id] = Date.now() + ms;
-    if (info) this.tempBlacklistInfo[id] = info;
-    else delete this.tempBlacklistInfo[id];
+    for (var j = 0; j < list.length; ++j) {
+      var id = String(list[j].id).toLowerCase();
+      this.tempBlacklist[id] = Date.now() + list[j].ms;
+      if (list[j].info) this.tempBlacklistInfo[id] = list[j].info;
+      else delete this.tempBlacklistInfo[id];
+    }
     this.saveTempBlacklist();
     this.app.view.redraw(true);
     if (this.app.reader) this.app.reader.rerender();
   },
 
-  // Taken off the blacklist by hand: also keep 連推 from putting them back
-  // on for 24 hours (it runs again every time the article is shown).
+  // Taken off the blacklist by hand: also keep the automatic rules (連推,
+  // 同網址洗版) from putting them back for 24 hours -- they run again every
+  // time an article is loaded.
   removeTempBlacklist: function(id) {
     id = String(id).toLowerCase();
     this.pruneFloodExempt();
@@ -62,6 +71,32 @@ PttChromePref.prototype = {
   isFloodExempt: function(id) {
     var until = this.floodExempt[String(id).toLowerCase()];
     return !!(until && until > Date.now());
+  },
+
+  // " ，在 [Board] title" for the automatic-blacklist toasts.
+  autoBlacklistWhere: function(info) {
+    if (!info || !info.title) return '';
+    return i18n('autoBlack_in').replace('%t', (info.board ? '[' + info.board + '] ' : '') + info.title);
+  },
+
+  // May an automatic rule (連推, 同網址洗版) put this id on the blacklist now?
+  // Not if already there, nor (option, default on) if the user took them off
+  // by hand in the last 24 hours.
+  mayAutoBlacklist: function(id) {
+    if (this.isBlacklisted(id)) return false;
+    var keep = !this.values || this.values.factFloodRunKeepRemoved !== false;
+    return !(keep && this.isFloodExempt(id));
+  },
+
+  // Temporary -> permanent (button in the list of automatic ones).
+  makeTempBlacklistPermanent: function(id) {
+    id = String(id).toLowerCase();
+    delete this.tempBlacklist[id];
+    delete this.tempBlacklistInfo[id];
+    this.saveTempBlacklist();
+    this.app.doAddBlacklistUserId(id);
+    this.refreshBlacklistOnUi();  // the textarea is read back on save
+    if (this.app.reader) this.app.reader.rerender();
   },
 
   pruneFloodExempt: function() {
@@ -122,6 +157,11 @@ PttChromePref.prototype = {
         self.refreshTempBlacklistOnUi();
         self.app.view.redraw(true);
         if (self.app.reader) self.app.reader.rerender();
+      }).appendTo(row);
+      row.append(document.createTextNode(' '));
+      $('<a href="#"></a>').text(i18n('options_tempBlacklistPermanent')).click(function(e) {
+        e.preventDefault();
+        self.makeTempBlacklistPermanent(id);
       }).appendTo(row);
     });
   },

@@ -751,7 +751,7 @@ locale.zh_TW = {
     "message": "原 PO 在自己文章裡連續回覆不算"
   },
   "options_factFloodRunKeepRemoved": {
-    "message": "手動移出黑名單的人，24 小時內不再自動加入"
+    "message": "手動移出黑名單的人，24 小時內不再被自動規則加回去（連推、同網址洗版都算）"
   },
   "tempBlack_flood": {
     "message": "連推 %n 則"
@@ -767,6 +767,12 @@ locale.zh_TW = {
   },
   "options_layoutRefreshNote": {
     "message": "排版跑掉（字重疊、錯位、改了設定畫面沒跟著變）時，先按重新整理（Mac 按 ⌘ + R，Windows 按 F5）看看有沒有改善。重新整理會重新連線（沒設自動登入的話要再登入一次），設定不會不見。"
+  },
+  "options_tempBlacklistPermanent": {
+    "message": "改成永久"
+  },
+  "autoBlack_in": {
+    "message": "，在 %t"
   },
   "options_tempBlacklistRemove": {
     "message": "移除"
