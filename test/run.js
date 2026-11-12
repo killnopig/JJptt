@@ -513,6 +513,7 @@ console.log('Android app (JJPtt: login / push / reply)');
 // Keys typed are recorded; `typed` joins send() and type().
 function fakePtt(script) {
   var at = 0, typed = [];
+  script.echo = ECHO;
   var app = {
     pref: { values: {} },
     buf: { rows: 24, cols: 80, getRowText: function(r) { return script[at][0].split('\n')[r] || ''; } },
@@ -526,7 +527,11 @@ function fakePtt(script) {
   };
   function move(k) {
     var next = script[at][1] && script[at][1][k];
-    if (next !== undefined) at = next;
+    if (next === undefined) return;  // keys PTT isn't waiting for are lost
+    at = next;
+    // a screen with [text, keys, { after: ms, to: n }] moves on by itself
+    var auto = script[at][2];
+    if (auto) setTimeout(function() { if (script[at][2] === auto) at = auto.to; }, auto.after);
   }
   var ptt = new JJPtt(app);
   return { ptt: ptt, typed: typed, app: app };
@@ -540,14 +545,17 @@ test('AID from the web address (known pair M.1451110159.A.379 = 1MVYyFDv)', func
   assert.strictEqual(JJPtt.boardFromUrl('https://www.ptt.cc/bbs/Gossiping/M.1.A.1.html'), 'Gossiping');
 });
 
+// After the account PTT shows it for a moment (screen 6), then asks for the
+// password (ECHO); anything typed before that is lost, like on the real PTT.
 var LOGIN = [
-  ['請輸入代號，或以 guest 參觀，或以 new 註冊:', { 'tester\r': 1 }],
-  ['請輸入您的密碼:', { 'right\r': 2, 'wrong\r': 5 }],
+  ['請輸入代號，或以 guest 參觀，或以 new 註冊:', { 'tester\r': 'echo' }],
+  ['請輸入代號，或以 guest 參觀，或以 new 註冊: tester\n請輸入您的密碼:', { 'right\r': 2, 'wrong\r': 5 }],
   ['您想刪除其他重複登入的連線嗎？[Y/n]', { 'n\r': 3 }],
   ['請按任意鍵繼續', { ' ': 4 }],
   ['【主功能表】 批踢踢實業坊', {}],
   ['密碼不對喔！請輸入代號:', {}]
 ];
+var ECHO = ['請輸入代號，或以 guest 參觀，或以 new 註冊: tester', {}, { after: 40, to: 1 }];
 
 testAsync('login: account, password, keeps the other login, any key, main menu', async function() {
   var f = fakePtt(LOGIN);

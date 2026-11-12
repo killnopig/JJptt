@@ -173,7 +173,12 @@ JJPtt.prototype.doLogin = function(user, pass) {
     return self.wait({ user: /請輸入代號/ }, 20000);
   }).then(function() {
     self.type(user + '\r');
-    return self.wait({ pass: /請輸入您的密碼/, user: /請輸入代號.*\S+\s*$/m }, 10000);
+    // only once PTT really asks for the password: what is typed before that
+    // is thrown away (that made right passwords fail)
+    return self.wait({ pass: /請輸入您的密碼/, nouser: /無此帳號|帳號不存在|沒有這個帳號/ }, 15000);
+  }).then(function(k) {
+    if (k === 'nouser') throw new Error('沒有這個帳號（' + user + '）');
+    return JJPtt.sleep(300);
   }).then(function() {
     self.type(pass + '\r');
     return self.pastLogin();
