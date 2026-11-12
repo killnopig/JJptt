@@ -39,7 +39,7 @@ PttReader.KEYS_PREV = '\x1b[D\x1b[A\x1b[C';
 PttReader.KEYS_NEXT = '\x1b[D\x1b[B\x1b[C';
 
 PttReader.prototype.available = function() {
-  return lib.isExtension() && typeof DOMParser !== 'undefined';
+  return lib.canReadPttWeb() && typeof DOMParser !== 'undefined';
 };
 
 PttReader.prototype.setEnabled = function(enabled) {
@@ -140,6 +140,10 @@ PttReader.prototype.onTerminalUpdate = function() {
 // set as a fallback.
 PttReader.prototype.ensureOver18 = function() {
   if (this.cookieReady) return this.cookieReady;
+  if (!lib.isExtension()) {  // the app sends the cookie with each request
+    this.cookieReady = Promise.resolve();
+    return this.cookieReady;
+  }
   var addRule = new Promise(function(resolve) {
     var dnr = chrome.declarativeNetRequest;
     if (!(dnr && dnr.updateSessionRules)) {
@@ -182,6 +186,9 @@ PttReader.prototype.ensureOver18 = function() {
 
 PttReader.prototype.fetchDoc = function(url) {
   return this.ensureOver18().then(function() {
+    // the app's fetch goes through Android (CapacitorHttp): no browser
+    // limits on reading www.ptt.cc, but cookies have to be sent by hand
+    if (lib.isApp()) return fetch(url, { headers: { 'Cookie': 'over18=1' } });
     return fetch(url, { credentials: 'include' });
   }).then(function(res) {
     if (/\/ask\/over18/.test(res.url)) throw new Error(i18n('reader_err_over18'));
@@ -189,7 +196,9 @@ PttReader.prototype.fetchDoc = function(url) {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.text();
   }).then(function(html) {
-    return new DOMParser().parseFromString(html, 'text/html');
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    if (doc.querySelector('form[action*="/ask/over18"]')) throw new Error(i18n('reader_err_over18'));
+    return doc;
   });
 };
 
@@ -952,7 +961,11 @@ PttReader.PREVIEW_ORIGINS = ['http://*/*', 'https://*/*'];
 
 PttReader.prototype.previewPermission = function() {
   return new Promise(function(resolve) {
-    if (!(chrome.permissions && chrome.permissions.contains)) {
+    if (lib.isApp()) {  // the app may read any site (link previews just work)
+      resolve(true);
+      return;
+    }
+    if (!(window.chrome && chrome.permissions && chrome.permissions.contains)) {
       resolve(false);
       return;
     }
@@ -1423,9 +1436,17 @@ PttReader.prototype.layout = function() {
   page.style.marginLeft = Math.max(0, rect.left + gutter) + 'px';
   page.style.paddingTop = '0px';
   this.rightSpaceCols = Math.max(0, (window.innerWidth - (rect.left + gutter) - chw * 80) / chw);
-  scroller.style.marginTop = Math.max(0, rect.top) + 'px';
-  scroller.style.height = (chh * (rows - 1)) + 'px';
-  o.style.setProperty('--jj-box-h', (chh * (rows - 1)) + 'px');
+  var boxH = chh * (rows - 1);
+  var top = Math.max(0, rect.top);
+  if (document.body.classList.contains('jj-mobile')) {
+    // phone: the article fills the screen, above the status line and the
+    // ◀ / 返回 / ▶ buttons (js/mobile.js)
+    top = 0;
+    boxH = Math.max(chh * 5, window.innerHeight - chh - JJMobile.READER_BAR_PX);
+  }
+  scroller.style.marginTop = top + 'px';
+  scroller.style.height = boxH + 'px';
+  o.style.setProperty('--jj-box-h', boxH + 'px');
   // image height limit (setting, % of the box)
   var pref = this.app.pref;
   var pct = parseInt(pref && pref.values ? pref.values.readerImageMaxPercent : 40, 10);

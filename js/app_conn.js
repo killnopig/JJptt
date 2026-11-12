@@ -23,6 +23,69 @@ lib.isExtension = function() {
     typeof chrome.runtime.connectNative === 'function';
 };
 
+// Android app (mobile/): connects to PTT itself through the PttSocket plugin
+// and reads www.ptt.cc directly (CapacitorHttp), like the extension does.
+lib.isApp = function() {
+  return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+};
+
+// Can this page read www.ptt.cc pages itself (extension or app)?
+lib.canReadPttWeb = function() {
+  return lib.isExtension() || lib.isApp();
+};
+
+// The app's PttSocket plugin dressed up as the extension's native-messaging
+// port (onMessage / onDisconnect / postMessage / disconnect), so connectNative
+// works the same for both.
+lib.openAppPort = function() {
+  var C = window.Capacitor;
+  var plugin = (C.Plugins && C.Plugins.PttSocket) || C.registerPlugin('PttSocket');
+  var onMsg = [], onDisc = [], handles = [], done = false;
+  var fire = function(list, arg) { list.slice().forEach(function(f) { f(arg); }); };
+  var drop = function() {
+    handles.forEach(function(h) { try { h.remove(); } catch (e) {} });
+    handles = [];
+  };
+  var end = function() {
+    if (done) return;
+    done = true;
+    drop();
+    fire(onDisc);
+  };
+  var listen = function(name, fn) {
+    return Promise.resolve(plugin.addListener(name, function(d) { if (!done) fn(d || {}); })).then(function(h) {
+      if (done) h.remove(); else handles.push(h);
+    });
+  };
+  var ready = Promise.all([
+    listen('connected', function() { fire(onMsg, { type: 'connected' }); }),
+    listen('data', function(d) { fire(onMsg, { type: 'data', data: d.data }); }),
+    listen('error', function(d) { fire(onMsg, { type: 'error', message: d.message }); }),
+    listen('closed', end)
+  ]);
+  return {
+    onMessage: { addListener: function(f) { onMsg.push(f); } },
+    onDisconnect: { addListener: function(f) { onDisc.push(f); } },
+    postMessage: function(m) {
+      if (done) return;
+      if (m.type === 'connect') {
+        ready.then(function() { return plugin.connect({ host: m.host, port: m.port }); }).catch(function(e) {
+          fire(onMsg, { type: 'error', message: String((e && e.message) || e) });
+          end();
+        });
+      } else if (m.type === 'send') {
+        plugin.send({ data: m.data }).catch(function() {});
+      }
+    },
+    disconnect: function() {  // closed on purpose: no onDisconnect, like chrome
+      if (done) return;
+      done = true;
+      drop();
+      plugin.close().catch(function() {});
+    }
+  };
+};
+
 lib.normalizeRelayUrl = function(url) {
   return url.trim().replace(/^https:\/\//, 'wss://').replace(/\/+$/, '');
 };
@@ -194,7 +257,7 @@ lib.AppConnection.prototype.connectTcp = function(host, port, keepAlive) {
   }
   this.closeSocket();
 
-  if (lib.isExtension()) {
+  if (lib.isExtension() || lib.isApp()) {
     this.connectNative(host, port);
     return;
   }
@@ -251,7 +314,7 @@ lib.AppConnection.prototype.connectNative = function(host, port) {
   var self = this;
   var nativePort;
   try {
-    nativePort = chrome.runtime.connectNative(lib.NATIVE_HOST_NAME);
+    nativePort = lib.isApp() ? lib.openAppPort() : chrome.runtime.connectNative(lib.NATIVE_HOST_NAME);
   } catch (e) {
     console.log('native host connect failed', e);
     setTimeout(function() {
@@ -282,10 +345,10 @@ lib.AppConnection.prototype.connectNative = function(host, port) {
     }
   });
   nativePort.onDisconnect.addListener(function() {
-    var err = chrome.runtime.lastError;
+    var err = window.chrome && chrome.runtime && chrome.runtime.lastError;
     if (self.nativePort !== nativePort) return;  // closed on purpose
     self.nativePort = null;
-    if (!opened && !hostError) {
+    if (!opened && !hostError && !lib.isApp()) {
       console.log('native host unavailable', err && err.message);
       lib.showNativeHostMissing();
     }

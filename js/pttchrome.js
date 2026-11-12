@@ -93,6 +93,8 @@ pttchrome.App = function(onInitializedCallback, options) {
   this.updater = new JJUpdater(this);
   this.spamGuard = new SpamGuard(this);
   this.reader = new PttReader(this);
+  this.mobile = new JJMobile(this);  // phone keys and layout (Android app only)
+  this.mobile.setup();
 
   this.navigateTo = { board: getQueryVariable('board'), aid: getQueryVariable('aid') };
   this.navigationDone = false;

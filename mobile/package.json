@@ -1,0 +1,13 @@
+{
+  "name": "jjptt-mobile",
+  "private": true,
+  "description": "JJptt Android app: the same JJptt, connecting to PTT directly (no relay)",
+  "scripts": {
+    "build": "node build.js && npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.6.0",
+    "@capacitor/cli": "8.6.0",
+    "@capacitor/core": "8.6.0"
+  }
+}

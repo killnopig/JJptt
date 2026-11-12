@@ -1368,3 +1368,42 @@ input.jj-color { width: 80px !important; height: 34px; padding: 2px; }
 /* watchlist (purple) / custom list (cyan) IDs, in lists and pushes */
 .jj-who-watch { color: #d58bff !important; font-weight: bold; }
 .jj-who-note { color: #4fd1e8 !important; font-weight: bold; }
+
+
+/* ---- JJptt on phones (Android app: body.jj-mobile, js/mobile.js) ---- */
+#jjKeyBar, #jjReaderNav { display: none; }
+body.jj-mobile #jjKeyBar,
+body.jj-mobile #jjReaderNav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 3100;
+  gap: 4px; padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  background: rgba(20, 20, 20, .96); border-top: 1px solid #333;
+}
+body.jj-mobile #jjKeyBar { overflow-x: auto; }
+body.jj-mobile #jjKeyBar button,
+body.jj-mobile #jjReaderNav button {
+  flex: 1 0 auto; min-width: 40px; height: 42px; padding: 0 8px;
+  border: 0; border-radius: 8px; background: #3a3a3a; color: #eee;
+  font-size: 17px; -webkit-tap-highlight-color: transparent;
+}
+body.jj-mobile #jjKeyBar button:active,
+body.jj-mobile #jjReaderNav button:active { background: #5a5a5a; }
+body.jj-mobile #jjReaderNav button { flex: 1 1 0; font-size: 16px; }
+body.jj-mobile #jjReaderNav { height: 60px; box-sizing: border-box; padding-top: 6px; padding-bottom: 6px; }
+
+/* settings: one column, sections as a row of tabs on top */
+body.jj-mobile #prefModal > .modal-dialog { width: 100%; min-width: 0; height: 100%; min-height: 0; margin: 0; }
+body.jj-mobile #prefModal .modal-content { border-radius: 0; display: flex; flex-direction: column; }
+body.jj-mobile #modalNav { width: auto; height: auto; padding: 8px 48px 0 12px; box-shadow: none; flex: 0 0 auto; }
+body.jj-mobile #modalNav h3 { margin: 4px 0 6px; font-size: 20px; }
+body.jj-mobile #opt_tabs { display: flex; overflow-x: auto; white-space: nowrap; margin-top: 0; }
+body.jj-mobile #opt_tabs > li { float: none; flex: 0 0 auto; margin: 0 2px 0 0; }
+body.jj-mobile #opt_tabs > li > a { padding: 8px 10px; }
+body.jj-mobile #opt_saveArea { position: static; width: auto; display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+body.jj-mobile #opt_saveArea #opt_save { width: auto; }
+body.jj-mobile #opt_autosaveHint { display: none; }
+body.jj-mobile #opt_reset { position: static; margin: 0 0 6px; }
+body.jj-mobile #modalHeader { display: none; }
+body.jj-mobile #prefModal .modal-body {
+  position: static; width: auto !important; height: auto !important; margin: 0;
+  flex: 1 1 auto; overflow-y: auto; padding: 10px 14px 40px;
+}

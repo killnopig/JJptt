@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">JJptt</string>
+    <string name="title_activity_main">JJptt</string>
+    <string name="package_name">com.jjptt.app</string>
+    <string name="custom_url_scheme">com.jjptt.app</string>
+</resources>
