@@ -32,6 +32,8 @@
 JJptt 是 Chrome 擴充功能，加上一個連線用的「本機小程式」。兩個都裝好才能用。
 支援電腦版的 Chrome、Edge、Brave、Arc、Vivaldi；手機不行。
 
+不想用 Git 的話，也可以到 [Releases](https://github.com/killnopig/JJptt/releases/latest) 下載 `JJptt-extension-版本.zip`（解壓縮後的 `extension` 資料夾就是步驟 4 要選的）和 `JJptt-native-host-版本.zip`（解壓縮後執行裡面的安裝檔）。用 zip 安裝的話「立即更新」不能用，新版要重新下載；下面用 `git clone` 的方式可以一鍵更新。
+
 ### Mac
 
 **步驟 1：打開「終端機」**
